@@ -113,22 +113,50 @@ class VideoDataset(torch.utils.data.Dataset):
 
         # go through zip and populate splits with frame locations and action groundtruths
         if self.zip:
-            dir_list = list(set([x for x in self.zfile.namelist() if '.jpg' not in x]))
+            img_list = [x for x in self.zfile.namelist() if x.lower().endswith(".jpg")]
+            img_list.sort()
+            if len(img_list) == 0:
+                raise RuntimeError(f"No jpg frames found in zip: {zip_fn}")
 
-            class_folders = list(set([x.split(os.sep)[-3] for x in dir_list if len(x.split(os.sep)) > 2]))
-            class_folders.sort()
+            # 直接從 jpg path 解析 class/video
+            # 預期格式: class_folder/video_folder/00000001.jpg
+            triples = []
+            for p in img_list:
+                parts = p.split("/")
+                if len(parts) < 3:
+                    continue
+                class_folder, video_folder = parts[-3], parts[-2]
+                triples.append((class_folder, video_folder))
+
+            class_folders = sorted(list(set([c for c, v in triples])))
+            video_folders = sorted(list(set([v for c, v in triples])))
+            if len(video_folders) == 0:
+                raise RuntimeError("No video folders parsed from zip. Check zip internal paths.")
+
             self.class_folders = class_folders
-            video_folders = list(set([x.split(os.sep)[-2] for x in dir_list if len(x.split(os.sep)) > 3]))
-            video_folders.sort()
             self.video_folders = video_folders
 
             class_folders_indexes = {v: k for k, v in enumerate(self.class_folders)}
             video_folders_indexes = {v: k for k, v in enumerate(self.video_folders)}
-            
-            img_list = [x for x in self.zfile.namelist() if '.jpg' in x]
-            img_list.sort()
 
-            c = self.get_train_or_test_db(video_folders[0])
+            # 這行原本只是為了避免 video_folders 空而做的「無意義 call」，其實可刪
+    
+            #dir_list = list(set([x for x in self.zfile.namelist() if '.jpg' not in x]))
+#
+            #class_folders = list(set([x.split(os.sep)[-3] for x in dir_list if len(x.split(os.sep)) > 2]))
+            #class_folders.sort()
+            #self.class_folders = class_folders
+            #video_folders = list(set([x.split(os.sep)[-2] for x in dir_list if len(x.split(os.sep)) > 3]))
+            #video_folders.sort()
+            #self.video_folders = video_folders
+#
+            #class_folders_indexes = {v: k for k, v in enumerate(self.class_folders)}
+            #video_folders_indexes = {v: k for k, v in enumerate(self.video_folders)}
+            #
+            #img_list = [x for x in self.zfile.namelist() if '.jpg' in x]
+            #img_list.sort()
+#
+            #c = self.get_train_or_test_db(video_folders[0])
 
             last_video_folder = None
             last_video_class = -1

@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+#idk
+checkpoints_trx_hmdb/
+*.zip
+hmdb51_org/
+runs/

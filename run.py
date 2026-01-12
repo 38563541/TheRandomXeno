@@ -13,6 +13,12 @@ from torch.utils.tensorboard import SummaryWriter
 import torchvision
 import video_reader
 import random 
+import datetime
+
+
+
+
+
 
 
 def main():
@@ -75,10 +81,12 @@ class Learner:
     """
     def parse_command_line(self):
         parser = argparse.ArgumentParser()
+        
 
         parser.add_argument("--dataset", choices=["ssv2", "kinetics", "hmdb", "ucf"], default="ssv2", help="Dataset to use.")
         parser.add_argument("--learning_rate", "-lr", type=float, default=0.001, help="Learning rate.")
         parser.add_argument("--tasks_per_batch", type=int, default=16, help="Number of tasks between parameter optimizations.")
+        
         parser.add_argument("--checkpoint_dir", "-c", default=None, help="Directory to save checkpoint to.")
         parser.add_argument("--test_model_path", "-m", default=None, help="Path to model to load and test.")
         parser.add_argument("--training_iterations", "-i", type=int, default=100020, help="Number of meta-training iterations.")
@@ -99,7 +107,9 @@ class Learner:
         parser.add_argument("--save_freq", type=int, default=5000, help="Number of iterations between checkpoint saves.")
         parser.add_argument("--img_size", type=int, default=224, help="Input image size to the CNN after cropping.")
         parser.add_argument('--temp_set', nargs='+', type=int, help='cardinalities e.g. 2,3 is pairs and triples', default=[2,3])
-        parser.add_argument("--scratch", choices=["bc", "bp"], default="bp", help="directory containing dataset, splits, and checkpoint saves.")
+        parser.add_argument("--scratch", type=str, default=os.path.expanduser("~/trx_data"),
+                    help="Root dir containing video_datasets/{data,splits} and checkpoints")
+
         parser.add_argument("--num_gpus", type=int, default=1, help="Number of GPUs to split the ResNet over")
         parser.add_argument("--debug_loader", default=False, action="store_true", help="Load 1 vid per class for debugging")
         parser.add_argument("--split", type=int, default=7, help="Dataset split.")
@@ -107,18 +117,27 @@ class Learner:
 
         args = parser.parse_args()
         
-        if args.scratch == "bc":
-            args.scratch = "/mnt/storage/home/tp8961/scratch"
-        elif args.scratch == "bp":
-            args.num_gpus = 4
-            # this is low becuase of RAM constraints for the data loader
-            args.num_workers = 3
-            args.scratch = "/work/tp8961"
+        #if args.scratch == "bc":
+        #    args.scratch = "/mnt/storage/home/tp8961/scratch"
+        #elif args.scratch == "bp":
+        #    args.num_gpus = 4
+        #    # this is low becuase of RAM constraints for the data loader
+        #    args.num_workers = 3
+        #    args.scratch = "/work/tp8961"
         
         if args.checkpoint_dir == None:
             print("need to specify a checkpoint dir")
             exit(1)
+        # ===== 新增：自動加時間戳子目錄 =====
+         
 
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        args.checkpoint_dir = os.path.join(
+            args.checkpoint_dir,
+            f"{args.dataset}_split{args.split}_{timestamp}"
+        )
+        # ===================================
         if (args.method == "resnet50") or (args.method == "resnet34"):
             args.img_size = 224
         if args.method == "resnet50":
@@ -136,7 +155,7 @@ class Learner:
             args.traintestlist = os.path.join(args.scratch, "video_datasets/splits/ucfTrainTestlist")
             args.path = os.path.join(args.scratch, "video_datasets/data/UCF-101_320.zip")
         elif args.dataset == "hmdb":
-            args.traintestlist = os.path.join(args.scratch, "video_datasets/splits/hmdb51TrainTestlist")
+            args.traintestlist = os.path.join(args.scratch, "video_datasets/splits/hmdb_ARN")
             args.path = os.path.join(args.scratch, "video_datasets/data/hmdb51_256q5.zip")
 
         return args
