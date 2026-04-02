@@ -1,60 +1,214 @@
-# Temporal-Relational Cross-Transformers (TRX)
+# TRX-SetBased: Set Matching for Few-Shot Action Recognition
 
+A research project extending [TRX (CVPR 2021)](https://arxiv.org/abs/2101.06184) by replacing its prototype-aggregation matching with bidirectional set matching over temporal tuple embeddings.
 
-This repo contains code for the method introduced in the paper:
+Based on: https://github.com/tobyperrett/few-shot-action-recognition
 
-[Temporal-Relational CrossTransformers for Few-Shot Action Recognition](https://arxiv.org/abs/2101.06184)
+---
 
-We provide two ways to use this method. The first is to incorporate it into your own few-shot video framework to allow direct comparisons against your method using the same codebase. This is recommended, as everyone has different systems, data storage etc. The second is a full train/test framework, which you will need to modify to suit your system.
+## Motivation
 
-For a quick demo of how the model works with some dummy data, just run:
+### English
 
-	python model.py
+Few-shot action recognition (FSAR) requires classifying videos from only a handful of examples. TRX addresses this with *temporal tuples* — pairs (or triples) of frames whose relative ordering captures motion — and a CrossTransformer that aggregates support tuples into a query-specific prototype before computing distance.
 
+The key limitation: **aggregation discards set structure**. Once you compute a prototype, you lose the individual support tuple embeddings and can no longer reason about which parts of the support set are actually relevant to a given query.
 
-## Use within your own few-shot framework (recommended)
+This project asks: *what if we skip the aggregation and match query tuples directly against the full set of support tuples?*
 
-TRX_CNN in model.py contains a TRX with multiple cardinalities (i.e. pairs, triples etc.) and a ResNet backbone. It takes in support set videos, support set labels and query videos. It outputs the distances from each query video to each of the query-specific support set prototypes which are used as logits. Feed this into the loss from utils.py. An example of how it is constructed with the required arguments, and how it is called (with input dimensions etc.) is in main in model.py
+### 動機（繁體中文）
 
-You can use it with ResNet18 with 84x84 resolution on one GPU, but we recommend distributing the CNN over multiple GPUs so you can use ResNet50, 224x224 and 5 query videos per class. How you do this will depend on your system, but the function distribute shows how we do it.
+TRX 的流程是：support tuple → 加權聚合 → prototype → 與 query 計算距離。  
+這個 prototype 是 query-specific 的，但聚合之後 support set 的結構就消失了。
 
-Use episodic training. That is, construct a random task from the training dataset like e.g. MAML, prototypical nets etc.. Average gradients and backpropogate once every 16 training tasks. You can look at the rest of the code for an example of how this is done.
+我們的做法是移除 prototype 聚合，改為直接對 query tuple set 和 support tuple set 做 **set-level matching**（雙向 Mean-Hausdorff），讓每個 query tuple 都能找到最近的 support tuple，反之亦然。這在概念上更接近 HyRSM 的精神，但作用在 tuple embedding 層，而非 frame 層。
 
+---
 
+## Method
 
-## Use with our framework
+### TRX (Baseline)
 
-It includes the training and testing process, data loader, logging and so on. It's fairly system specific, in particular the data loader, so it is recommended that you use within your own framework (see above).
+```
+Support frames → tuples → K/V projections → CrossTransformer attention → prototype
+Query frames   → tuples → Q projections  →              ↓
+                                         distance(query_v, prototype) → logit
+```
 
-Download your chosen dataset, and extract frames to be of the form dataset/class/video/frame-number.jpg (8 digits, zero-padded).
-To prepare your data, zip the dataset folder with no compression. We did this as our filesystem has a large block size and limited number of individual files, which means one large zip file has to be stored in RAM. If you don't have this limitation (hopefully you won't because it's annoying) then you may prefer to use a different data loading process.
+The CrossTransformer computes a *query-specific prototype* by soft-attending over support tuples. Distance is measured between the query tuple set and this aggregated prototype.
 
-Put your desired splits in text files (see below for a description of splits). These should be called trainlistXX.txt and testlistXX.txt. XX is a 0-padded number, e.g. 01. You can have separate text files for evaluating on the validation set, e.g. trainlist01.txt/testlist01.txt to train on the train set and evaluate on the the test set, and trainlist02.txt/testlist02.txt to train on the train set and evaluate on the validation set. The number is passed as a command line argument.
+### This Work: Tuple-Level Set Matching
 
-Modify the distribute function in model.py. We have 4 x 11GB GPUs, so we split the ResNets over the 4 GPUs and leave the cross-transformer part on GPU 0. The ResNets are always split evenly across all GPUs specified, so you might have to split the cross-transformer part, or have the cross-transformer part on its own GPU.
+```
+Support frames → PE → pair concatenation → embed+norm → support tuple set S
+Query frames   → PE → pair concatenation → embed+norm → query tuple set   Q
 
-Modify the command line parser in run.py so it has the correct paths and filenames for the dataset zip and split text files.
+logit = −Hausdorff_mean_bidir(Q, S)
+```
 
-To run the SSv2 OTAM split for example (see paper for other hyperparams), you can then do:
+The **bidirectional mean-Hausdorff distance** is:
 
-	python run.py -c checkpoint_dir --query_per_class 5 --shot 5 --way 5 --trans_linear_out_dim 1152 --tasks_per_batch 16 --test_iters 75000 --dataset ssv2 --split 7 -lr 0.001 --method resnet50 --img_size 224
+```
+D(Q, S) = 0.5 × (mean_q min_s ||q−s||²  +  mean_s min_q ||s−q||²)
+```
 
-Most of these are the default args.
+- No prototype aggregation — every support tuple participates directly in matching.
+- Symmetric: both directions (Q→S and S→Q) contribute.
+- VRAM-efficient: support tuples are processed in chunks.
 
+---
 
-## Splits
-We used https://github.com/ffmpbgrnn/CMN for Kinetics and SSv2, which are provided by the authors of the authors of [CMN](https://openaccess.thecvf.com/content_ECCV_2018/papers/Linchao_Zhu_Compound_Memory_Networks_ECCV_2018_paper.pdf) (Zhu and Yang, ECCV 2018). We also used the split from [OTAM](https://openaccess.thecvf.com/content_CVPR_2020/papers/Cao_Few-Shot_Video_Classification_via_Temporal_Alignment_CVPR_2020_paper.pdf) (Cao et al. CVPR 2020) for SSv2, and splits from [ARN](https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123500511.pdf) (Zhang et al. ECCV 2020) for HMDB and UCF.  These are all the in the splits folder.
+## Implementation Status
 
+### Stage 1 — Implemented ✓
+
+| Component | Status | Notes |
+|---|---|---|
+| `TemporalCrossTransformerHausdorffPairs` | ✓ Done | `model.py` — replaces original CrossTransformer |
+| Positional encoding on frame features | ✓ Done | Sinusoidal PE (from TRX) |
+| Pair tuple construction | ✓ Done | C(seq\_len, 2) = 28 tuples for seq\_len=8 |
+| Bidirectional mean-Hausdorff distance | ✓ Done | Chunked matmul for VRAM efficiency |
+| Episodic training loop | ✓ Done | `run.py` — multi-step LR, gradient accumulation |
+| HMDB-51 data loading | ✓ Done | Tested on split 3 |
+| TensorBoard logging + checkpointing | ✓ Done | Auto-timestamped checkpoint dirs |
+| ResNet-18/34/50 backbone | ✓ Done | Default: ResNet-18 for single-GPU use |
+
+The original `TemporalCrossTransformer` (TRX attention) is preserved in `model.py` as commented-out code for reference.
+
+### Stage 2 — Planned
+
+- [ ] Intra/inter relation module (HyRSM-style) operating on tuple embeddings
+- [ ] Higher-order tuples (triples, i.e., `temporal_set_size=3`)
+- [ ] Multi-cardinality ensemble (pairs + triples, as in original TRX)
+- [ ] Evaluation on Kinetics and Something-Something V2
+
+---
+
+## Differences from TRX and HyRSM
+
+| | TRX | HyRSM | This work |
+|---|---|---|---|
+| Representation | Temporal tuples | Individual frames | Temporal tuples |
+| Matching level | Tuple → prototype | Frame → set | Tuple → set |
+| Aggregation | Before matching (prototype) | After matching | None (direct set match) |
+| Distance metric | L2 to prototype | Mean-Hausdorff on frames | Mean-Hausdorff on tuples |
+| Temporal modeling | Pair/triple combos | Intra+inter relation | Pair combos (Stage 1) |
+
+---
+
+## Setup
+
+### Requirements
+
+```bash
+pip install torch torchvision tensorflow tensorboard
+```
+
+Python 3.6+ recommended. Tested on RTX 3080 Ti (single GPU).
+
+### Data Preparation
+
+Download your dataset and extract frames as:
+```
+dataset/class/video/00000001.jpg  (8-digit zero-padded)
+```
+
+Then zip with no compression (required by the data loader):
+```bash
+zip -0 -r dataset.zip dataset/
+```
+
+Place the zip and split files under `~/trx_data/video_datasets/`:
+```
+~/trx_data/
+  video_datasets/
+    data/
+      hmdb51_256q5.zip
+    splits/
+      hmdb_ARN/
+        trainlist03.txt
+        vallist03.txt
+        testlist03.txt
+```
+
+Split files for HMDB, UCF, Kinetics, and SSv2 are included in the `splits/` directory.
+
+---
+
+## Running
+
+### Quick model sanity check (no data needed)
+
+```bash
+python model.py
+```
+
+Runs a forward pass with random tensors (5-way 1-shot, ResNet-18, seq_len=8).
+
+### Training on HMDB-51
+
+```bash
+python run.py \
+  -c checkpoints_hmdb_hausdorff \
+  --dataset hmdb \
+  --split 3 \
+  --method resnet18 \
+  --shot 1 \
+  --way 5 \
+  --query_per_class 5 \
+  --tasks_per_batch 16 \
+  --trans_linear_out_dim 128 \
+  --img_size 84 \
+  --seq_len 8 \
+  --learning_rate 0.001
+```
+
+Checkpoint and logs are saved to `checkpoints_hmdb_hausdorff/hmdb_split3_<timestamp>/`.
+
+### Key Arguments
+
+| Argument | Default | Description |
+|---|---|---|
+| `--dataset` | `ssv2` | `hmdb`, `ucf`, `kinetics`, `ssv2` |
+| `--method` | `resnet50` | `resnet18`, `resnet34`, `resnet50` |
+| `--shot` | `5` | Support shots per class |
+| `--way` | `5` | N-way classification |
+| `--seq_len` | `8` | Frames per video |
+| `--trans_linear_out_dim` | `1152` | Tuple embedding dimension |
+| `--split` | `7` | Dataset split index |
+| `--scratch` | `~/trx_data` | Root data directory |
+
+---
+
+## Project Structure
+
+```
+.
+├── model.py            # TemporalCrossTransformerHausdorffPairs + CNN_TRX
+├── run.py              # Episodic training/testing loop
+├── video_reader.py     # Dataset loader (zip-based)
+├── utils.py            # Loss, accuracy, logging utilities
+├── videotransforms/    # Video augmentation (from torch_videovision)
+├── splits/             # Train/val/test split files for all datasets
+└── make_hmdb_trx_zip.py  # Helper to prepare HMDB zip
+```
+
+---
 
 ## Citation
-If you use this code/method or find it helpful, please cite:
 
-	@inproceedings{perrett2021trx,
-	title = {Temporal Relational CrossTransformers for Few-Shot Action Recognition}
-	booktitle = {Computer Vision and Pattern Recognition}
-	year = {2021}}
+If you build on TRX, please cite the original paper:
 
+```bibtex
+@inproceedings{perrett2021trx,
+  title     = {Temporal Relational CrossTransformers for Few-Shot Action Recognition},
+  booktitle = {Computer Vision and Pattern Recognition},
+  year      = {2021}
+}
+```
+
+---
 
 ## Acknowledgements
 
-We based our code on [CNAPs](https://github.com/cambridge-mlg/cnaps) (logging, training, evaluation etc.). We use [torch_videovision](https://github.com/hassony2/torch_videovision) for video transforms. We took inspiration from the image-based [CrossTransformer](https://proceedings.neurips.cc/paper/2020/file/fa28c6cdf8dd6f41a657c3d7caa5c709-Paper.pdf) and the [Temporal-Relational Network](https://openaccess.thecvf.com/content_ECCV_2018/papers/Bolei_Zhou_Temporal_Relational_Reasoning_ECCV_2018_paper.pdf).
+This repo is forked from [tobyperrett/few-shot-action-recognition](https://github.com/tobyperrett/few-shot-action-recognition). Training infrastructure is based on [CNAPs](https://github.com/cambridge-mlg/cnaps). Video transforms from [torch_videovision](https://github.com/hassony2/torch_videovision). The set-matching approach draws conceptual inspiration from [HyRSM (CVPR 2022)](https://openaccess.thecvf.com/content/CVPR2022/papers/Wang_Hybrid_Relation_Guided_Set_Matching_for_Few-Shot_Action_Recognition_CVPR_2022_paper.pdf).
