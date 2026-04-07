@@ -134,3 +134,4 @@ checkpoints_trx_hmdb/
 *.zip
 hmdb51_org/
 runs/
+*.pt

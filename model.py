@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import torch
 import torch.nn as nn
 from collections import OrderedDict
@@ -402,3 +403,55 @@ if __name__ == "__main__":
 
 
 
+=======
+"""
+model.py — thin model factory, backward compatible with run.py.
+
+run.py does:
+    from model import CNN_TRX
+    model = CNN_TRX(args)
+
+CNN_TRX() inspects args and returns the right model:
+
+    Stage 1 (default): use_intra_relation=false AND use_inter_relation=false
+        → CNN_TRX from models/stage1_model.py (no relation modules)
+
+    Stage 2: use_intra_relation=true OR use_inter_relation=true
+        → CNN_TRXWithRelation from models/stage2_model.py
+
+Stage is selected automatically from the YAML config — no code change needed
+when switching between stage1_*.yaml and stage2_*.yaml configs.
+
+All implementation lives in:
+    models/stage1_model.py       — TRXSetMatching (active Stage 1)
+    models/stage2_model.py       — TRXSetMatchingWithRelation (Stage 2)
+    models/trx_original.py       — original prototype TRX (reference baseline)
+    matching/mean_hausdorff.py
+    matching/bidirectional_hausdorff.py
+    matching/attention_weighted_hausdorff.py
+    relation/intra_relation.py
+    relation/inter_relation.py
+"""
+
+from models.stage1_model import CNN_TRX as _Stage1, NUM_SAMPLES  # noqa: F401
+
+
+def CNN_TRX(args):
+    """
+    Model factory. Returns Stage 1 or Stage 2 model based on args.
+
+    Stage 2 is activated when either use_intra_relation or
+    use_inter_relation is True in the config.
+    """
+    use_relation = (
+        getattr(args, "use_intra_relation", False)
+        or getattr(args, "use_inter_relation", False)
+    )
+    if use_relation:
+        from models.stage2_model import CNN_TRXWithRelation
+        return CNN_TRXWithRelation(args)
+    return _Stage1(args)
+
+
+__all__ = ["CNN_TRX", "NUM_SAMPLES"]
+>>>>>>> Stashed changes
