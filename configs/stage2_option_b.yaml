@@ -1,0 +1,29 @@
+# Stage 2 — Option B: Relation at TUPLE level
+# Adds intra- and inter-relation modules operating on tuple embeddings
+# after tuple construction. Relation enriches the per-tuple representation.
+
+matching_method: bidirectional_hausdorff
+bidirectional: true
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (Stage 2 Option B: tuple-level)
+use_intra_relation: true
+use_inter_relation: true
+relation_level: tuple          # relation operates on tuple embeddings (after tuple concat)

@@ -1,0 +1,29 @@
+# Stage 1 — Bidirectional mean-Hausdorff (0.5*(Q->S + S->Q))
+# Symmetric version of stage1_hausdorff.
+# Tests whether S->Q direction adds useful signal over unidirectional.
+
+matching_method: mean_hausdorff
+bidirectional: true
+tau: 0.1                       # unused; kept for schema consistency
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (Stage 1: disabled)
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none

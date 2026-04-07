@@ -1,203 +1,249 @@
-# TRX-SetBased: Set Matching for Few-Shot Action Recognition
+# Temporal-Relational Cross-Transformers — Tuple-Level Set Matching
 
-A research project extending [TRX (CVPR 2021)](https://arxiv.org/abs/2101.06184) by replacing its prototype-aggregation matching with bidirectional set matching over temporal tuple embeddings.
-
-Based on: https://github.com/tobyperrett/few-shot-action-recognition
-
----
-
-## Motivation
-
-### English
-
-Few-shot action recognition (FSAR) requires classifying videos from only a handful of examples. TRX addresses this with *temporal tuples* — pairs (or triples) of frames whose relative ordering captures motion — and a CrossTransformer that aggregates support tuples into a query-specific prototype before computing distance.
-
-The key limitation: **aggregation discards set structure**. Once you compute a prototype, you lose the individual support tuple embeddings and can no longer reason about which parts of the support set are actually relevant to a given query.
-
-This project asks: *what if we skip the aggregation and match query tuples directly against the full set of support tuples?*
-
-### 動機（繁體中文）
-
-TRX 的流程是：support tuple → 加權聚合 → prototype → 與 query 計算距離。  
-這個 prototype 是 query-specific 的，但聚合之後 support set 的結構就消失了。
-
-我們的做法是移除 prototype 聚合，改為直接對 query tuple set 和 support tuple set 做 **set-level matching**（雙向 Mean-Hausdorff），讓每個 query tuple 都能找到最近的 support tuple，反之亦然。這在概念上更接近 HyRSM 的精神，但作用在 tuple embedding 層，而非 frame 層。
+This repo extends [TRX (CVPR 2021)](https://arxiv.org/abs/2101.06184) toward **tuple-level set matching without prototype aggregation**.
+Query tuple embeddings search directly against the full support tuple pool, bypassing the prototype bottleneck of the original method.
 
 ---
 
-## Method
+## Quick experiment guide
 
-### TRX (Baseline)
-
-```
-Support frames → tuples → K/V projections → CrossTransformer attention → prototype
-Query frames   → tuples → Q projections  →              ↓
-                                         distance(query_v, prototype) → logit
-```
-
-The CrossTransformer computes a *query-specific prototype* by soft-attending over support tuples. Distance is measured between the query tuple set and this aggregated prototype.
-
-### This Work: Tuple-Level Set Matching
-
-```
-Support frames → PE → pair concatenation → embed+norm → support tuple set S
-Query frames   → PE → pair concatenation → embed+norm → query tuple set   Q
-
-logit = −Hausdorff_mean_bidir(Q, S)
-```
-
-The **bidirectional mean-Hausdorff distance** is:
-
-```
-D(Q, S) = 0.5 × (mean_q min_s ||q−s||²  +  mean_s min_q ||s−q||²)
-```
-
-- No prototype aggregation — every support tuple participates directly in matching.
-- Symmetric: both directions (Q→S and S→Q) contribute.
-- VRAM-efficient: support tuples are processed in chunks.
-
----
-
-## Implementation Status
-
-### Stage 1 — Implemented ✓
-
-| Component | Status | Notes |
-|---|---|---|
-| `TemporalCrossTransformerHausdorffPairs` | ✓ Done | `model.py` — replaces original CrossTransformer |
-| Positional encoding on frame features | ✓ Done | Sinusoidal PE (from TRX) |
-| Pair tuple construction | ✓ Done | C(seq\_len, 2) = 28 tuples for seq\_len=8 |
-| Bidirectional mean-Hausdorff distance | ✓ Done | Chunked matmul for VRAM efficiency |
-| Episodic training loop | ✓ Done | `run.py` — multi-step LR, gradient accumulation |
-| HMDB-51 data loading | ✓ Done | Tested on split 3 |
-| TensorBoard logging + checkpointing | ✓ Done | Auto-timestamped checkpoint dirs |
-| ResNet-18/34/50 backbone | ✓ Done | Default: ResNet-18 for single-GPU use |
-
-The original `TemporalCrossTransformer` (TRX attention) is preserved in `model.py` as commented-out code for reference.
-
-### Stage 2 — Planned
-
-- [ ] Intra/inter relation module (HyRSM-style) operating on tuple embeddings
-- [ ] Higher-order tuples (triples, i.e., `temporal_set_size=3`)
-- [ ] Multi-cardinality ensemble (pairs + triples, as in original TRX)
-- [ ] Evaluation on Kinetics and Something-Something V2
-
----
-
-## Differences from TRX and HyRSM
-
-| | TRX | HyRSM | This work |
-|---|---|---|---|
-| Representation | Temporal tuples | Individual frames | Temporal tuples |
-| Matching level | Tuple → prototype | Frame → set | Tuple → set |
-| Aggregation | Before matching (prototype) | After matching | None (direct set match) |
-| Distance metric | L2 to prototype | Mean-Hausdorff on frames | Mean-Hausdorff on tuples |
-| Temporal modeling | Pair/triple combos | Intra+inter relation | Pair combos (Stage 1) |
-
----
-
-## Setup
-
-### Requirements
+### 1. Prerequisites
 
 ```bash
-pip install torch torchvision tensorflow tensorboard
+pip install torch torchvision pyyaml tensorflow tensorboard
 ```
 
-Python 3.6+ recommended. Tested on RTX 3080 Ti (single GPU).
+Data must be prepared as described in the [Data setup](#data-setup) section below.
+Set your data root once via `--scratch` (or edit the default in `run.py`):
 
-### Data Preparation
-
-Download your dataset and extract frames as:
-```
-dataset/class/video/00000001.jpg  (8-digit zero-padded)
-```
-
-Then zip with no compression (required by the data loader):
-```bash
-zip -0 -r dataset.zip dataset/
-```
-
-Place the zip and split files under `~/trx_data/video_datasets/`:
 ```
 ~/trx_data/
   video_datasets/
-    data/
-      hmdb51_256q5.zip
-    splits/
-      hmdb_ARN/
-        trainlist03.txt
-        vallist03.txt
-        testlist03.txt
+    data/      ← dataset zips (hmdb51_256q5.zip etc.)
+    splits/    ← split text files (hmdb_ARN/, etc.)
+  checkpoints/ ← output goes here
 ```
-
-Split files for HMDB, UCF, Kinetics, and SSv2 are included in the `splits/` directory.
 
 ---
 
-## Running
+### 2. Running an experiment with a config file
 
-### Quick model sanity check (no data needed)
-
-```bash
-python model.py
-```
-
-Runs a forward pass with random tensors (5-way 1-shot, ResNet-18, seq_len=8).
-
-### Training on HMDB-51
+All experiments are driven by YAML configs in `configs/`.
+Pass `--config` to select a config; any CLI flag overrides the YAML value.
 
 ```bash
 python run.py \
-  -c checkpoints_hmdb_hausdorff \
-  --dataset hmdb \
-  --split 3 \
-  --method resnet18 \
-  --shot 1 \
-  --way 5 \
-  --query_per_class 5 \
-  --tasks_per_batch 16 \
-  --trans_linear_out_dim 128 \
-  --img_size 84 \
-  --seq_len 8 \
-  --learning_rate 0.001
+  --config configs/stage1_hausdorff.yaml \
+  --dataset hmdb --split 3 \
+  -c ~/trx_data/checkpoints/stage1_hausdorff_hmdb3
 ```
 
-Checkpoint and logs are saved to `checkpoints_hmdb_hausdorff/hmdb_split3_<timestamp>/`.
-
-### Key Arguments
-
-| Argument | Default | Description |
-|---|---|---|
-| `--dataset` | `ssv2` | `hmdb`, `ucf`, `kinetics`, `ssv2` |
-| `--method` | `resnet50` | `resnet18`, `resnet34`, `resnet50` |
-| `--shot` | `5` | Support shots per class |
-| `--way` | `5` | N-way classification |
-| `--seq_len` | `8` | Frames per video |
-| `--trans_linear_out_dim` | `1152` | Tuple embedding dimension |
-| `--split` | `7` | Dataset split index |
-| `--scratch` | `~/trx_data` | Root data directory |
+That is the canonical launch command for Stage 1 experiments.
 
 ---
 
-## Project Structure
+### 3. Available configs
+
+| Config file | Matching method | Direction | Notes |
+|---|---|---|---|
+| `configs/stage1_hausdorff.yaml` | Mean-Hausdorff | Q→S only | Stage 1 baseline |
+| `configs/stage1_bidirectional.yaml` | Mean-Hausdorff | Q↔S (avg) | Symmetric variant |
+| `configs/stage1_attention_weighted.yaml` | Attention-weighted Hausdorff | Q→S | Softmax-attends query tuples |
+| `configs/stage2_option_a.yaml` | Bidirectional Hausdorff | Q↔S | + Relation at **frame** level |
+| `configs/stage2_option_b.yaml` | Bidirectional Hausdorff | Q↔S | + Relation at **tuple** level |
+
+Stage 2 configs require the relation modules in `relation/` to be implemented first.
+
+---
+
+### 4. Overriding config values at the command line
+
+Every YAML key maps directly to a CLI flag. CLI always wins over YAML:
+
+```bash
+# Use the bidirectional config but switch to HMDB split 1
+python run.py \
+  --config configs/stage1_bidirectional.yaml \
+  --dataset hmdb --split 1 \
+  -c ~/trx_data/checkpoints/bidir_hmdb1
+
+# Quick smoke-test: 1-shot, fewer iterations, small batch
+python run.py \
+  --config configs/stage1_hausdorff.yaml \
+  --shot 1 --training_iterations 5000 --tasks_per_batch 4 \
+  --dataset hmdb --split 3 \
+  -c ~/trx_data/checkpoints/smoke_test
+
+# Change attention tau without editing the yaml
+python run.py \
+  --config configs/stage1_attention_weighted.yaml \
+  --tau 0.05 \
+  --dataset hmdb --split 3 \
+  -c ~/trx_data/checkpoints/attn_tau005
+```
+
+---
+
+### 5. Ablation matrix (Stage 1)
+
+Run these three commands to produce the core Stage 1 ablation table.
+Results are appended automatically to `experiments/results/results.csv`.
+
+```bash
+# Unidirectional
+python run.py --config configs/stage1_hausdorff.yaml \
+  --dataset hmdb --split 3 \
+  -c ~/trx_data/checkpoints/abl_uni
+
+# Bidirectional
+python run.py --config configs/stage1_bidirectional.yaml \
+  --dataset hmdb --split 3 \
+  -c ~/trx_data/checkpoints/abl_bidir
+
+# Attention-weighted
+python run.py --config configs/stage1_attention_weighted.yaml \
+  --dataset hmdb --split 3 \
+  -c ~/trx_data/checkpoints/abl_attn
+```
+
+To sweep all three HMDB splits:
+
+```bash
+for split in 1 2 3; do
+  for cfg in stage1_hausdorff stage1_bidirectional stage1_attention_weighted; do
+    python run.py --config configs/${cfg}.yaml \
+      --dataset hmdb --split ${split} \
+      -c ~/trx_data/checkpoints/${cfg}_hmdb${split}
+  done
+done
+```
+
+---
+
+### 6. Resuming from a checkpoint
+
+```bash
+python run.py \
+  --config configs/stage1_hausdorff.yaml \
+  --dataset hmdb --split 3 \
+  -c ~/trx_data/checkpoints/stage1_hausdorff_hmdb3 \
+  -r
+```
+
+The `-r` flag (`--resume_from_checkpoint`) picks up from the latest `checkpoint.pt` in the checkpoint directory.
+
+---
+
+### 7. Checking results
+
+Test accuracy is printed to the log file inside the checkpoint directory and to stdout at every `test_iters` milestone (default: `[75000]`).
+
+After any run, the summary CSV is at:
 
 ```
-.
-├── model.py            # TemporalCrossTransformerHausdorffPairs + CNN_TRX
-├── run.py              # Episodic training/testing loop
-├── video_reader.py     # Dataset loader (zip-based)
-├── utils.py            # Loss, accuracy, logging utilities
-├── videotransforms/    # Video augmentation (from torch_videovision)
-├── splits/             # Train/val/test split files for all datasets
-└── make_hmdb_trx_zip.py  # Helper to prepare HMDB zip
+experiments/results/results.csv
 ```
+
+Columns: `timestamp, config_file, dataset, split, way, shot, iteration, mean_accuracy, confidence_interval`
+
+To view it:
+
+```bash
+python -c "import csv, sys; [print(r) for r in csv.DictReader(open('experiments/results/results.csv'))]"
+```
+
+---
+
+### 8. Repo structure
+
+```
+TheRandomXeno/
+├── configs/                   ← YAML experiment configs
+│   ├── stage1_hausdorff.yaml
+│   ├── stage1_bidirectional.yaml
+│   ├── stage1_attention_weighted.yaml
+│   ├── stage2_option_a.yaml   (frame-level relation — Stage 2)
+│   └── stage2_option_b.yaml   (tuple-level relation — Stage 2)
+│
+├── models/
+│   ├── stage1_model.py        ← CNN_TRX + TRXSetMatching (active)
+│   ├── stage2_model.py        ← TRXSetMatchingWithRelation (skeleton)
+│   └── trx_original.py        ← original TRX with prototype aggregation (reference)
+│
+├── matching/
+│   ├── mean_hausdorff.py      ← mean_hausdorff_bidir (pool) + mean_hausdorff (instance)
+│   ├── attention_weighted_hausdorff.py
+│   └── bidirectional_hausdorff.py
+│
+├── relation/
+│   ├── intra_relation.py      ← IntraRelation (skeleton for Stage 2)
+│   └── inter_relation.py      ← InterRelation (skeleton for Stage 2)
+│
+├── experiments/
+│   └── results/               ← results.csv written here during training
+│
+├── model.py                   ← thin wrapper (backward compat with run.py)
+├── run.py                     ← training entrypoint
+└── utils.py
+```
+
+---
+
+### 9. Key hyperparameters reference
+
+| YAML key | CLI flag | Default | Description |
+|---|---|---|---|
+| `matching_method` | — | — | `mean_hausdorff` / `attention_weighted_hausdorff` / `bidirectional_hausdorff` |
+| `bidirectional` | `--bidirectional` | `false` | Enable symmetric Q↔S distance |
+| `tau` | `--tau` | `0.1` | Softmax temperature (attention-weighted only) |
+| `backbone` | `--method` | `resnet18` | `resnet18` / `resnet34` / `resnet50` |
+| `trans_linear_out_dim` | `--trans_linear_out_dim` | `1152` | Tuple embedding output dim |
+| `temp_set` | `--temp_set` | `[2]` | Tuple cardinalities (pairs = `[2]`) |
+| `way` | `--way` | `5` | N-way classification |
+| `shot` | `--shot` | `1` | K-shot support per class |
+| `query_per_class` | `--query_per_class` | `5` | Query videos per class (train) |
+| `training_iterations` | `-i` | `100020` | Total meta-training steps |
+| `tasks_per_batch` | `--tasks_per_batch` | `16` | Gradient accumulation steps |
+| `dataset` | `--dataset` | `ssv2` | `ssv2` / `kinetics` / `hmdb` / `ucf` |
+| `split` | `--split` | `7` | Dataset split index |
+
+---
+
+## Data setup
+
+Download your chosen dataset and extract frames in the format:
+
+```
+dataset/class/video/00000001.jpg   ← 8-digit zero-padded frame numbers
+```
+
+Zip the dataset folder with no compression:
+
+```bash
+zip -r -0 hmdb51_256q5.zip hmdb51_256q5/
+```
+
+Place the zip and split text files under `~/trx_data/` as shown in section 1.
+
+---
+
+## Method overview
+
+**Original TRX** samples temporal tuples from query and support videos, builds cross-attended tuple embeddings, then **aggregates support tuples into per-class prototypes** before computing distances.
+
+**This work** removes prototype aggregation entirely. Query tuple embeddings are matched against the **full pool of K × T support tuples** using mean-Hausdorff distance:
+
+```
+d(Q, S) = 0.5 * [ mean_q min_s ||q - s|| + mean_s min_q ||s - q|| ]
+```
+
+This preserves within-class tuple diversity that prototype averaging destroys.
 
 ---
 
 ## Citation
 
-If you build on TRX, please cite the original paper:
+If you build on the original TRX method, please cite:
 
 ```bibtex
 @inproceedings{perrett2021trx,
@@ -211,4 +257,6 @@ If you build on TRX, please cite the original paper:
 
 ## Acknowledgements
 
-This repo is forked from [tobyperrett/few-shot-action-recognition](https://github.com/tobyperrett/few-shot-action-recognition). Training infrastructure is based on [CNAPs](https://github.com/cambridge-mlg/cnaps). Video transforms from [torch_videovision](https://github.com/hassony2/torch_videovision). The set-matching approach draws conceptual inspiration from [HyRSM (CVPR 2022)](https://openaccess.thecvf.com/content/CVPR2022/papers/Wang_Hybrid_Relation_Guided_Set_Matching_for_Few-Shot_Action_Recognition_CVPR_2022_paper.pdf).
+Based on [TRX](https://github.com/tobyperrett/trx) (Perrett et al., CVPR 2021).
+Logging and training loop adapted from [CNAPs](https://github.com/cambridge-mlg/cnaps).
+Video transforms from [torch_videovision](https://github.com/hassony2/torch_videovision).

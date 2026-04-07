@@ -1,0 +1,29 @@
+# Stage 1 — Attention-weighted Hausdorff
+# Softmax-attends over query tuples weighted by nearest-support distance.
+# tau controls sharpness: small tau = winner-take-all, large tau = mean-Hausdorff.
+
+matching_method: attention_weighted_hausdorff
+bidirectional: false           # attention_weighted is inherently asymmetric (Q->S)
+tau: 0.1                       # softmax temperature over query-tuple dimension
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (Stage 1: disabled)
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none
