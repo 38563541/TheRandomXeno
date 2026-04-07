@@ -3,6 +3,8 @@ import numpy as np
 import argparse
 import os
 import pickle
+import csv
+import yaml
 from utils import print_and_log, get_log_files, TestAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir, task_confusion
 from model import CNN_TRX
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Quiet TensorFlow warnings
@@ -16,6 +18,75 @@ import random
 import datetime
 
 
+# ---------------------------------------------------------------------------
+# YAML config loader
+# ---------------------------------------------------------------------------
+
+def _load_yaml_config(path):
+    """
+    Load a YAML config file and return a flat dict suitable for
+    parser.set_defaults(**config_dict).
+
+    Alias handling:
+        backbone -> method   (YAML uses 'backbone'; argparse uses 'method')
+
+    All YAML keys not recognised by argparse are passed through silently
+    so that stage2 keys (use_intra_relation, relation_level, …) are stored
+    on args without needing argparse declarations at this stage.
+    """
+    with open(path, "r") as f:
+        cfg = yaml.safe_load(f) or {}
+
+    # backbone is the human-readable alias; argparse uses --method
+    if "backbone" in cfg and "method" not in cfg:
+        cfg["method"] = cfg.pop("backbone")
+    elif "backbone" in cfg:
+        cfg.pop("backbone")   # method already specified; drop alias
+
+    return cfg
+
+
+# ---------------------------------------------------------------------------
+# CSV result logger
+# ---------------------------------------------------------------------------
+
+_CSV_PATH = os.path.join(os.path.dirname(__file__), "experiments", "results", "results.csv")
+_CSV_COLUMNS = [
+    "timestamp", "config_file", "dataset", "split",
+    "way", "shot", "iteration", "mean_accuracy", "confidence_interval",
+]
+
+def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
+    """
+    Append one row to experiments/results/results.csv.
+    Creates the file with a header row if it does not yet exist.
+
+    Args:
+        args               : parsed argparse namespace (provides dataset, split, etc.)
+        iteration          : int — training iteration at which test was run
+        mean_accuracy      : float — mean test accuracy (%)
+        confidence_interval: float — 95% confidence interval (±%)
+    """
+    os.makedirs(os.path.dirname(_CSV_PATH), exist_ok=True)
+    write_header = not os.path.exists(_CSV_PATH)
+
+    row = {
+        "timestamp":           datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "config_file":         getattr(args, "config_file", "none"),
+        "dataset":             args.dataset,
+        "split":               args.split,
+        "way":                 args.way,
+        "shot":                args.shot,
+        "iteration":           iteration,
+        "mean_accuracy":       round(float(mean_accuracy), 4),
+        "confidence_interval": round(float(confidence_interval), 4),
+    }
+
+    with open(_CSV_PATH, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=_CSV_COLUMNS)
+        if write_header:
+            writer.writeheader()
+        writer.writerow(row)
 
 
 
@@ -81,7 +152,27 @@ class Learner:
     """
     def parse_command_line(self):
         parser = argparse.ArgumentParser()
-        
+
+        # ------------------------------------------------------------------
+        # Config file (YAML).  CLI args override YAML values when both given.
+        # ------------------------------------------------------------------
+        parser.add_argument(
+            "--config",
+            default=None,
+            metavar="PATH",
+            help="Path to a YAML config file (e.g. configs/stage1_hausdorff.yaml). "
+                 "Values in the file set argparse defaults; explicit CLI flags override them.",
+        )
+
+        # Pre-parse to extract --config before the full parse so we can call
+        # set_defaults() with YAML values before argparse reads argv properly.
+        pre_parser = argparse.ArgumentParser(add_help=False)
+        pre_parser.add_argument("--config", default=None)
+        pre_args, _ = pre_parser.parse_known_args()
+
+        if pre_args.config is not None:
+            yaml_cfg = _load_yaml_config(pre_args.config)
+            parser.set_defaults(**yaml_cfg)
 
         parser.add_argument("--dataset", choices=["ssv2", "kinetics", "hmdb", "ucf"], default="ssv2", help="Dataset to use.")
         parser.add_argument("--learning_rate", "-lr", type=float, default=0.001, help="Learning rate.")
@@ -116,7 +207,10 @@ class Learner:
         parser.add_argument('--sch', nargs='+', type=int, help='iters to drop learning rate', default=[1000000])
 
         args = parser.parse_args()
-        
+
+        # Store config file path on args for use by STEP 5 CSV logger.
+        args.config_file = args.config if args.config is not None else "none"
+
         #if args.scratch == "bc":
         #    args.scratch = "/mnt/storage/home/tp8961/scratch"
         #elif args.scratch == "bp":
@@ -200,6 +294,15 @@ class Learner:
                         accuracy_dict = self.test(session)
                         print(accuracy_dict)
                         self.test_accuracies.print(self.logfile, accuracy_dict)
+                        # --- CSV logging (STEP 5) ---
+                        _item = self.args.dataset
+                        if _item in accuracy_dict:
+                            _log_result_csv(
+                                self.args,
+                                iteration=iteration + 1,
+                                mean_accuracy=accuracy_dict[_item]["accuracy"],
+                                confidence_interval=accuracy_dict[_item]["confidence"],
+                            )
 
                 # save the final model
                 torch.save(self.model.state_dict(), self.checkpoint_path_final)

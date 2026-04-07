@@ -1,0 +1,29 @@
+# Stage 1 — Unidirectional mean-Hausdorff (Q->S only)
+# Baseline: tuple-level pool matching, no relation module.
+# Equivalent to the existing TRXSetMatching.forward() behaviour.
+
+matching_method: mean_hausdorff
+bidirectional: false
+tau: 0.1                       # unused by mean_hausdorff; kept for schema consistency
+
+# Backbone
+backbone: resnet18             # alias for --method; run.py maps backbone -> method
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]                  # pairs only (Stage 1 uses temporal_set_size=2)
+num_samples: 1                 # NUM_SAMPLES passed to TRXSetMatching
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (Stage 1: disabled)
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none
