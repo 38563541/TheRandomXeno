@@ -170,9 +170,11 @@ class Learner:
         pre_parser.add_argument("--config", default=None)
         pre_args, _ = pre_parser.parse_known_args()
 
+        yaml_cfg = {}
         if pre_args.config is not None:
             yaml_cfg = _load_yaml_config(pre_args.config)
-            parser.set_defaults(**yaml_cfg)
+        # NOTE: parser.set_defaults(**yaml_cfg) is called AFTER all add_argument()
+        # calls below, so that YAML values correctly override argparse defaults.
 
         parser.add_argument("--dataset", choices=["ssv2", "kinetics", "hmdb", "ucf"], default="ssv2", help="Dataset to use.")
         parser.add_argument("--learning_rate", "-lr", type=float, default=0.001, help="Learning rate.")
@@ -193,6 +195,7 @@ class Learner:
         parser.add_argument("--num_workers", type=int, default=10, help="Num dataloader workers.")
         parser.add_argument("--method", choices=["resnet18", "resnet34", "resnet50"], default="resnet50", help="method")
         parser.add_argument("--trans_linear_out_dim", type=int, default=1152, help="Transformer linear_out_dim")
+        parser.add_argument("--trans_linear_in_dim", type=int, default=-1, help="Transformer linear_in_dim (default: auto from backbone: 512 for resnet18/34, 2048 for resnet50)")
         parser.add_argument("--opt", choices=["adam", "sgd"], default="sgd", help="Optimizer")
         parser.add_argument("--trans_dropout", type=int, default=0.1, help="Transformer dropout")
         parser.add_argument("--save_freq", type=int, default=5000, help="Number of iterations between checkpoint saves.")
@@ -205,6 +208,11 @@ class Learner:
         parser.add_argument("--debug_loader", default=False, action="store_true", help="Load 1 vid per class for debugging")
         parser.add_argument("--split", type=int, default=7, help="Dataset split.")
         parser.add_argument('--sch', nargs='+', type=int, help='iters to drop learning rate', default=[1000000])
+
+        # Apply YAML config defaults AFTER all add_argument() calls so that
+        # YAML values override the argparse-level defaults (not the other way round).
+        if yaml_cfg:
+            parser.set_defaults(**yaml_cfg)
 
         args = parser.parse_args()
 
@@ -222,22 +230,37 @@ class Learner:
         if args.checkpoint_dir == None:
             print("need to specify a checkpoint dir")
             exit(1)
-        # ===== 新增：自動加時間戳子目錄 =====
-         
-
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        args.checkpoint_dir = os.path.join(
-            args.checkpoint_dir,
-            f"{args.dataset}_split{args.split}_{timestamp}"
-        )
-        # ===================================
+        # ===== 自動加時間戳子目錄，或 resume 時找最新子目錄 =====
+        if args.resume_from_checkpoint:
+            # Find the most-recently-modified subdirectory to resume from.
+            base = args.checkpoint_dir
+            if not os.path.isdir(base):
+                print(f"Can't resume: checkpoint_dir does not exist: {base}")
+                exit(1)
+            subdirs = sorted(
+                [d for d in os.listdir(base)
+                 if os.path.isdir(os.path.join(base, d))],
+                reverse=True,
+            )
+            if not subdirs:
+                print(f"Can't resume: no subdirectories found in {base}")
+                exit(1)
+            args.checkpoint_dir = os.path.join(base, subdirs[0])
+            print(f"[resume] Resolved checkpoint directory: {args.checkpoint_dir}", flush=True)
+        else:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            args.checkpoint_dir = os.path.join(
+                args.checkpoint_dir,
+                f"{args.dataset}_split{args.split}_{timestamp}"
+            )
+        # ======================================================
         if (args.method == "resnet50") or (args.method == "resnet34"):
             args.img_size = 224
-        if args.method == "resnet50":
-            args.trans_linear_in_dim = 2048
-        else:
-            args.trans_linear_in_dim = 512
+        if args.trans_linear_in_dim == -1:  # not explicitly provided — auto-set from backbone
+            if args.method == "resnet50":
+                args.trans_linear_in_dim = 2048
+            else:
+                args.trans_linear_in_dim = 512
         
         if args.dataset == "ssv2":
             args.traintestlist = os.path.join(args.scratch, "video_datasets/splits/somethingsomethingv2TrainTestlist")
@@ -385,8 +408,11 @@ class Learner:
         torch.save(d, os.path.join(self.checkpoint_dir, 'checkpoint.pt'))
 
     def load_checkpoint(self):
-        checkpoint = torch.load(os.path.join(self.checkpoint_dir, 'checkpoint.pt'))
+        checkpoint_path = os.path.join(self.checkpoint_dir, 'checkpoint.pt')
+        print_and_log(self.logfile, f"Resuming from: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path)
         self.start_iteration = checkpoint['iteration']
+        print_and_log(self.logfile, f"Loaded checkpoint at iteration {self.start_iteration}")
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.scheduler.load_state_dict(checkpoint['scheduler'])

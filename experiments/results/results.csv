@@ -1,0 +1,17 @@
+timestamp,config_file,dataset,split,way,shot,iteration,mean_accuracy,confidence_interval
+2026-04-07 23:39:28,configs/stage1_bidirectional.yaml,hmdb,3,5,1,25000,46.736,0.4215
+2026-04-08 01:13:10,configs/stage1_bidirectional.yaml,hmdb,3,5,1,50000,47.488,0.4239
+2026-04-08 02:46:11,configs/stage1_bidirectional.yaml,hmdb,3,5,1,75000,46.336,0.425
+2026-04-08 04:19:18,configs/stage1_bidirectional.yaml,hmdb,3,5,1,100000,46.438,0.4254
+2026-04-08 05:53:27,configs/stage1_attention_weighted.yaml,hmdb,3,5,1,25000,46.49,0.4217
+2026-04-08 07:26:09,configs/stage1_attention_weighted.yaml,hmdb,3,5,1,50000,46.102,0.4205
+2026-04-08 08:58:49,configs/stage1_attention_weighted.yaml,hmdb,3,5,1,75000,45.826,0.4253
+2026-04-08 10:31:36,configs/stage1_attention_weighted.yaml,hmdb,3,5,1,100000,47.082,0.4265
+2026-04-12 12:54:20,/home/ccwu/Documents/work/trx/configs/stage2_option_a.yaml,hmdb,3,5,1,25000,41.252,0.423
+2026-04-12 14:34:15,/home/ccwu/Documents/work/trx/configs/stage2_option_a.yaml,hmdb,3,5,1,50000,40.602,0.4203
+2026-04-12 16:13:33,/home/ccwu/Documents/work/trx/configs/stage2_option_a.yaml,hmdb,3,5,1,75000,40.818,0.419
+2026-04-12 17:53:40,/home/ccwu/Documents/work/trx/configs/stage2_option_a.yaml,hmdb,3,5,1,100000,42.852,0.4194
+2026-04-12 20:10:00,/home/ccwu/Documents/work/trx/configs/stage2_option_b.yaml,hmdb,3,5,1,25000,41.338,0.4238
+2026-04-12 21:54:42,/home/ccwu/Documents/work/trx/configs/stage2_option_b.yaml,hmdb,3,5,1,50000,43.044,0.4208
+2026-04-12 23:39:03,/home/ccwu/Documents/work/trx/configs/stage2_option_b.yaml,hmdb,3,5,1,75000,43.71,0.4265
+2026-04-13 01:23:16,/home/ccwu/Documents/work/trx/configs/stage2_option_b.yaml,hmdb,3,5,1,100000,42.734,0.4239

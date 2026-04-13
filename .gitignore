@@ -135,3 +135,4 @@ checkpoints_trx_hmdb/
 hmdb51_org/
 runs/
 *.pt
+*.sh
