@@ -116,6 +116,11 @@ class Learner:
 
         self.vd = video_reader.VideoDataset(self.args)
         self.video_loader = torch.utils.data.DataLoader(self.vd, batch_size=1, num_workers=self.args.num_workers)
+        # Separate test loader with num_workers=0 to avoid deadlock:
+        # forking new DataLoader workers while training workers + CUDA are
+        # active causes silent deadlocks. num_workers=0 runs in the main
+        # process and sidesteps the issue entirely.
+        self.test_video_loader = torch.utils.data.DataLoader(self.vd, batch_size=1, num_workers=0)
         
         self.loss = loss
         self.accuracy_fn = aggregate_accuracy
@@ -326,12 +331,12 @@ class Learner:
         self.model.eval()
         with torch.no_grad():
 
-                self.video_loader.dataset.train = False
+                self.test_video_loader.dataset.train = False
                 accuracy_dict ={}
                 accuracies = []
                 iteration = 0
                 item = self.args.dataset
-                for task_dict in self.video_loader:
+                for task_dict in self.test_video_loader:
                     if iteration >= self.args.num_test_tasks:
                         break
                     iteration += 1
@@ -347,7 +352,7 @@ class Learner:
                 confidence = (196.0 * np.array(accuracies).std()) / np.sqrt(len(accuracies))
 
                 accuracy_dict[item] = {"accuracy": accuracy, "confidence": confidence}
-                self.video_loader.dataset.train = True
+                self.test_video_loader.dataset.train = True
         self.model.train()
         
         return accuracy_dict
