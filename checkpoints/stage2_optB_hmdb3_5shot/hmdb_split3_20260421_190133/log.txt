@@ -111,3 +111,4 @@ Task [94000/100020], Train Loss: 0.0245003, Train Accuracy: 0.9943999
 Task [95000/100020], Train Loss: 0.0216654, Train Accuracy: 0.9950000
 Task [96000/100020], Train Loss: 0.0278267, Train Accuracy: 0.9940399
 Task [97000/100020], Train Loss: 0.0221325, Train Accuracy: 0.9951600
+Task [98000/100020], Train Loss: 0.0259414, Train Accuracy: 0.9941200

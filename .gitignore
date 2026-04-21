@@ -136,3 +136,4 @@ hmdb51_org/
 runs/
 *.pt
 *.sh
+logs/
