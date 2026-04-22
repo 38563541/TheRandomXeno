@@ -227,16 +227,30 @@ class Learner:
         if args.checkpoint_dir == None:
             print("need to specify a checkpoint dir")
             exit(1)
-        # ===== 新增：自動加時間戳子目錄 =====
-         
-
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        args.checkpoint_dir = os.path.join(
-            args.checkpoint_dir,
-            f"{args.dataset}_split{args.split}_{timestamp}"
-        )
-        # ===================================
+        # ===== 時間戳子目錄（resume 時找最新，否則新建） =====
+        if args.resume_from_checkpoint:
+            # Find the latest existing timestamp subdir
+            base = args.checkpoint_dir
+            if os.path.isdir(base):
+                subdirs = sorted([
+                    d for d in os.listdir(base)
+                    if os.path.isdir(os.path.join(base, d))
+                ])
+                if subdirs:
+                    args.checkpoint_dir = os.path.join(base, subdirs[-1])
+                else:
+                    print(f"Can't resume for checkpoint. No subdirectory found in ({base})")
+                    exit(1)
+            else:
+                print(f"Can't resume for checkpoint. Checkpoint directory ({base}) does not exist.")
+                exit(1)
+        else:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            args.checkpoint_dir = os.path.join(
+                args.checkpoint_dir,
+                f"{args.dataset}_split{args.split}_{timestamp}"
+            )
+        # =====================================================
         if (args.method == "resnet50") or (args.method == "resnet34"):
             args.img_size = 224
         if args.method == "resnet50":
