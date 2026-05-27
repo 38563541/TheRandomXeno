@@ -1,0 +1,29 @@
+# Stage 2 — B3: Inter-relation only (tuple level)
+# Ablation: InterRelation only, IntraRelation disabled.
+# Used to isolate whether InterRelation alone is the culprit hurting set-matching signal.
+
+matching_method: bidirectional_hausdorff
+bidirectional: true
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (B3: inter only)
+use_intra_relation: false
+use_inter_relation: true
+relation_level: tuple

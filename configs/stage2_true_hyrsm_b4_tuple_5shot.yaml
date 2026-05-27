@@ -1,0 +1,22 @@
+# Stage 2 — True HyRSM B4: Intra + True HyRSM Inter (tuple level, 5-shot)
+
+matching_method: bidirectional_hausdorff
+bidirectional: true
+tau: 0.1
+
+backbone: resnet18
+trans_linear_out_dim: 1152
+temp_set: [2]
+num_samples: 1
+
+way: 5
+shot: 5
+query_per_class: 5
+
+training_iterations: 100020
+tasks_per_batch: 16
+
+use_intra_relation: true
+use_inter_relation: true
+relation_level: tuple
+inter_style: true_hyrsm

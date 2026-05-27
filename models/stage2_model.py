@@ -26,6 +26,8 @@ from matching.mean_hausdorff import mean_hausdorff_bidir
 from models.stage1_model import TRXSetMatching, NUM_SAMPLES
 from relation.intra_relation import IntraRelation
 from relation.inter_relation import InterRelation
+from relation.hyrsm_inter_relation import HyRSMInterRelation
+from relation.true_hyrsm_inter_relation import TrueHyRSMInterRelation
 
 
 class TRXSetMatchingWithRelation(nn.Module):
@@ -39,15 +41,19 @@ class TRXSetMatchingWithRelation(nn.Module):
         use_inter      : bool — apply InterRelation
     """
 
-    def __init__(self, args, relation_level="tuple", use_intra=True, use_inter=True):
+    def __init__(self, args, relation_level="tuple", use_intra=True, use_inter=True,
+                 inter_style="global"):
         super().__init__()
         assert relation_level in ("frame", "tuple"), \
             f"relation_level must be 'frame' or 'tuple', got {relation_level!r}"
+        assert inter_style in ("global", "hyrsm", "true_hyrsm"), \
+            f"inter_style must be 'global', 'hyrsm', or 'true_hyrsm', got {inter_style!r}"
 
         self.args           = args
         self.relation_level = relation_level
         self.use_intra      = use_intra
         self.use_inter      = use_inter
+        self.inter_style    = inter_style
 
         # Reuse Stage 1 tuple embedding + distance computation
         self.matching = TRXSetMatching(args, temporal_set_size=2)
@@ -61,11 +67,20 @@ class TRXSetMatchingWithRelation(nn.Module):
         num_heads = 8
 
         self.intra = IntraRelation(rel_dim, num_heads) if use_intra else nn.Identity()
-        self.inter = InterRelation(rel_dim, num_heads) if use_inter else None
+        if use_inter:
+            if inter_style == "true_hyrsm":
+                self.inter = TrueHyRSMInterRelation(rel_dim, num_heads)
+            elif inter_style == "hyrsm":
+                self.inter = HyRSMInterRelation(rel_dim, num_heads)
+            else:
+                self.inter = InterRelation(rel_dim, num_heads)
+        else:
+            self.inter = None
 
         print(
             f"[INFO] TRXSetMatchingWithRelation: relation_level={relation_level}, "
-            f"use_intra={use_intra}, use_inter={use_inter}, rel_dim={rel_dim}"
+            f"use_intra={use_intra}, use_inter={use_inter}, "
+            f"inter_style={inter_style}, rel_dim={rel_dim}"
         )
 
     @staticmethod
@@ -83,8 +98,9 @@ class TRXSetMatchingWithRelation(nn.Module):
         Returns:
             dict with 'logits': [n_queries, way]
         """
-        device        = queries.device
-        unique_labels = torch.unique(support_labels)
+        device          = queries.device
+        unique_labels   = torch.unique(support_labels)
+        s_set_per_query = None   # set to [nq, ns, T, d] only for true_hyrsm
 
         if self.relation_level == "frame":
             # ── Option A: relation on frame embeddings ──────────────────────
@@ -110,9 +126,15 @@ class TRXSetMatchingWithRelation(nn.Module):
             q_set = self.intra(q_set)  # [nq, T, d_out]
             s_set = self.intra(s_set)  # [ns, T, d_out]
 
-            # InterRelation: cross-attend across all queries and all support
-            if self.inter is not None:
+            # Global InterRelation: cross-attend across all queries and all support
+            if self.inter is not None and self.inter_style == "global":
                 q_set, s_set = self.inter(q_set, s_set)
+
+            # True HyRSM: global-pool → self-attn → expand-concat-conv
+            # Returns enhanced_query [nq, T, d] and enhanced_support [nq, ns, T, d]
+            if self.inter is not None and self.inter_style == "true_hyrsm":
+                q_set, s_set_per_query = self.inter(q_set, s_set)
+                # s_set_per_query: [nq, ns, T, d] — support differs per query
 
         # ── Per-class Hausdorff distances ────────────────────────────────────
         n_queries    = q_set.shape[0]
@@ -122,9 +144,28 @@ class TRXSetMatchingWithRelation(nn.Module):
 
         for c in unique_labels:
             idx     = self._extract_class_indices(support_labels, c)
-            class_s = torch.index_select(s_set, 0, idx)   # [k_shot, T, d_out]
-            dist    = mean_hausdorff_bidir(q_set, class_s, chunk_s=64)  # [nq,]
-            all_distances[:, c.long()] = -dist             # logit = -distance
+
+            if s_set_per_query is not None:
+                # true_hyrsm: support is per-query → loop over queries
+                class_s_pq = s_set_per_query[:, idx, :, :]   # [nq, k, T, d]
+                for qi in range(n_queries):
+                    d = mean_hausdorff_bidir(
+                        q_set[qi].unsqueeze(0),   # [1, T, d]
+                        class_s_pq[qi],            # [k, T, d]
+                        chunk_s=64,
+                    )
+                    all_distances[qi, c.long()] = -d
+            else:
+                class_s = torch.index_select(s_set, 0, idx)  # [k_shot, T, d_out]
+
+                # HyRSM (old class-specific): enrich query inside loop
+                if self.inter is not None and self.inter_style == "hyrsm":
+                    q_for_dist = self.inter(q_set, class_s)
+                else:
+                    q_for_dist = q_set
+
+                dist = mean_hausdorff_bidir(q_for_dist, class_s, chunk_s=64)  # [nq,]
+                all_distances[:, c.long()] = -dist
 
         return {"logits": all_distances}
 
@@ -147,6 +188,7 @@ class CNN_TRXWithRelation(nn.Module):
         relation_level = getattr(args, "relation_level",     "tuple")
         use_intra      = getattr(args, "use_intra_relation", True)
         use_inter      = getattr(args, "use_inter_relation", True)
+        inter_style    = getattr(args, "inter_style",        "global")
 
         # Backbone (last avg-pool removed)
         if args.method == "resnet18":
@@ -163,6 +205,7 @@ class CNN_TRXWithRelation(nn.Module):
                 relation_level=relation_level,
                 use_intra=use_intra,
                 use_inter=use_inter,
+                inter_style=inter_style,
             )
         ])
 

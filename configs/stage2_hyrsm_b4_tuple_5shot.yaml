@@ -1,0 +1,30 @@
+# Stage 2 — HyRSM B4: Intra + HyRSM Inter (tuple level, 5-shot)
+# Class-specific cross-attention: query attends to one class's support inside
+# the per-class Hausdorff loop. Compares directly against stage2_option_b 5-shot.
+
+matching_method: bidirectional_hausdorff
+bidirectional: true
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 5
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (B4: intra + HyRSM inter)
+use_intra_relation: true
+use_inter_relation: true
+relation_level: tuple
+inter_style: hyrsm
