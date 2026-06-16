@@ -45,3 +45,7 @@ timestamp,config_file,dataset,split,way,shot,iteration,mean_accuracy,confidence_
 2026-05-27 00:52:45,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,5,1,50000,49.88,0.425
 2026-05-27 03:04:51,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,5,1,75000,50.262,0.4202
 2026-05-27 05:17:25,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,5,1,100000,49.124,0.4277
+2026-06-16 03:35:05,configs/stage2_true_hyrsm_b4_tuple_5shot.yaml,hmdb,3,5,5,25000,67.216,0.4052
+2026-06-16 07:58:15,configs/stage2_true_hyrsm_b4_tuple_5shot.yaml,hmdb,3,5,5,50000,66.182,0.405
+2026-06-16 12:24:31,configs/stage2_true_hyrsm_b4_tuple_5shot.yaml,hmdb,3,5,5,75000,65.97,0.407
+2026-06-16 16:50:30,configs/stage2_true_hyrsm_b4_tuple_5shot.yaml,hmdb,3,5,5,100000,67.172,0.4023
