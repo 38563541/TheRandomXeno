@@ -53,7 +53,10 @@ def _load_yaml_config(path):
 _CSV_PATH = os.path.join(os.path.dirname(__file__), "experiments", "results", "results.csv")
 _CSV_COLUMNS = [
     "timestamp", "config_file", "dataset", "split",
-    "way", "shot", "iteration", "mean_accuracy", "confidence_interval",
+    "backbone", "temp_set", "matching", "set_aggregation", "tau",
+    "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
+    "way", "shot", "query_per_class",
+    "iteration", "mean_accuracy", "confidence_interval",
 ]
 
 def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
@@ -75,8 +78,18 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
         "config_file":         getattr(args, "config_file", "none"),
         "dataset":             args.dataset,
         "split":               args.split,
+        "backbone":            getattr(args, "method", ""),
+        "temp_set":            str(getattr(args, "temp_set", "")),
+        "matching":            getattr(args, "matching", ""),
+        "set_aggregation":     getattr(args, "set_aggregation", ""),
+        "tau":                 getattr(args, "tau", ""),
+        "relation_level":      getattr(args, "relation_level", ""),
+        "use_intra_relation":  getattr(args, "use_intra_relation", ""),
+        "use_inter_relation":  getattr(args, "use_inter_relation", ""),
+        "inter_style":         getattr(args, "inter_style", ""),
         "way":                 args.way,
         "shot":                args.shot,
+        "query_per_class":     getattr(args, "query_per_class", ""),
         "iteration":           iteration,
         "mean_accuracy":       round(float(mean_accuracy), 4),
         "confidence_interval": round(float(confidence_interval), 4),

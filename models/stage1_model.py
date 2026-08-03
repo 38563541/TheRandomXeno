@@ -21,7 +21,7 @@ from torch.autograd import Variable
 import torchvision.models as models
 
 from utils import split_first_dim_linear
-from matching.mean_hausdorff import mean_hausdorff_bidir
+from matching.mean_hausdorff import mean_hausdorff_bidir, pool_hausdorff, instance_class_distance
 
 NUM_SAMPLES = 1
 
@@ -88,7 +88,25 @@ class TRXSetMatching(nn.Module):
 
         # Chunk size for Hausdorff computation (memory <-> speed trade-off)
         self.support_chunk = 64
-        print(f"[INFO] TRXSetMatching: tuples_len={self.tuples_len}, support_chunk={self.support_chunk}")
+
+        # Distance function config (new keys; defaults reproduce existing behaviour)
+        self.matching        = getattr(args, "matching",        "bidirectional")
+        self.set_aggregation = getattr(args, "set_aggregation", "pool")
+        self.tau             = float(getattr(args, "tau",       0.1))
+        assert self.matching in ("unidirectional", "bidirectional", "attention_weighted"), \
+            f"Unknown matching={self.matching!r}"
+        assert self.set_aggregation in ("pool", "instance"), \
+            f"Unknown set_aggregation={self.set_aggregation!r}"
+
+        # Warn on legacy keys that were silently ignored before
+        for _legacy in ("matching_method", "bidirectional"):
+            if hasattr(args, _legacy):
+                print(f"[WARN] config key '{_legacy}' 已停用且不會生效，"
+                      f"請改用 'matching' / 'set_aggregation'")
+
+        print(f"[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]")
+        print(f"[INFO] matching={self.matching}, set_aggregation={self.set_aggregation}, "
+              f"tau={self.tau}, tuples_len={self.tuples_len}, support_chunk={self.support_chunk}")
 
     @staticmethod
     def _extract_class_indices(labels, which_class):
@@ -150,10 +168,12 @@ class TRXSetMatching(nn.Module):
             idx = self._extract_class_indices(support_labels, c)
             class_s = torch.index_select(s_set, 0, idx)   # (k_shot, T, d_out)
 
-            # Bidirectional mean-Hausdorff: no prototype, direct set distance
-            dist = mean_hausdorff_bidir(
-                q_set, class_s, chunk_s=self.support_chunk
-            )   # (nq,)
+            if self.set_aggregation == "pool":
+                dist = pool_hausdorff(q_set, class_s, mode=self.matching,
+                                      tau=self.tau, chunk_s=self.support_chunk)
+            else:
+                dist = instance_class_distance(q_set, class_s, mode=self.matching,
+                                               tau=self.tau)
 
             all_distances_tensor[:, c.long()] = -dist   # logit = -distance
 
@@ -183,7 +203,6 @@ class CNN_TRX(nn.Module):
         last_layer_idx = -1
         self.resnet = nn.Sequential(*list(resnet.children())[:last_layer_idx])
 
-        print("[INFO] Using TRXSetMatching (pairs-only, bidirectional Hausdorff).")
         self.transformers = nn.ModuleList(
             [TRXSetMatching(args, temporal_set_size=2)]
         )

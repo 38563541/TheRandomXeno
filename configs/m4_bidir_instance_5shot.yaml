@@ -1,0 +1,29 @@
+# M4 — Bidirectional instance Hausdorff, 5-shot
+# Instance-based: per-support-video distances averaged over K shots.
+# Contrast with M3: tests whether pool vs instance aggregation matters at 5-shot.
+
+matching: bidirectional
+set_aggregation: instance
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 5
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (disabled)
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none

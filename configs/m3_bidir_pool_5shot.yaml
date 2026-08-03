@@ -1,0 +1,29 @@
+# M3 — Bidirectional pool Hausdorff, 5-shot
+# Pool-based: all K support videos flattened into one tuple pool.
+# 5-shot version of stage1_bidirectional for direct comparison with M4.
+
+matching: bidirectional
+set_aggregation: pool
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 5
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (disabled)
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none

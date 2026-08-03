@@ -141,6 +141,112 @@ def mean_hausdorff(query_embeddings, support_embeddings, bidirectional=False):
 
 
 # ---------------------------------------------------------------------------
+# pool_hausdorff — pool-based, three distance modes
+# ---------------------------------------------------------------------------
+
+def pool_hausdorff(q_set, s_set, mode="bidirectional", tau=0.1, chunk_s=64):
+    """
+    Pool-based set distance: K support videos are flattened into one tuple pool.
+
+    mode:
+      "unidirectional"     : mean_q min_s ||q-s||^2
+      "bidirectional"      : 0.5 * (Q->S + S->Q)  — identical to mean_hausdorff_bidir
+      "attention_weighted" : sum_q softmax(-d*/tau)_q * d*_q  (Q->S, weighted by query tuple)
+
+    Args:
+        q_set   : (nq, Tq, d)  query tuple embeddings
+        s_set   : (ns, Ts, d)  support tuple embeddings
+        mode    : str
+        tau     : float  softmax temperature (attention_weighted only)
+        chunk_s : int    chunk size for memory-efficient scan
+
+    Returns:
+        distances: (nq,)
+    """
+    nq, Tq, d = q_set.shape
+    s_flat = s_set.reshape(-1, d)   # (S,) where S = ns * Ts
+    S = s_flat.shape[0]
+    device, dtype = q_set.device, q_set.dtype
+
+    # ---------- Q -> S ----------
+    min_dist_q = torch.full((nq, Tq), float("inf"), device=device, dtype=dtype)
+    q_norm = (q_set ** 2).sum(dim=-1, keepdim=True)   # (nq, Tq, 1)
+
+    for start in range(0, S, chunk_s):
+        end = min(start + chunk_s, S)
+        s_chunk = s_flat[start:end]
+        s_norm = (s_chunk ** 2).sum(dim=-1).view(1, 1, -1)
+        qs = torch.matmul(q_set, s_chunk.t())
+        dist2 = (q_norm + s_norm - 2.0 * qs).clamp(min=0)
+        min_dist_q = torch.minimum(min_dist_q, dist2.min(dim=-1).values)
+
+    if mode == "attention_weighted":
+        w = torch.softmax(-min_dist_q / tau, dim=-1)   # (nq, Tq)
+        return (w * min_dist_q).sum(dim=-1)
+
+    d_q2s = min_dist_q.mean(dim=-1)   # (nq,)
+
+    if mode == "unidirectional":
+        return d_q2s
+
+    if mode != "bidirectional":
+        raise ValueError(f"pool_hausdorff: unknown mode {mode!r}")
+
+    # ---------- S -> Q ----------
+    min_dist_s = torch.full((nq, S), float("inf"), device=device, dtype=dtype)
+    q_flat = q_set.reshape(nq * Tq, d)
+    q_flat_t = q_flat.t()
+    q_flat_norm = (q_flat ** 2).sum(dim=-1).view(1, -1)   # (1, nq*Tq)
+
+    for start in range(0, S, chunk_s):
+        end = min(start + chunk_s, S)
+        s_chunk = s_flat[start:end]
+        s_norm = (s_chunk ** 2).sum(dim=-1).view(-1, 1)
+        sq = torch.matmul(s_chunk, q_flat_t)
+        dist2 = (s_norm + q_flat_norm - 2.0 * sq).clamp(min=0)
+        dist2 = dist2.view(end - start, nq, Tq)
+        min_dist_s[:, start:end] = dist2.min(dim=-1).values.t()
+
+    d_s2q = min_dist_s.mean(dim=-1)   # (nq,)
+    return 0.5 * (d_q2s + d_s2q)
+
+
+# ---------------------------------------------------------------------------
+# instance_class_distance — instance-based, aggregate over K shots
+# ---------------------------------------------------------------------------
+
+def instance_class_distance(q_set, class_s, mode="bidirectional", tau=0.1, reduce="mean"):
+    """
+    Instance-based class distance (HyRSM style).
+
+    Computes query-to-each-support distance individually, then aggregates
+    over the K support shots. K=1 is equivalent to pool_hausdorff.
+
+    Args:
+        q_set   : (nq, T, d)
+        class_s : (k, T, d)   K support videos for one class
+        mode    : "bidirectional" | "unidirectional" | "attention_weighted"
+        tau     : float  (attention_weighted only)
+        reduce  : "mean" | "min"  — how to aggregate over K shots
+
+    Returns:
+        distances: (nq,)
+    """
+    # import inside function to avoid any circular-import risk
+    from matching.attention_weighted_hausdorff import attention_weighted_hausdorff
+
+    if mode == "attention_weighted":
+        dmat = attention_weighted_hausdorff(q_set, class_s, tau=tau)   # (nq, k)
+    elif mode in ("bidirectional", "unidirectional"):
+        dmat = mean_hausdorff(q_set, class_s,
+                              bidirectional=(mode == "bidirectional"))  # (nq, k)
+    else:
+        raise ValueError(f"instance_class_distance: unknown mode {mode!r}")
+
+    return dmat.mean(dim=1) if reduce == "mean" else dmat.min(dim=1).values
+
+
+# ---------------------------------------------------------------------------
 # Shape-verification tests
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
