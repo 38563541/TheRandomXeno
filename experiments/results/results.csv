@@ -1,0 +1,5 @@
+timestamp,config_file,dataset,split,backbone,temp_set,matching,set_aggregation,tau,relation_level,use_intra_relation,use_inter_relation,inter_style,way,shot,query_per_class,iteration,mean_accuracy,confidence_interval
+2026-08-04 07:18:50,configs/m3_bidir_pool_5shot.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,5,5,5,75000,67.724,0.3957
+2026-08-04 17:00:06,configs/m4_bidir_instance_5shot.yaml,hmdb,3,resnet18,[2],bidirectional,instance,0.1,none,False,False,,5,5,5,75000,66.292,0.3956
+2026-08-04 23:42:41,configs/m1_uni_pool_1shot.yaml,hmdb,3,resnet18,[2],unidirectional,pool,0.1,none,False,False,,5,1,5,75000,46.646,0.4236
+2026-08-05 05:35:42,configs/m2_attn_pool_1shot.yaml,hmdb,3,resnet18,[2],attention_weighted,pool,0.1,none,False,False,,5,1,5,75000,42.74,0.421
