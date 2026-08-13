@@ -5,6 +5,7 @@ import os
 import pickle
 import csv
 import yaml
+import re
 from utils import print_and_log, get_log_files, TestAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir, task_confusion
 from model import CNN_TRX
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Quiet TensorFlow warnings
@@ -295,6 +296,32 @@ class Learner:
         config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
         with tf.compat.v1.Session(config=config) as session:
+
+                # ------------------------------------------------------------------
+                # Test-only mode: load checkpoint, evaluate once, log to CSV, exit.
+                # ------------------------------------------------------------------
+                if self.args.test_model_path is not None:
+                    ckpt_path = self.args.test_model_path
+                    checkpoint = torch.load(ckpt_path, map_location=self.device)
+                    self.model.load_state_dict(checkpoint['model_state_dict'])
+                    m = re.search(r'(\d+)', os.path.basename(ckpt_path))
+                    iteration = int(m.group(1)) if m else 0
+                    print(f"[test-only] Loaded {ckpt_path}  iteration={iteration}", flush=True)
+                    accuracy_dict = self.test(session)
+                    print(accuracy_dict)
+                    self.test_accuracies.print(self.logfile, accuracy_dict)
+                    _item = self.args.dataset
+                    if _item in accuracy_dict:
+                        _log_result_csv(
+                            self.args,
+                            iteration=iteration,
+                            mean_accuracy=accuracy_dict[_item]["accuracy"],
+                            confidence_interval=accuracy_dict[_item]["confidence"],
+                        )
+                    self.logfile.close()
+                    return
+                # ------------------------------------------------------------------
+
                 train_accuracies = []
                 losses = []
                 total_iterations = self.args.training_iterations
