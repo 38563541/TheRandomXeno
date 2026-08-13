@@ -2,8 +2,8 @@
 # Class-specific cross-attention: query attends to one class's support inside
 # the per-class Hausdorff loop. Compares directly against stage2_option_b (global inter).
 
-matching_method: bidirectional_hausdorff
-bidirectional: true
+matching: bidirectional      # 距離函數：雙向 mean-Hausdorff
+set_aggregation: pool        # K 支 support 攤平成一個 tuple pool
 tau: 0.1
 
 # Backbone

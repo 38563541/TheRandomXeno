@@ -15,6 +15,13 @@ Two ablation options controlled by 'relation_level' in the YAML config:
 Both intra and inter can be independently toggled via:
     use_intra_relation: true/false
     use_inter_relation: true/false
+
+The distance function is dispatched from the config, exactly as in Stage 1:
+    matching:        unidirectional | bidirectional | attention_weighted
+    set_aggregation: pool | instance
+    tau:             float (attention_weighted only)
+Defaults (bidirectional + pool) reproduce the previously hard-coded behaviour
+bit-for-bit, so all results obtained before this dispatch was added remain valid.
 """
 
 import torch
@@ -22,7 +29,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 from utils import split_first_dim_linear
-from matching.mean_hausdorff import mean_hausdorff_bidir
+from matching.mean_hausdorff import pool_hausdorff, instance_class_distance
 from models.stage1_model import TRXSetMatching, NUM_SAMPLES
 from relation.intra_relation import IntraRelation
 from relation.inter_relation import InterRelation
@@ -88,6 +95,34 @@ class TRXSetMatchingWithRelation(nn.Module):
         class_mask = torch.eq(labels, which_class)
         return torch.reshape(torch.nonzero(class_mask, as_tuple=False), (-1,))
 
+    def _class_distance(self, q_set, class_s):
+        """
+        Query-set to class-support-set distance, dispatched from the config.
+
+        Reads matching / set_aggregation / tau off self.matching (the shared
+        TRXSetMatching instance), so Stage 1 and Stage 2 always agree on what
+        the distance function is.
+
+        Defaults are matching="bidirectional" and set_aggregation="pool", which
+        is numerically identical to the previously hard-coded
+        mean_hausdorff_bidir() — so existing results are unaffected.
+
+        Args:
+            q_set   : (nq, T, d)
+            class_s : (k_shot, T, d)   support tuples for ONE class
+        Returns:
+            distances: (nq,)
+        """
+        cfg = self.matching   # TRXSetMatching holds the parsed distance config
+        if cfg.set_aggregation == "pool":
+            return pool_hausdorff(
+                q_set, class_s,
+                mode=cfg.matching, tau=cfg.tau, chunk_s=cfg.support_chunk,
+            )
+        return instance_class_distance(
+            q_set, class_s, mode=cfg.matching, tau=cfg.tau,
+        )
+
     def forward(self, support_set, support_labels, queries):
         """
         Args:
@@ -149,10 +184,9 @@ class TRXSetMatchingWithRelation(nn.Module):
                 # true_hyrsm: support is per-query → loop over queries
                 class_s_pq = s_set_per_query[:, idx, :, :]   # [nq, k, T, d]
                 for qi in range(n_queries):
-                    d = mean_hausdorff_bidir(
+                    d = self._class_distance(
                         q_set[qi].unsqueeze(0),   # [1, T, d]
                         class_s_pq[qi],            # [k, T, d]
-                        chunk_s=64,
                     )
                     all_distances[qi, c.long()] = -d
             else:
@@ -164,7 +198,7 @@ class TRXSetMatchingWithRelation(nn.Module):
                 else:
                     q_for_dist = q_set
 
-                dist = mean_hausdorff_bidir(q_for_dist, class_s, chunk_s=64)  # [nq,]
+                dist = self._class_distance(q_for_dist, class_s)   # [nq,]
                 all_distances[:, c.long()] = -dist
 
         return {"logits": all_distances}
