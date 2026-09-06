@@ -86,6 +86,16 @@ class TRXSetMatching(nn.Module):
         self.register_buffer("tuples", tuples, persistent=False)
         self.tuples_len = tuples.shape[0]
 
+        # Warn if config declares temp_set that differs from the hardwired pairs.
+        # TRXSetMatching always builds C(seq_len, temporal_set_size=2) pairs;
+        # args.temp_set is never read by this class — this is the "洞" that nearly
+        # caused a wrong Ω attribution.  Three lines to close it permanently.
+        _declared_ts = getattr(args, "temp_set", None)
+        if _declared_ts is not None and list(_declared_ts) != [temporal_set_size]:
+            print(f"[WARN] config 宣告 temp_set={list(_declared_ts)}，但本模型硬寫死 "
+                  f"temporal_set_size={temporal_set_size}（{self.tuples_len} 個 tuple）。"
+                  f"宣告值不生效。", flush=True)
+
         # Chunk size for Hausdorff computation (memory <-> speed trade-off)
         self.support_chunk = 64
 
@@ -203,13 +213,32 @@ class CNN_TRX(nn.Module):
         last_layer_idx = -1
         self.resnet = nn.Sequential(*list(resnet.children())[:last_layer_idx])
 
+        # D: set inplace=False on all ReLUs so use_reentrant=False works correctly
+        # (inplace ops trigger version-counter errors with non-reentrant checkpointing)
+        _n_relu = 0
+        for m in self.resnet.modules():
+            if isinstance(m, torch.nn.ReLU):
+                m.inplace = False
+                _n_relu += 1
+        if _n_relu:
+            print(f"[INFO] set inplace=False on {_n_relu} ReLU modules in resnet")
+
         self.transformers = nn.ModuleList(
             [TRXSetMatching(args, temporal_set_size=2)]
         )
 
     def forward(self, context_images, context_labels, target_images):
-        context_features = self.resnet(context_images).squeeze()
-        target_features = self.resnet(target_images).squeeze()
+        if self.training and getattr(self.args, "grad_ckpt", False):
+            from torch.utils.checkpoint import checkpoint_sequential
+            # use_reentrant=False: inplace ReLUs are patched to inplace=False
+            # in __init__, so non-reentrant checkpointing is safe.
+            context_features = checkpoint_sequential(
+                self.resnet, 4, context_images, use_reentrant=False).squeeze()
+            target_features  = checkpoint_sequential(
+                self.resnet, 4, target_images,  use_reentrant=False).squeeze()
+        else:
+            context_features = self.resnet(context_images).squeeze()
+            target_features = self.resnet(target_images).squeeze()
 
         dim = int(context_features.shape[1])
 

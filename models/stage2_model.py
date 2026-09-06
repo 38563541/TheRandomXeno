@@ -35,6 +35,7 @@ from relation.intra_relation import IntraRelation
 from relation.inter_relation import InterRelation
 from relation.hyrsm_inter_relation import HyRSMInterRelation
 from relation.true_hyrsm_inter_relation import TrueHyRSMInterRelation
+from relation.support_decouple_relation import SupportDecoupleRelation
 
 
 class TRXSetMatchingWithRelation(nn.Module):
@@ -53,8 +54,8 @@ class TRXSetMatchingWithRelation(nn.Module):
         super().__init__()
         assert relation_level in ("frame", "tuple"), \
             f"relation_level must be 'frame' or 'tuple', got {relation_level!r}"
-        assert inter_style in ("global", "hyrsm", "true_hyrsm"), \
-            f"inter_style must be 'global', 'hyrsm', or 'true_hyrsm', got {inter_style!r}"
+        assert inter_style in ("global", "hyrsm", "true_hyrsm", "decouple"), \
+            f"inter_style must be 'global', 'hyrsm', 'true_hyrsm', or 'decouple', got {inter_style!r}"
 
         self.args           = args
         self.relation_level = relation_level
@@ -75,7 +76,13 @@ class TRXSetMatchingWithRelation(nn.Module):
 
         self.intra = IntraRelation(rel_dim, num_heads) if use_intra else nn.Identity()
         if use_inter:
-            if inter_style == "true_hyrsm":
+            if inter_style == "decouple":
+                self.inter = SupportDecoupleRelation(
+                    rel_dim, num_heads,
+                    gate=getattr(args, "decouple_gate", True),
+                    mode=getattr(args, "decouple_mode", "remove"),
+                )
+            elif inter_style == "true_hyrsm":
                 self.inter = TrueHyRSMInterRelation(rel_dim, num_heads)
             elif inter_style == "hyrsm":
                 self.inter = HyRSMInterRelation(rel_dim, num_heads)
@@ -161,6 +168,13 @@ class TRXSetMatchingWithRelation(nn.Module):
             q_set = self.intra(q_set)  # [nq, T, d_out]
             s_set = self.intra(s_set)  # [ns, T, d_out]
 
+            # Support decouple: class-conditioned support rewriting.
+            # Runs ONCE per episode, BEFORE the class loop.
+            # query is deliberately NOT modified so all 5 class distances
+            # remain in a common scale (design principle).
+            if self.inter is not None and self.inter_style == "decouple":
+                s_set = self.inter(s_set, support_labels)
+
             # Global InterRelation: cross-attend across all queries and all support
             if self.inter is not None and self.inter_style == "global":
                 q_set, s_set = self.inter(q_set, s_set)
@@ -233,6 +247,15 @@ class CNN_TRXWithRelation(nn.Module):
             resnet = models.resnet50(pretrained=True)
         self.resnet = nn.Sequential(*list(resnet.children())[:-1])
 
+        # D: set inplace=False on all ReLUs so use_reentrant=False works correctly
+        _n_relu = 0
+        for m in self.resnet.modules():
+            if isinstance(m, torch.nn.ReLU):
+                m.inplace = False
+                _n_relu += 1
+        if _n_relu:
+            print(f"[INFO] set inplace=False on {_n_relu} ReLU modules in resnet")
+
         self.transformers = nn.ModuleList([
             TRXSetMatchingWithRelation(
                 args,
@@ -244,8 +267,17 @@ class CNN_TRXWithRelation(nn.Module):
         ])
 
     def forward(self, context_images, context_labels, target_images):
-        context_features = self.resnet(context_images).squeeze()
-        target_features  = self.resnet(target_images).squeeze()
+        if self.training and getattr(self.args, "grad_ckpt", False):
+            from torch.utils.checkpoint import checkpoint_sequential
+            # use_reentrant=False: inplace ReLUs are patched to inplace=False
+            # in __init__, so non-reentrant checkpointing is safe.
+            context_features = checkpoint_sequential(
+                self.resnet, 4, context_images, use_reentrant=False).squeeze()
+            target_features  = checkpoint_sequential(
+                self.resnet, 4, target_images,  use_reentrant=False).squeeze()
+        else:
+            context_features = self.resnet(context_images).squeeze()
+            target_features  = self.resnet(target_images).squeeze()
 
         dim = int(context_features.shape[1])
         context_features = context_features.reshape(-1, self.args.seq_len, dim)

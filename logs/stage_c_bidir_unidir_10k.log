@@ -1,0 +1,35 @@
+Loading B1 model (75k) ...
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint75000.pt  (iter 75000)
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+  [500/10000]  bidir=46.24%  uni=45.26%
+  [1000/10000]  bidir=46.29%  uni=45.32%
+  [1500/10000]  bidir=46.49%  uni=45.30%
+  [2000/10000]  bidir=46.49%  uni=45.26%
+  [2500/10000]  bidir=46.54%  uni=45.22%
+  [3000/10000]  bidir=46.44%  uni=45.23%
+  [3500/10000]  bidir=46.46%  uni=45.19%
+  [4000/10000]  bidir=46.46%  uni=45.23%
+  [4500/10000]  bidir=46.42%  uni=45.17%
+  [5000/10000]  bidir=46.55%  uni=45.29%
+  [5500/10000]  bidir=46.57%  uni=45.31%
+  [6000/10000]  bidir=46.59%  uni=45.36%
+  [6500/10000]  bidir=46.56%  uni=45.32%
+  [7000/10000]  bidir=46.62%  uni=45.36%
+  [7500/10000]  bidir=46.62%  uni=45.36%
+  [8000/10000]  bidir=46.60%  uni=45.34%
+  [8500/10000]  bidir=46.62%  uni=45.36%
+  [9000/10000]  bidir=46.61%  uni=45.33%
+  [9500/10000]  bidir=46.59%  uni=45.31%
+  [10000/10000]  bidir=46.52%  uni=45.26%
+
+=== Stage C Results (N=250000 episodes × 5 queries) ===
+  距離函數                      集合聚合  shot      準確率 ± 95% CI
+  雙向 (trained)              pool     1  46.52 ± 0.20%
+  單向 Q→S                    pool     1  45.26 ± 0.20%
+
+判定: CI 不重疊（diff=+1.26pp），雙向顯著更好。
+DONE
