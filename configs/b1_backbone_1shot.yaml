@@ -1,0 +1,30 @@
+# B1 backbone — 1-shot, bidirectional mean-Hausdorff, pool aggregation
+# Created for 整日_0906 Phase 3 (B1 seed=43 training).
+# Derived from stage2_b2_intra_only.yaml with use_intra_relation: false.
+# No relation modules; stage-2 YAML format (explicit matching/set_aggregation keys).
+
+matching: bidirectional      # 距離函數：雙向 mean-Hausdorff
+set_aggregation: pool        # K 支 support 攤平成一個 tuple pool
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (B1: none)
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none

@@ -1,0 +1,139 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+[INFO] seed=43 (random, numpy, torch, cuda)
+Options: Namespace(config='/home/ccwu/Documents/work/trx/configs/b1_backbone_1shot.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/b1_seed43_1shot_hmdb3/hmdb_split3_20260907_123206', test_model_path=None, training_iterations=100020, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[25000, 50000, 75000, 100000], num_test_tasks=10000, print_freq=1000, seq_len=8, num_workers=10, method='resnet18', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=5000, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=43, grad_ckpt=False, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=False, use_inter_relation=False, relation_level='none', config_file='/home/ccwu/Documents/work/trx/configs/b1_backbone_1shot.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/b1_seed43_1shot_hmdb3/hmdb_split3_20260907_123206
+
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+Task [1000/100020], Train Loss: 3.8786695, Train Accuracy: 0.4954955
+Task [2000/100020], Train Loss: 1.4304434, Train Accuracy: 0.6354399
+Task [3000/100020], Train Loss: 1.1651881, Train Accuracy: 0.7046800
+Task [4000/100020], Train Loss: 1.0164396, Train Accuracy: 0.7486801
+Task [5000/100020], Train Loss: 0.9104404, Train Accuracy: 0.7682401
+Task [6000/100020], Train Loss: 0.7608367, Train Accuracy: 0.8092801
+Task [7000/100020], Train Loss: 0.7125601, Train Accuracy: 0.8228000
+Task [8000/100020], Train Loss: 0.6182919, Train Accuracy: 0.8460400
+Task [9000/100020], Train Loss: 0.5753713, Train Accuracy: 0.8553601
+Task [10000/100020], Train Loss: 0.5347754, Train Accuracy: 0.8671601
+Task [11000/100020], Train Loss: 0.4771357, Train Accuracy: 0.8800400
+Task [12000/100020], Train Loss: 0.4356151, Train Accuracy: 0.8881600
+Task [13000/100020], Train Loss: 0.4042644, Train Accuracy: 0.8990000
+Task [14000/100020], Train Loss: 0.3863102, Train Accuracy: 0.9051200
+Task [15000/100020], Train Loss: 0.3588363, Train Accuracy: 0.9095201
+Task [16000/100020], Train Loss: 0.3339888, Train Accuracy: 0.9161201
+Task [17000/100020], Train Loss: 0.2998469, Train Accuracy: 0.9249601
+Task [18000/100020], Train Loss: 0.3052635, Train Accuracy: 0.9240000
+Task [19000/100020], Train Loss: 0.2825772, Train Accuracy: 0.9290400
+Task [20000/100020], Train Loss: 0.2592384, Train Accuracy: 0.9370000
+Task [21000/100020], Train Loss: 0.2336231, Train Accuracy: 0.9420400
+Task [22000/100020], Train Loss: 0.2172866, Train Accuracy: 0.9462401
+Task [23000/100020], Train Loss: 0.2097551, Train Accuracy: 0.9480799
+Task [24000/100020], Train Loss: 0.2100749, Train Accuracy: 0.9476400
+Task [25000/100020], Train Loss: 0.2044152, Train Accuracy: 0.9491600
+{'hmdb': {'accuracy': 49.502001163959505, 'confidence': 0.42751011032227254}}
+
+Test Accuracies:
+hmdb: 49.5+/-0.4
+
+Task [26000/100020], Train Loss: 0.1717063, Train Accuracy: 0.9591600
+Task [27000/100020], Train Loss: 0.1799452, Train Accuracy: 0.9548401
+Task [28000/100020], Train Loss: 0.1676098, Train Accuracy: 0.9594000
+Task [29000/100020], Train Loss: 0.1770845, Train Accuracy: 0.9556401
+Task [30000/100020], Train Loss: 0.1553902, Train Accuracy: 0.9604000
+Task [31000/100020], Train Loss: 0.1389930, Train Accuracy: 0.9664800
+Task [32000/100020], Train Loss: 0.1482263, Train Accuracy: 0.9644800
+Task [33000/100020], Train Loss: 0.1320014, Train Accuracy: 0.9687600
+Task [34000/100020], Train Loss: 0.1311366, Train Accuracy: 0.9689600
+Task [35000/100020], Train Loss: 0.1149762, Train Accuracy: 0.9722000
+Task [36000/100020], Train Loss: 0.1121704, Train Accuracy: 0.9718801
+Task [37000/100020], Train Loss: 0.1198443, Train Accuracy: 0.9704400
+Task [38000/100020], Train Loss: 0.1136093, Train Accuracy: 0.9733601
+Task [39000/100020], Train Loss: 0.1077920, Train Accuracy: 0.9747199
+Task [40000/100020], Train Loss: 0.0895952, Train Accuracy: 0.9786400
+Task [41000/100020], Train Loss: 0.0909410, Train Accuracy: 0.9781201
+Task [42000/100020], Train Loss: 0.0904767, Train Accuracy: 0.9778399
+Task [43000/100020], Train Loss: 0.0853982, Train Accuracy: 0.9798400
+Task [44000/100020], Train Loss: 0.0844176, Train Accuracy: 0.9800400
+Task [45000/100020], Train Loss: 0.0823424, Train Accuracy: 0.9803600
+Task [46000/100020], Train Loss: 0.0772201, Train Accuracy: 0.9822400
+Task [47000/100020], Train Loss: 0.0793815, Train Accuracy: 0.9816800
+Task [48000/100020], Train Loss: 0.0704060, Train Accuracy: 0.9837199
+Task [49000/100020], Train Loss: 0.0693002, Train Accuracy: 0.9831600
+Task [50000/100020], Train Loss: 0.0766989, Train Accuracy: 0.9819201
+{'hmdb': {'accuracy': 48.10600115031004, 'confidence': 0.4224938036730541}}
+
+Test Accuracies:
+hmdb: 48.1+/-0.4
+
+Task [51000/100020], Train Loss: 0.0570128, Train Accuracy: 0.9866000
+Task [52000/100020], Train Loss: 0.0630997, Train Accuracy: 0.9852800
+Task [53000/100020], Train Loss: 0.0656178, Train Accuracy: 0.9850000
+Task [54000/100020], Train Loss: 0.0532599, Train Accuracy: 0.9875599
+Task [55000/100020], Train Loss: 0.0588641, Train Accuracy: 0.9864000
+Task [56000/100020], Train Loss: 0.0609212, Train Accuracy: 0.9867600
+Task [57000/100020], Train Loss: 0.0579007, Train Accuracy: 0.9872800
+Task [58000/100020], Train Loss: 0.0581846, Train Accuracy: 0.9860400
+Task [59000/100020], Train Loss: 0.0603541, Train Accuracy: 0.9858800
+Task [60000/100020], Train Loss: 0.0467318, Train Accuracy: 0.9895200
+Task [61000/100020], Train Loss: 0.0523545, Train Accuracy: 0.9874800
+Task [62000/100020], Train Loss: 0.0469081, Train Accuracy: 0.9889200
+Task [63000/100020], Train Loss: 0.0459843, Train Accuracy: 0.9891601
+Task [64000/100020], Train Loss: 0.0493858, Train Accuracy: 0.9880800
+Task [65000/100020], Train Loss: 0.0437301, Train Accuracy: 0.9902800
+Task [66000/100020], Train Loss: 0.0397744, Train Accuracy: 0.9903201
+Task [67000/100020], Train Loss: 0.0488180, Train Accuracy: 0.9894000
+Task [68000/100020], Train Loss: 0.0419218, Train Accuracy: 0.9906800
+Task [69000/100020], Train Loss: 0.0425892, Train Accuracy: 0.9902800
+Task [70000/100020], Train Loss: 0.0460541, Train Accuracy: 0.9902800
+Task [71000/100020], Train Loss: 0.0364356, Train Accuracy: 0.9917600
+Task [72000/100020], Train Loss: 0.0404309, Train Accuracy: 0.9908000
+Task [73000/100020], Train Loss: 0.0409637, Train Accuracy: 0.9907600
+Task [74000/100020], Train Loss: 0.0327650, Train Accuracy: 0.9928800
+Task [75000/100020], Train Loss: 0.0307273, Train Accuracy: 0.9930801
+{'hmdb': {'accuracy': 47.31000113174319, 'confidence': 0.42450356855674576}}
+
+Test Accuracies:
+hmdb: 47.3+/-0.4
+
+Task [76000/100020], Train Loss: 0.0325329, Train Accuracy: 0.9924400
+Task [77000/100020], Train Loss: 0.0263343, Train Accuracy: 0.9942400
+Task [78000/100020], Train Loss: 0.0310138, Train Accuracy: 0.9932800
+Task [79000/100020], Train Loss: 0.0394886, Train Accuracy: 0.9910799
+Task [80000/100020], Train Loss: 0.0318367, Train Accuracy: 0.9922800
+Task [81000/100020], Train Loss: 0.0318845, Train Accuracy: 0.9932801
+Task [82000/100020], Train Loss: 0.0281743, Train Accuracy: 0.9929200
+Task [83000/100020], Train Loss: 0.0290774, Train Accuracy: 0.9934800
+Task [84000/100020], Train Loss: 0.0312237, Train Accuracy: 0.9930400
+Task [85000/100020], Train Loss: 0.0225738, Train Accuracy: 0.9946400
+Task [86000/100020], Train Loss: 0.0280285, Train Accuracy: 0.9938801
+Task [87000/100020], Train Loss: 0.0255631, Train Accuracy: 0.9935200
+Task [88000/100020], Train Loss: 0.0262696, Train Accuracy: 0.9941601
+Task [89000/100020], Train Loss: 0.0235650, Train Accuracy: 0.9952001
+Task [90000/100020], Train Loss: 0.0237162, Train Accuracy: 0.9946800
+Task [91000/100020], Train Loss: 0.0287220, Train Accuracy: 0.9929600
+Task [92000/100020], Train Loss: 0.0244150, Train Accuracy: 0.9940000
+Task [93000/100020], Train Loss: 0.0207082, Train Accuracy: 0.9952800
+Task [94000/100020], Train Loss: 0.0282097, Train Accuracy: 0.9934800
+Task [95000/100020], Train Loss: 0.0291095, Train Accuracy: 0.9934400
+Task [96000/100020], Train Loss: 0.0233826, Train Accuracy: 0.9945601
+Task [97000/100020], Train Loss: 0.0231169, Train Accuracy: 0.9947200
+Task [98000/100020], Train Loss: 0.0270866, Train Accuracy: 0.9942800
+Task [99000/100020], Train Loss: 0.0252526, Train Accuracy: 0.9947200
+Task [100000/100020], Train Loss: 0.0236303, Train Accuracy: 0.9944800
+{'hmdb': {'accuracy': 46.65200110808015, 'confidence': 0.4227747345532202}}
+
+Test Accuracies:
+hmdb: 46.7+/-0.4
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet18_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet18_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+
+

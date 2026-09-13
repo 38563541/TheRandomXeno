@@ -1,0 +1,196 @@
+Traceback (most recent call last):
+  File "/home/ccwu/Documents/work/trx/scripts/phase0_eval.py", line 322, in <module>
+    m, _ = load_model(cfg, ckpt, device=DEVICE)
+  File "/home/ccwu/Documents/work/trx/visualize.py", line 132, in load_model
+    model.load_state_dict(ckpt["model_state_dict"])
+  File "/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/nn/modules/module.py", line 2584, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.inter.alpha". 
+=== phase0_eval.py start ===
+DEVICE=cuda
+DATA_ZIP exists: True
+
+Building episode loaders ...
+  Loader(testlist03.txt): 10 classes, 1276 videos
+  Loader(vallist03.txt): 10 classes, 1190 videos
+
+============================================================
+0c: Absolute spread (within_k, between) for D1a + B1/B3/B4
+============================================================
+  Sampled 30 episodes for spread analysis.
+
+  Loading B1 ...
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint75000.pt  (iter 75000)
+    within_k(raw)=7.1873  within_k(cen)=5.7274
+    between(raw)=32.2471   between(cen)=30.8394
+    R_raw=4.4867  R_cen=5.3845  M=0.1391
+
+  Loading B3 ...
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=False, use_inter=True, inter_style=global, rel_dim=1152
+  Loaded checkpoint75000.pt  (iter 75000)
+    within_k(raw)=0.1336  within_k(cen)=0.1062
+    between(raw)=0.8509   between(cen)=0.8245
+    R_raw=6.3679  R_cen=7.7605  M=0.0008
+
+  Loading B4 ...
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=true_hyrsm, rel_dim=1152
+  Loaded checkpoint75000.pt  (iter 75000)
+    within_k(raw)=4.8303  within_k(cen)=3.8361
+    between(raw)=34.9514   between(cen)=33.9927
+    R_raw=7.2359  R_cen=8.8613  M=0.1744
+
+  Loading D1a ...
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=decouple, rel_dim=1152
+    [ERROR] D1a spread failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.inter.alpha". 
+
+=== 0c Summary ===
+設定       within_k(raw)   between(raw)     R_raw       within_k/between ratio 原因
+  B1              7.1873        32.2471      4.49  normal
+  B3              0.1336         0.8509      6.37  normal
+  B4              4.8303        34.9514      7.24  normal
+  D1a: FAILED
+
+============================================================
+0a: Val-selected for B4 seed=43 and B2 seed=43
+============================================================
+
+  --- B4_seed43 ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=true_hyrsm, rel_dim=1152
+  Loaded checkpoint25000.pt  (iter 25000)
+    iter  25000: val=54.80±3.08
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=true_hyrsm, rel_dim=1152
+  Loaded checkpoint50000.pt  (iter 50000)
+    iter  50000: val=55.30±3.08
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=true_hyrsm, rel_dim=1152
+  Loaded checkpoint75000.pt  (iter 75000)
+    iter  75000: val=55.00±3.08
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=true_hyrsm, rel_dim=1152
+  Loaded checkpoint100000.pt  (iter 100000)
+    iter 100000: val=55.60±3.08
+    Val-best: iter 100000 (val 55.60%)
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=true_hyrsm, rel_dim=1152
+  Loaded checkpoint100000.pt  (iter 100000)
+    Test acc (val-selected): 51.40±3.10
+
+  --- B2_seed43 ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, inter_style=global, rel_dim=1152
+  Loaded checkpoint25000.pt  (iter 25000)
+    iter  25000: val=54.60±3.09
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, inter_style=global, rel_dim=1152
+  Loaded checkpoint50000.pt  (iter 50000)
+    iter  50000: val=54.10±3.09
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, inter_style=global, rel_dim=1152
+  Loaded checkpoint75000.pt  (iter 75000)
+    iter  75000: val=53.70±3.09
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, inter_style=global, rel_dim=1152
+  Loaded checkpoint100000.pt  (iter 100000)
+    iter 100000: val=53.10±3.09
+    Val-best: iter 25000 (val 54.60%)
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, inter_style=global, rel_dim=1152
+  Loaded checkpoint25000.pt  (iter 25000)
+    Test acc (val-selected): 48.90±3.10
+
+=== 0a Summary ===
+設定                val最佳點   test acc(val-sel)      CI
+  B4_seed42          50000               49.12  ±1.39
+  B2_seed42          25000               48.68  ±1.39
+  B4_seed43         100000               51.40  ±3.10
+  B2_seed43          25000               48.90  ±3.10
+
+=== 0a Paired gaps (B4 − B2) ===
+  seed=42 gap: 49.12 − 48.68 = 0.44pp
+  seed=43 gap: 51.40 − 48.90 = 2.50pp
+  => B4 在兩個獨立 seed 上都高於 B2，配對差距分別為 0.44 pp 與 2.50 pp。
+
+============================================================
+0e: Val-selected for D1a
+============================================================
+
+  --- D1a ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=decouple, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.inter.alpha". 
+    iter  25000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=decouple, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.inter.alpha". 
+    iter  50000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=decouple, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.inter.alpha". 
+    iter  75000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, inter_style=decouple, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.inter.alpha". 
+    iter 100000: EVAL FAILED
+    No valid checkpoints for D1a
+
+============================================================
+Phase 1: m3 5-shot — 50k + 100k eval via run.py
+============================================================
+  [50000k] Launching eval → /home/ccwu/Documents/work/trx/logs/m3_5shot_50k_eval.log ...
+  [50000k] exit=0
+  [50000k] Test Accuracies:
+  [50000k] hmdb: 67.7+/-0.4
+  [100000k] Launching eval → /home/ccwu/Documents/work/trx/logs/m3_5shot_100k_eval.log ...
+  [100000k] exit=0
+  [100000k] Test Accuracies:
+  [100000k] hmdb: 67.4+/-0.4
+
+=== phase0_eval.py DONE ===

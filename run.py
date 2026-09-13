@@ -56,6 +56,7 @@ _CSV_COLUMNS = [
     "timestamp", "config_file", "dataset", "split",
     "backbone", "temp_set", "matching", "set_aggregation", "tau",
     "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
+    "decouple_gate", "decouple_mode", "intra_depth",
     "way", "shot", "query_per_class",
     "iteration", "mean_accuracy", "confidence_interval",
 ]
@@ -88,6 +89,9 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
         "use_intra_relation":  getattr(args, "use_intra_relation", ""),
         "use_inter_relation":  getattr(args, "use_inter_relation", ""),
         "inter_style":         getattr(args, "inter_style", ""),
+        "decouple_gate":       getattr(args, "decouple_gate", ""),
+        "decouple_mode":       getattr(args, "decouple_mode", ""),
+        "intra_depth":         getattr(args, "intra_depth", 1),
         "way":                 args.way,
         "shot":                args.shot,
         "query_per_class":     getattr(args, "query_per_class", ""),
@@ -115,6 +119,19 @@ class Learner:
     def __init__(self):
         self.args = self.parse_command_line()
 
+        # ------------------------------------------------------------------
+        # Global seed (all four sources).  worker_init_fn propagates to
+        # DataLoader workers so each worker gets a deterministic but distinct
+        # seed derived from the global seed and the worker id.
+        # ------------------------------------------------------------------
+        if self.args.seed is not None:
+            _s = self.args.seed
+            random.seed(_s)
+            np.random.seed(_s)
+            torch.manual_seed(_s)
+            torch.cuda.manual_seed_all(_s)
+            print(f"[INFO] seed={_s} (random, numpy, torch, cuda)", flush=True)
+
         self.checkpoint_dir, self.logfile, self.checkpoint_path_validation, self.checkpoint_path_final \
             = get_log_files(self.args.checkpoint_dir, self.args.resume_from_checkpoint, False)
 
@@ -129,7 +146,20 @@ class Learner:
         self.train_set, self.validation_set, self.test_set = self.init_data()
 
         self.vd = video_reader.VideoDataset(self.args)
-        self.video_loader = torch.utils.data.DataLoader(self.vd, batch_size=1, num_workers=self.args.num_workers)
+
+        # worker_init_fn: give each worker a deterministic but distinct seed.
+        # Only active when --seed is set; otherwise same behaviour as before.
+        def _worker_init_fn(worker_id):
+            base = self.args.seed if self.args.seed is not None else 0
+            seed_w = base + worker_id
+            random.seed(seed_w)
+            np.random.seed(seed_w)
+            torch.manual_seed(seed_w)
+
+        _wifn = _worker_init_fn if self.args.seed is not None else None
+        self.video_loader = torch.utils.data.DataLoader(
+            self.vd, batch_size=1, num_workers=self.args.num_workers,
+            worker_init_fn=_wifn)
         self.test_loader  = torch.utils.data.DataLoader(self.vd, batch_size=1, num_workers=0)
         
         self.loss = loss
@@ -150,9 +180,26 @@ class Learner:
 
     def init_model(self):
         model = CNN_TRX(self.args)
-        model = model.to(self.device) 
+        model = model.to(self.device)
         if self.args.num_gpus > 1:
             model.distribute_model()
+
+        # ── BN momentum correction for grad_ckpt ─────────────────────────────
+        # checkpoint_sequential re-runs forward for backward; BN in training
+        # mode would update running stats twice per batch, doubling momentum
+        # from 0.1 to ~0.19.  Correct to m = 1-sqrt(1-0.1) ≈ 0.0513 so that
+        # one grad-ckpt cycle equals one normal cycle in expectation.
+        if getattr(self.args, "grad_ckpt", False):
+            import math
+            m = 1 - math.sqrt(1 - 0.1)
+            n_bn = 0
+            for mod in model.modules():
+                if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
+                    mod.momentum = m
+                    n_bn += 1
+            print(f"[INFO] grad_ckpt on: adjusted momentum of {n_bn} BN layers to {m:.5f}",
+                  flush=True)
+
         return model
 
     def init_data(self):
@@ -223,6 +270,63 @@ class Learner:
         parser.add_argument("--debug_loader", default=False, action="store_true", help="Load 1 vid per class for debugging")
         parser.add_argument("--split", type=int, default=7, help="Dataset split.")
         parser.add_argument('--sch', nargs='+', type=int, help='iters to drop learning rate', default=[1000000])
+        parser.add_argument('--seed', type=int, default=None,
+                            help='Global random seed for reproducibility '
+                                 '(random, numpy, torch, cuda). None = no seeding.')
+        parser.add_argument('--grad_ckpt', action='store_true', default=False,
+                            help='Use gradient checkpointing on ResNet (saves VRAM at '
+                                 'the cost of ~20%% extra compute). '
+                                 'use_reentrant=True required for inplace ReLU.')
+
+        # decouple_gate / decouple_mode — SupportDecoupleRelation args.
+        # Use mutually exclusive group for gate so YAML "decouple_gate: false"
+        # works correctly.  str2bool does not exist in this repo → do NOT use it.
+        _dg = parser.add_mutually_exclusive_group()
+        _dg.add_argument("--decouple_gate",    dest="decouple_gate",
+                         action="store_true",  help="Enable cosine gate in SupportDecoupleRelation.")
+        _dg.add_argument("--no_decouple_gate", dest="decouple_gate",
+                         action="store_false", help="Disable cosine gate.")
+        parser.set_defaults(decouple_gate=True)
+        parser.add_argument("--decouple_mode", type=str, default="remove",
+                            choices=["remove", "inject"],
+                            help="Decouple mode: 'remove' subtracts other-class signal, "
+                                 "'inject' adds it (ablation only).")
+        parser.add_argument("--intra_depth", type=int, default=1,
+                            help="number of stacked IntraRelation blocks")
+
+        # ------------------------------------------------------------------
+        # YAML config key validation — runs after all add_argument() calls
+        # so that `known` reflects every declared argument.
+        # ------------------------------------------------------------------
+        if yaml_cfg:
+            known = {a.dest for a in parser._actions}
+
+            # Stage 2 keys intentionally passed through without add_argument.
+            # ⚠️  Every new stage2 flag must be listed here (e.g. decouple_gate,
+            #     decouple_mode) so it is not mis-classified as unknown.
+            # Note: 'backbone' is NOT listed here — _load_yaml_config already
+            #       consumes it (aliasing backbone→method and popping the key)
+            #       before this guard runs, so it will never appear in yaml_cfg.
+            passthrough = {
+                "matching", "set_aggregation", "tau",
+                "use_intra_relation", "use_inter_relation",
+                "relation_level", "inter_style",
+            }
+
+            # Keys confirmed to be read by no model code.
+            # They appear in all 17 configs but are harmless.
+            # Kept as deprecated (not unknown) so the label is accurate,
+            # and flagged every run as a reminder to clean them up.
+            deprecated = {"num_samples", "matching_method", "bidirectional"}
+
+            unknown = set(yaml_cfg) - known - passthrough - deprecated
+            if unknown:
+                print(f"[WARN] config 有 {len(unknown)} 個未知的鍵，不會生效: "
+                      f"{sorted(unknown)}", flush=True)
+            hit = deprecated & set(yaml_cfg)
+            if hit:
+                print(f"[WARN] config 有廢棄鍵 {sorted(hit)}"
+                      f"（程式碼不讀取，對模型無作用）", flush=True)
 
         # Apply YAML config defaults AFTER all add_argument() calls so that
         # YAML values override the argparse-level defaults (not the other way round).

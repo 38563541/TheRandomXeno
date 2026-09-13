@@ -1,0 +1,120 @@
+Options: Namespace(config='/home/ccwu/Documents/work/trx/configs/m1_uni_pool_1shot.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/m1_uni_pool_1shot_hmdb3/hmdb_split3_20260907_193816', test_model_path=None, training_iterations=100020, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[25000, 50000, 75000, 100000], num_test_tasks=10000, print_freq=1000, seq_len=8, num_workers=10, method='resnet18', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=5000, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=42, grad_ckpt=False, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='unidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=False, use_inter_relation=False, relation_level='none', config_file='/home/ccwu/Documents/work/trx/configs/m1_uni_pool_1shot.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/m1_uni_pool_1shot_hmdb3/hmdb_split3_20260907_193816
+
+Task [1000/100020], Train Loss: 4.1196795, Train Accuracy: 0.4387587
+Task [2000/100020], Train Loss: 1.6710341, Train Accuracy: 0.5756400
+Task [3000/100020], Train Loss: 1.3663430, Train Accuracy: 0.6510800
+Task [4000/100020], Train Loss: 1.2044111, Train Accuracy: 0.6924000
+Task [5000/100020], Train Loss: 1.0775894, Train Accuracy: 0.7291999
+Task [6000/100020], Train Loss: 0.9179940, Train Accuracy: 0.7703601
+Task [7000/100020], Train Loss: 0.8475527, Train Accuracy: 0.7848001
+Task [8000/100020], Train Loss: 0.7333868, Train Accuracy: 0.8163201
+Task [9000/100020], Train Loss: 0.6974656, Train Accuracy: 0.8259201
+Task [10000/100020], Train Loss: 0.6375482, Train Accuracy: 0.8392001
+Task [11000/100020], Train Loss: 0.5785722, Train Accuracy: 0.8524801
+Task [12000/100020], Train Loss: 0.5277718, Train Accuracy: 0.8653200
+Task [13000/100020], Train Loss: 0.5017117, Train Accuracy: 0.8744400
+Task [14000/100020], Train Loss: 0.4637736, Train Accuracy: 0.8838400
+Task [15000/100020], Train Loss: 0.4164357, Train Accuracy: 0.8947600
+Task [16000/100020], Train Loss: 0.4164776, Train Accuracy: 0.8942400
+Task [17000/100020], Train Loss: 0.3698246, Train Accuracy: 0.9077999
+Task [18000/100020], Train Loss: 0.3530365, Train Accuracy: 0.9101599
+Task [19000/100020], Train Loss: 0.3356776, Train Accuracy: 0.9151601
+Task [20000/100020], Train Loss: 0.3074206, Train Accuracy: 0.9218001
+Task [21000/100020], Train Loss: 0.2868555, Train Accuracy: 0.9292000
+Task [22000/100020], Train Loss: 0.2880075, Train Accuracy: 0.9264400
+Task [23000/100020], Train Loss: 0.2586844, Train Accuracy: 0.9339600
+Task [24000/100020], Train Loss: 0.2716850, Train Accuracy: 0.9304399
+Task [25000/100020], Train Loss: 0.2504225, Train Accuracy: 0.9369601
+
+Test Accuracies:
+hmdb: 47.9+/-0.4
+
+Task [26000/100020], Train Loss: 0.2236943, Train Accuracy: 0.9438000
+Task [27000/100020], Train Loss: 0.2218487, Train Accuracy: 0.9447200
+Task [28000/100020], Train Loss: 0.2130306, Train Accuracy: 0.9475201
+Task [29000/100020], Train Loss: 0.2094627, Train Accuracy: 0.9471200
+Task [30000/100020], Train Loss: 0.1796252, Train Accuracy: 0.9561201
+Task [31000/100020], Train Loss: 0.1750743, Train Accuracy: 0.9557200
+Task [32000/100020], Train Loss: 0.1787090, Train Accuracy: 0.9556000
+Task [33000/100020], Train Loss: 0.1728136, Train Accuracy: 0.9587200
+Task [34000/100020], Train Loss: 0.1604625, Train Accuracy: 0.9596801
+Task [35000/100020], Train Loss: 0.1526463, Train Accuracy: 0.9631600
+Task [36000/100020], Train Loss: 0.1469948, Train Accuracy: 0.9628800
+Task [37000/100020], Train Loss: 0.1551818, Train Accuracy: 0.9621200
+Task [38000/100020], Train Loss: 0.1429839, Train Accuracy: 0.9641200
+Task [39000/100020], Train Loss: 0.1364493, Train Accuracy: 0.9659200
+Task [40000/100020], Train Loss: 0.1216926, Train Accuracy: 0.9702801
+Task [41000/100020], Train Loss: 0.1157629, Train Accuracy: 0.9720400
+Task [42000/100020], Train Loss: 0.1208282, Train Accuracy: 0.9711200
+Task [43000/100020], Train Loss: 0.1058101, Train Accuracy: 0.9740800
+Task [44000/100020], Train Loss: 0.1181849, Train Accuracy: 0.9718400
+Task [45000/100020], Train Loss: 0.1008412, Train Accuracy: 0.9752400
+Task [46000/100020], Train Loss: 0.0969982, Train Accuracy: 0.9767600
+Task [47000/100020], Train Loss: 0.1086777, Train Accuracy: 0.9738799
+Task [48000/100020], Train Loss: 0.1036066, Train Accuracy: 0.9744400
+Task [49000/100020], Train Loss: 0.0849923, Train Accuracy: 0.9790400
+Task [50000/100020], Train Loss: 0.0918564, Train Accuracy: 0.9784000
+
+Test Accuracies:
+hmdb: 47.2+/-0.4
+
+Task [51000/100020], Train Loss: 0.0842121, Train Accuracy: 0.9791200
+Task [52000/100020], Train Loss: 0.0841603, Train Accuracy: 0.9800000
+Task [53000/100020], Train Loss: 0.0866438, Train Accuracy: 0.9798000
+Task [54000/100020], Train Loss: 0.0785816, Train Accuracy: 0.9817600
+Task [55000/100020], Train Loss: 0.0829442, Train Accuracy: 0.9802800
+Task [56000/100020], Train Loss: 0.0742444, Train Accuracy: 0.9825599
+Task [57000/100020], Train Loss: 0.0786764, Train Accuracy: 0.9817600
+Task [58000/100020], Train Loss: 0.0697697, Train Accuracy: 0.9843200
+Task [59000/100020], Train Loss: 0.0656046, Train Accuracy: 0.9848800
+Task [60000/100020], Train Loss: 0.0672048, Train Accuracy: 0.9849200
+Task [61000/100020], Train Loss: 0.0711497, Train Accuracy: 0.9837200
+Task [62000/100020], Train Loss: 0.0643093, Train Accuracy: 0.9860800
+Task [63000/100020], Train Loss: 0.0591699, Train Accuracy: 0.9858400
+Task [64000/100020], Train Loss: 0.0651762, Train Accuracy: 0.9837599
+Task [65000/100020], Train Loss: 0.0679607, Train Accuracy: 0.9841200
+Task [66000/100020], Train Loss: 0.0606189, Train Accuracy: 0.9856400
+Task [67000/100020], Train Loss: 0.0531819, Train Accuracy: 0.9876801
+Task [68000/100020], Train Loss: 0.0580083, Train Accuracy: 0.9860801
+Task [69000/100020], Train Loss: 0.0584041, Train Accuracy: 0.9865600
+Task [70000/100020], Train Loss: 0.0559161, Train Accuracy: 0.9874000
+Task [71000/100020], Train Loss: 0.0528702, Train Accuracy: 0.9877601
+Task [72000/100020], Train Loss: 0.0606445, Train Accuracy: 0.9859201
+Task [73000/100020], Train Loss: 0.0525117, Train Accuracy: 0.9874000
+Task [74000/100020], Train Loss: 0.0490186, Train Accuracy: 0.9887601
+Task [75000/100020], Train Loss: 0.0489427, Train Accuracy: 0.9888000
+
+Test Accuracies:
+hmdb: 48.2+/-0.4
+
+Task [76000/100020], Train Loss: 0.0515248, Train Accuracy: 0.9882001
+Task [77000/100020], Train Loss: 0.0448924, Train Accuracy: 0.9898800
+Task [78000/100020], Train Loss: 0.0453146, Train Accuracy: 0.9892799
+Task [79000/100020], Train Loss: 0.0489205, Train Accuracy: 0.9881201
+Task [80000/100020], Train Loss: 0.0387128, Train Accuracy: 0.9904800
+Task [81000/100020], Train Loss: 0.0416509, Train Accuracy: 0.9899600
+Task [82000/100020], Train Loss: 0.0434648, Train Accuracy: 0.9892401
+Task [83000/100020], Train Loss: 0.0466904, Train Accuracy: 0.9892801
+Task [84000/100020], Train Loss: 0.0425026, Train Accuracy: 0.9907200
+Task [85000/100020], Train Loss: 0.0396562, Train Accuracy: 0.9904400
+Task [86000/100020], Train Loss: 0.0452275, Train Accuracy: 0.9888800
+Task [87000/100020], Train Loss: 0.0344747, Train Accuracy: 0.9920400
+Task [88000/100020], Train Loss: 0.0336270, Train Accuracy: 0.9920400
+Task [89000/100020], Train Loss: 0.0333004, Train Accuracy: 0.9921200
+Task [90000/100020], Train Loss: 0.0398573, Train Accuracy: 0.9906399
+Task [91000/100020], Train Loss: 0.0441064, Train Accuracy: 0.9900000
+Task [92000/100020], Train Loss: 0.0327079, Train Accuracy: 0.9922401
+Task [93000/100020], Train Loss: 0.0285110, Train Accuracy: 0.9931200
+Task [94000/100020], Train Loss: 0.0395728, Train Accuracy: 0.9906800
+Task [95000/100020], Train Loss: 0.0395074, Train Accuracy: 0.9904400
+Task [96000/100020], Train Loss: 0.0302935, Train Accuracy: 0.9930800
+Task [97000/100020], Train Loss: 0.0248381, Train Accuracy: 0.9945200
+Task [98000/100020], Train Loss: 0.0303442, Train Accuracy: 0.9930000
+Task [99000/100020], Train Loss: 0.0261296, Train Accuracy: 0.9940400
+Task [100000/100020], Train Loss: 0.0317907, Train Accuracy: 0.9929200
+
+Test Accuracies:
+hmdb: 45.8+/-0.4
+

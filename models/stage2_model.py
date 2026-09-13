@@ -74,7 +74,15 @@ class TRXSetMatchingWithRelation(nn.Module):
 
         num_heads = 8
 
-        self.intra = IntraRelation(rel_dim, num_heads) if use_intra else nn.Identity()
+        depth = getattr(args, "intra_depth", 1)
+        if use_intra:
+            if depth == 1:
+                self.intra = IntraRelation(rel_dim, num_heads)  # 保留舊鍵名（向後相容）
+            else:
+                self.intra = nn.Sequential(*[IntraRelation(rel_dim, num_heads)
+                                             for _ in range(depth)])
+        else:
+            self.intra = nn.Identity()
         if use_inter:
             if inter_style == "decouple":
                 self.inter = SupportDecoupleRelation(
@@ -93,7 +101,7 @@ class TRXSetMatchingWithRelation(nn.Module):
 
         print(
             f"[INFO] TRXSetMatchingWithRelation: relation_level={relation_level}, "
-            f"use_intra={use_intra}, use_inter={use_inter}, "
+            f"use_intra={use_intra}, use_inter={use_inter}, intra_depth={depth}, "
             f"inter_style={inter_style}, rel_dim={rel_dim}"
         )
 

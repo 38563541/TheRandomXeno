@@ -1,0 +1,32 @@
+# Stage 2 — B2-x2: Intra-relation ×2 (stacked depth=2)
+# Parameter-count control for B4 comparison:
+# B2 has fewer params than B4 (B4 adds an inter module).
+# B2-x2 doubles the intra depth to bring parameter counts closer.
+# Research question: is B4's advantage mechanism or capacity?
+
+matching: bidirectional      # 距離函數：雙向 mean-Hausdorff
+set_aggregation: pool        # K 支 support 攤平成一個 tuple pool
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (B2-x2: intra ×2, no inter)
+use_intra_relation: true
+use_inter_relation: false
+relation_level: tuple
+intra_depth: 2

@@ -1,0 +1,27 @@
+# Stage 2 — D1: Support-side class decoupling at tuple level
+# Based on TEAM Eq. 10-12 (CVPR 2025), adapted for tuple-set matching.
+# Query is NOT modified; only support is rewritten class-conditionally.
+
+matching: bidirectional      # 距離函數：雙向 mean-Hausdorff
+set_aggregation: pool        # K 支 support 攤平成一個 tuple pool
+tau: 0.1
+
+backbone: resnet18
+trans_linear_out_dim: 1152
+temp_set: [2]
+num_samples: 1
+
+way: 5
+shot: 1
+query_per_class: 5
+
+training_iterations: 100020
+tasks_per_batch: 16
+
+use_intra_relation: true
+use_inter_relation: true
+relation_level: tuple
+inter_style: decouple
+
+decouple_gate: true
+decouple_mode: remove

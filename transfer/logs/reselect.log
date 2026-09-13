@@ -1,0 +1,241 @@
+=== reselect_val.py start ===
+DEVICE=cuda
+N_VAL_EPS=1000, N_TEST_EPS=10000
+VAL_SEED=10001, TEST_SEED=20001
+
+Building episode loaders ...
+  Loader(vallist03.txt): 10 classes, 1190 videos
+  Loader(testlist03.txt): 10 classes, 1276 videos
+
+============================================================
+  B4_seed42
+============================================================
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  25000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  50000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  75000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter 100000: EVAL FAILED
+  => No valid checkpoints; skipping test.
+
+============================================================
+  B4_seed43
+============================================================
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  25000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  50000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  75000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter 100000: EVAL FAILED
+  => No valid checkpoints; skipping test.
+
+============================================================
+  B2_seed42
+============================================================
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  25000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  50000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  75000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter 100000: EVAL FAILED
+  => No valid checkpoints; skipping test.
+
+============================================================
+  B2_seed43
+============================================================
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  25000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  50000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter  75000: EVAL FAILED
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=False, intra_depth=1, inter_style=global, rel_dim=1152
+    [ERROR] load_model failed: Error(s) in loading state_dict for CNN_TRXWithRelation:
+	Missing key(s) in state_dict: "transformers.0.intra.0.attn.in_proj_weight", "transformers.0.intra.0.attn.in_proj_bias", "transformers.0.intra.0.attn.out_proj.weight", "transformers.0.intra.0.attn.out_proj.bias", "transformers.0.intra.0.norm1.weight", "transformers.0.intra.0.norm1.bias", "transformers.0.intra.0.ffn.0.weight", "transformers.0.intra.0.ffn.0.bias", "transformers.0.intra.0.ffn.2.weight", "transformers.0.intra.0.ffn.2.bias", "transformers.0.intra.0.norm2.weight", "transformers.0.intra.0.norm2.bias". 
+	Unexpected key(s) in state_dict: "transformers.0.intra.attn.in_proj_weight", "transformers.0.intra.attn.in_proj_bias", "transformers.0.intra.attn.out_proj.weight", "transformers.0.intra.attn.out_proj.bias", "transformers.0.intra.norm1.weight", "transformers.0.intra.norm1.bias", "transformers.0.intra.ffn.0.weight", "transformers.0.intra.ffn.0.bias", "transformers.0.intra.ffn.2.weight", "transformers.0.intra.ffn.2.bias", "transformers.0.intra.norm2.weight", "transformers.0.intra.norm2.bias". 
+    iter 100000: EVAL FAILED
+  => No valid checkpoints; skipping test.
+
+============================================================
+  B1_seed42
+============================================================
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint25000.pt  (iter 25000)
+    iter  25000: val=55.56±1.38
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint50000.pt  (iter 50000)
+    iter  50000: val=54.16±1.38
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint75000.pt  (iter 75000)
+    iter  75000: val=53.56±1.38
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint100000.pt  (iter 100000)
+    iter 100000: val=54.78±1.38
+  => Val-best: iter 25000 (val 55.56%)
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint25000.pt  (iter 25000)
+  => Test acc (val-selected, 10000 eps): 46.71±0.44
+
+============================================================
+  B1_seed43
+============================================================
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint25000.pt  (iter 25000)
+    iter  25000: val=56.04±1.38
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint50000.pt  (iter 50000)
+    iter  50000: val=56.48±1.37
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint75000.pt  (iter 75000)
+    iter  75000: val=55.72±1.38
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint100000.pt  (iter 100000)
+    iter 100000: val=55.32±1.38
+  => Val-best: iter 50000 (val 56.48%)
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+  Loaded checkpoint50000.pt  (iter 50000)
+  => Test acc (val-selected, 10000 eps): 47.90±0.44
+
+
+================================================================================
+SUMMARY TABLE
+================================================================================
+設定             seed   val@25k  val@50k  val@75k  val@100k      選中  test acc (10k eps)      CI
+---------------------------------------------------------------------------------------------
+  B4              42         —        —        —         —       —        無 checkpoint       —
+  B4              43         —        —        —         —       —        無 checkpoint       —
+  B2              42         —        —        —         —       —        無 checkpoint       —
+  B2              43         —        —        —         —       —        無 checkpoint       —
+  B1             42*     55.56    54.16    53.56     54.78   25000               46.71   ±0.44
+  B1              43     56.04    56.48    55.72     55.32   50000               47.90   ±0.44
+
+* B1 seed=42 的 seed 未記錄於 log（訓練時早於 seed logging 功能）
+
+================================================================================
+三句回答
+================================================================================
+1. B4 − B2 的配對差距：seed=42 為 資料不足 pp，seed=43 為 資料不足 pp。
+2. val 四個檢查點之間的最大差距是 2.00 pp，1000 episode 的 CI 約 3.1 pp；因此檢查點選擇在噪聲範圍內。
+3. B4 在 0 個 seed 上高於 B2。
+
+=== reselect_val.py DONE ===
+
