@@ -151,7 +151,9 @@ class Learner:
         # Only active when --seed is set; otherwise same behaviour as before.
         def _worker_init_fn(worker_id):
             base = self.args.seed if self.args.seed is not None else 0
-            seed_w = base + worker_id
+            # Phase 0.3: multiply by 1000 to prevent seed collision across seeds.
+            # base+worker_id caused seeds 42/43 workers 0-9 to overlap 9 of 10.
+            seed_w = base * 1000 + worker_id
             random.seed(seed_w)
             np.random.seed(seed_w)
             torch.manual_seed(seed_w)
@@ -165,10 +167,15 @@ class Learner:
         self.loss = loss
         self.accuracy_fn = aggregate_accuracy
         
+        # Phase 2.3: only collect parameters that require gradients.
+        # When freeze_backbone=True this excludes backbone params (saves optimizer state).
+        trainable = [p for p in self.model.parameters() if p.requires_grad]
+        print(f"[INFO] optimizer 收了 {sum(p.numel() for p in trainable)/1e6:.2f} M 個可訓練參數",
+              flush=True)
         if self.args.opt == "adam":
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
+            self.optimizer = torch.optim.Adam(trainable, lr=self.args.learning_rate)
         elif self.args.opt == "sgd":
-            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.args.learning_rate)
+            self.optimizer = torch.optim.SGD(trainable, lr=self.args.learning_rate)
         self.test_accuracies = TestAccuracies(self.test_set)
         
         self.scheduler = MultiStepLR(self.optimizer, milestones=self.args.sch, gamma=0.1)
@@ -183,6 +190,12 @@ class Learner:
         model = model.to(self.device)
         if self.args.num_gpus > 1:
             model.distribute_model()
+
+        # Phase 2.4: freeze_backbone + grad_ckpt は無意味で遅くなるだけ → 無効化
+        if getattr(self.args, "freeze_backbone", False) and getattr(self.args, "grad_ckpt", False):
+            print("[WARN] freeze_backbone と grad_ckpt は同時に使えません；grad_ckpt を無効化します",
+                  flush=True)
+            self.args.grad_ckpt = False
 
         # ── BN momentum correction for grad_ckpt ─────────────────────────────
         # checkpoint_sequential re-runs forward for backward; BN in training
@@ -274,9 +287,16 @@ class Learner:
                             help='Global random seed for reproducibility '
                                  '(random, numpy, torch, cuda). None = no seeding.')
         parser.add_argument('--grad_ckpt', action='store_true', default=False,
-                            help='Use gradient checkpointing on ResNet (saves VRAM at '
-                                 'the cost of ~20%% extra compute). '
-                                 'use_reentrant=True required for inplace ReLU.')
+                            help='Gradient checkpointing on the ResNet backbone. '
+                                 'Uses use_reentrant=False; ReLU inplace is disabled in __init__ '
+                                 'and BN momentum is corrected in init_model().')
+        parser.add_argument('--ckpt_segments', type=int, default=8,
+                            help='checkpoint_sequential 段數（攤平後的 block 數上限）。'
+                                 '8 是 Colab 實測的最佳點：RN50 從 16.15 GB 降到 11.01 GB，'
+                                 '時間只多 3%%。0 = 不限制（等同 len(chain)）。')
+        parser.add_argument('--freeze_backbone', action='store_true', default=False,
+                            help='Freeze the ResNet backbone: no grads, BN in eval mode. '
+                                 'Used for the frozen second track.')
 
         # decouple_gate / decouple_mode — SupportDecoupleRelation args.
         # Use mutually exclusive group for gate so YAML "decouple_gate: false"

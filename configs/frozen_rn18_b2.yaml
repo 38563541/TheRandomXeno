@@ -1,0 +1,28 @@
+# 凍結軌道 — B2 intra-only, RN18 frozen, 1-shot
+# 從 configs/stage2_b2_intra_only.yaml 複製，加 freeze_backbone: true
+# 注意：不是 stage2_b2_intra_x2.yaml（那是 intra_depth=2）
+# 單變因：backbone 凍不凍。其他設定與 stage2_b2_intra_only.yaml 完全相同。
+
+matching: bidirectional
+set_aggregation: pool
+tau: 0.1
+
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+temp_set: [2]
+num_samples: 1
+
+way: 5
+shot: 1
+query_per_class: 5
+
+training_iterations: 100020
+tasks_per_batch: 16
+
+use_intra_relation: true
+use_inter_relation: false
+relation_level: tuple
+
+# 凍結軌道
+freeze_backbone: true

@@ -56,6 +56,9 @@ class TRXSetMatchingWithRelation(nn.Module):
             f"relation_level must be 'frame' or 'tuple', got {relation_level!r}"
         assert inter_style in ("global", "hyrsm", "true_hyrsm", "decouple"), \
             f"inter_style must be 'global', 'hyrsm', 'true_hyrsm', or 'decouple', got {inter_style!r}"
+        # Phase 0.2: frame 分支只支援 global/hyrsm；decouple/true_hyrsm 的 API 與 frame 不相容
+        assert not (relation_level == "frame" and inter_style in ("decouple", "true_hyrsm")), \
+            f"inter_style={inter_style!r} 只支援 relation_level='tuple'"
 
         self.args           = args
         self.relation_level = relation_level
@@ -264,6 +267,13 @@ class CNN_TRXWithRelation(nn.Module):
         if _n_relu:
             print(f"[INFO] set inplace=False on {_n_relu} ReLU modules in resnet")
 
+        # Phase 2.1: freeze backbone (BN kept in eval via train() override)
+        if getattr(args, "freeze_backbone", False):
+            for p in self.resnet.parameters():
+                p.requires_grad_(False)
+            self.resnet.eval()
+            print("[INFO] backbone FROZEN: requires_grad=False, BN in eval mode", flush=True)
+
         self.transformers = nn.ModuleList([
             TRXSetMatchingWithRelation(
                 args,
@@ -274,15 +284,37 @@ class CNN_TRXWithRelation(nn.Module):
             )
         ])
 
+    def _ckpt_chain(self):
+        """攤平 layer1-4 成個別 residual block 的視圖，不重新註冊 → state_dict 鍵名不變。"""
+        out = []
+        for m in self.resnet:
+            if isinstance(m, torch.nn.Sequential):
+                out.extend(list(m))
+            else:
+                out.append(m)
+        return out
+
+    def train(self, mode=True):
+        super().train(mode)
+        # 凍結時 backbone 永遠保持 eval（BN running stats 不更新）
+        # guard: __init__ 在 self.resnet 建立前就呼叫 self.train()，必須防衛
+        if getattr(self, "resnet", None) is not None and \
+                getattr(getattr(self, "args", None), "freeze_backbone", False):
+            self.resnet.eval()
+        return self
+
     def forward(self, context_images, context_labels, target_images):
         if self.training and getattr(self.args, "grad_ckpt", False):
             from torch.utils.checkpoint import checkpoint_sequential
             # use_reentrant=False: inplace ReLUs are patched to inplace=False
             # in __init__, so non-reentrant checkpointing is safe.
+            # _ckpt_chain() 攤平 layer1-4，不重新註冊，state_dict 鍵名不變。
+            chain = self._ckpt_chain()
+            segs  = min(getattr(self.args, "ckpt_segments", 8) or 8, len(chain))
             context_features = checkpoint_sequential(
-                self.resnet, 4, context_images, use_reentrant=False).squeeze()
+                chain, segs, context_images, use_reentrant=False).squeeze()
             target_features  = checkpoint_sequential(
-                self.resnet, 4, target_images,  use_reentrant=False).squeeze()
+                chain, segs, target_images,  use_reentrant=False).squeeze()
         else:
             context_features = self.resnet(context_images).squeeze()
             target_features  = self.resnet(target_images).squeeze()

@@ -1,0 +1,27 @@
+# 凍結軌道 — B1 backbone-only, RN18 frozen, 1-shot
+# 從 configs/b1_backbone_1shot.yaml 複製，加 freeze_backbone: true
+# 單變因：backbone 凍不凍。其他設定與 b1_backbone_1shot.yaml 完全相同。
+
+matching: bidirectional
+set_aggregation: pool
+tau: 0.1
+
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+temp_set: [2]
+num_samples: 1
+
+way: 5
+shot: 1
+query_per_class: 5
+
+training_iterations: 100020
+tasks_per_batch: 16
+
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none
+
+# 凍結軌道
+freeze_backbone: true
