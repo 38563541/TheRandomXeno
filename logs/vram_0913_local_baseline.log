@@ -1,0 +1,20 @@
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet18_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet18_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/utils/checkpoint.py:87: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  warnings.warn(
+
+
+Config                               Peak VRAM (GB)    ms/iter   100k hrs
+---------------------------------------------------------------------------
+A: RN18  Ω={2}       no-ckpt                  5.114      164.3       4.56
+B: RN50  Ω={2}       no-ckpt                    OOM        N/A        N/A
+C: RN50  Ω={2}       +ckpt                    5.528      287.1       7.97
+D: RN50  Ω={2,3}     +ckpt                    5.581      294.8       8.19
+
+C: RN50  Ω={2}       +ckpt: 5.528 GB → ✓ VIABLE (<10 GB)
+D: RN50  Ω={2,3}     +ckpt: 5.581 GB → ✓ VIABLE (<10 GB)
+
