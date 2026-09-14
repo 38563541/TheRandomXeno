@@ -30,3 +30,15 @@ timestamp,config_file,dataset,split,backbone,temp_set,matching,set_aggregation,t
 2026-09-07 22:51:58,/home/ccwu/Documents/work/trx/configs/m1_uni_pool_1shot.yaml,hmdb,3,resnet18,[2],unidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,50000,47.226,0.4223
 2026-09-08 00:28:31,/home/ccwu/Documents/work/trx/configs/m1_uni_pool_1shot.yaml,hmdb,3,resnet18,[2],unidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,75000,48.184,0.4323
 2026-09-08 02:05:39,/home/ccwu/Documents/work/trx/configs/m1_uni_pool_1shot.yaml,hmdb,3,resnet18,[2],unidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,100000,45.802,0.4248
+2026-09-13 15:43:42,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,25000,46.456,0.416
+2026-09-13 16:47:14,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,50000,46.836,0.4135
+2026-09-13 17:50:22,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,75000,46.534,0.4184
+2026-09-13 18:53:23,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,100000,45.852,0.4134
+2026-09-13 19:56:48,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b2.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,False,,True,remove,1,5,1,5,25000,46.69,0.4204
+2026-09-13 21:00:09,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b2.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,False,,True,remove,1,5,1,5,50000,46.782,0.4217
+2026-09-13 22:03:34,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b2.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,False,,True,remove,1,5,1,5,75000,45.66,0.4217
+2026-09-13 23:06:54,/home/ccwu/Documents/work/trx/configs/frozen_rn18_b2.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,False,,True,remove,1,5,1,5,100000,44.932,0.4188
+2026-09-14 08:20:21,configs/frozen_rn18_b4.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,25000,45.51,0.4199
+2026-09-14 09:53:27,configs/frozen_rn18_b4.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,50000,45.96,0.4215
+2026-09-14 11:25:58,configs/frozen_rn18_b4.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,75000,45.866,0.4183
+2026-09-14 12:59:40,configs/frozen_rn18_b4.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,100000,44.882,0.4151
