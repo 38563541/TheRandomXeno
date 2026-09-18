@@ -442,12 +442,15 @@ class Learner:
                     self.test_accuracies.print(self.logfile, accuracy_dict)
                     _item = self.args.dataset
                     if _item in accuracy_dict:
-                        _log_result_csv(
-                            self.args,
-                            iteration=iteration,
-                            mean_accuracy=accuracy_dict[_item]["accuracy"],
-                            confidence_interval=accuracy_dict[_item]["confidence"],
-                        )
+                        if getattr(self.args, "profile_memory", False):
+                            print_and_log(self.logfile, "[mem] profiling run — 跳過 results.csv 寫入")
+                        else:
+                            _log_result_csv(
+                                self.args,
+                                iteration=iteration,
+                                mean_accuracy=accuracy_dict[_item]["accuracy"],
+                                confidence_interval=accuracy_dict[_item]["confidence"],
+                            )
                     self.logfile.close()
                     return
                 # ------------------------------------------------------------------
@@ -504,12 +507,15 @@ class Learner:
                         # --- CSV logging (STEP 5) ---
                         _item = self.args.dataset
                         if _item in accuracy_dict:
-                            _log_result_csv(
-                                self.args,
-                                iteration=iteration + 1,
-                                mean_accuracy=accuracy_dict[_item]["accuracy"],
-                                confidence_interval=accuracy_dict[_item]["confidence"],
-                            )
+                            if getattr(self.args, "profile_memory", False):
+                                print_and_log(self.logfile, "[mem] profiling run — 跳過 results.csv 寫入")
+                            else:
+                                _log_result_csv(
+                                    self.args,
+                                    iteration=iteration + 1,
+                                    mean_accuracy=accuracy_dict[_item]["accuracy"],
+                                    confidence_interval=accuracy_dict[_item]["confidence"],
+                                )
 
                 if getattr(self.args, "profile_memory", False):
                     print_and_log(self.logfile, "[mem] RUN PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
