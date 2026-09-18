@@ -434,6 +434,10 @@ class Learner:
                     iteration = int(m.group(1)) if m else 0
                     print(f"[test-only] Loaded {ckpt_path}  iteration={iteration}", flush=True)
                     accuracy_dict = self.test(session)
+                    if getattr(self.args, "profile_memory", False):
+                        print_and_log(self.logfile, "[mem] EVAL PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
+                            torch.cuda.max_memory_allocated() / 1024**3,
+                            torch.cuda.max_memory_reserved()  / 1024**3))
                     print(accuracy_dict)
                     self.test_accuracies.print(self.logfile, accuracy_dict)
                     _item = self.args.dataset
