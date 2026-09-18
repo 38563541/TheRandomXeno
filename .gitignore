@@ -138,3 +138,4 @@ runs/
 *.sh
 logs/
 reports/
+.~lock.*#
