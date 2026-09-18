@@ -297,6 +297,8 @@ class Learner:
         parser.add_argument('--freeze_backbone', action='store_true', default=False,
                             help='Freeze the ResNet backbone: no grads, BN in eval mode. '
                                  'Used for the frozen second track.')
+        parser.add_argument('--profile_memory', action='store_true', default=False,
+                            help='每 2*tasks_per_batch 個 iteration 記錄顯存峰值並重置統計')
 
         # decouple_gate / decouple_mode — SupportDecoupleRelation args.
         # Use mutually exclusive group for gate so YAML "decouple_gate: false"
@@ -466,6 +468,19 @@ class Learner:
                         self.optimizer.step()
                         self.optimizer.zero_grad()
                     self.scheduler.step()
+
+                    if getattr(self.args, "profile_memory", False):
+                        _win = 2 * self.args.tasks_per_batch      # 32，每個視窗恰含 2 次 optimizer.step
+                        if (iteration + 1) % _win == 0:
+                            _a = torch.cuda.max_memory_allocated() / 1024**3
+                            _r = torch.cuda.max_memory_reserved()  / 1024**3
+                            self._mem_peak_alloc = max(getattr(self, "_mem_peak_alloc", 0.0), _a)
+                            self._mem_peak_res   = max(getattr(self, "_mem_peak_res",   0.0), _r)
+                            print_and_log(self.logfile,
+                                "[mem] iter {:>5}  alloc_peak {:.3f} GB  reserved_peak {:.3f} GB".format(
+                                    iteration + 1, _a, _r))
+                            torch.cuda.reset_peak_memory_stats()
+
                     if (iteration + 1) % self.args.print_freq == 0:
                         # print training stats
                         print_and_log(self.logfile,'Task [{}/{}], Train Loss: {:.7f}, Train Accuracy: {:.7f}'
@@ -491,6 +506,10 @@ class Learner:
                                 mean_accuracy=accuracy_dict[_item]["accuracy"],
                                 confidence_interval=accuracy_dict[_item]["confidence"],
                             )
+
+                if getattr(self.args, "profile_memory", False):
+                    print_and_log(self.logfile, "[mem] RUN PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
+                        getattr(self, "_mem_peak_alloc", 0.0), getattr(self, "_mem_peak_res", 0.0)))
 
                 # save the final model
                 torch.save(self.model.state_dict(), self.checkpoint_path_final)
