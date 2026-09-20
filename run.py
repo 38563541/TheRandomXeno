@@ -202,16 +202,62 @@ class Learner:
         # mode would update running stats twice per batch, doubling momentum
         # from 0.1 to ~0.19.  Correct to m = 1-sqrt(1-0.1) ≈ 0.0513 so that
         # one grad-ckpt cycle equals one normal cycle in expectation.
+        #
+        # bn_fix_scope="all" (舊行為): 套到所有 BN，包含 checkpoint_sequential
+        # 尾段（不被重算）的 BN — 對那些層是錯的修正，因為它們每個 iteration
+        # 只更新一次。bn_fix_scope="covered" (預設): 只套到真正被
+        # checkpoint_sequential 重算的 chain[:n_ckpt] 段。
+        #
+        # ⚠️ 這裡「一次 iteration 更新幾次」跟 forward() 裡 support/query 各跑一次
+        # backbone 是兩件不同的事，兩者疊在一起算才是每個 BN 真正的更新次數：
+        #   - 未開 grad_ckpt: 每個 BN 每 iteration 更新 2 次（support 1 次 + query 1 次），
+        #     這是 PyTorch resnet 的常態，不是 bug，momentum=0.1 是對這個常態算的。
+        #   - 開 grad_ckpt 後: chain[:n_ckpt] 段的 BN 因為 checkpoint 重算，
+        #     在 support 那次forward 內部就變成 2 次，query 那次forward 內部又 2 次，
+        #     合計每 iteration 4 次；chain[n_ckpt:] 尾段不受影響，維持 2 次。
+        #     這裡的修正只處理「checkpoint 重算造成的加倍」，不是「support/query
+        #     造成的加倍」——後者從沒被修正過，也不需要被修正。
+        #
+        # ⚠️ 驗證這件事別用 register_forward_hook 數次數：non-reentrant
+        # checkpoint 的 backward 重算不會觸發 forward hook（PyTorch 2.5.1 驗證過），
+        # 但底層運算（含 BN running_mean 的更新副作用）確實有重跑。用 hook 計數
+        # 量出來的「涵蓋段 vs 未涵蓋段呼叫次數一樣」是假的，不代表沒有加倍。
+        # 若要驗證，直接比較 running_mean 位移，不要透過 hook：
+        #   manual 2x forward（手動呼叫兩次 BN）        running_mean = [-0.0055, 0.0081, 0.0024, -0.0112]
+        #   manual 1x forward（只呼叫一次）              running_mean = [-0.0029, 0.0042, 0.0013, -0.0059]
+        #   checkpoint(fn, x) 一次 + backward()          running_mean = [-0.0055, 0.0081, 0.0024, -0.0112]
+        # checkpoint 版本的數值跟「手動兩次」完全相同，證明重算確實讓底層計算多跑
+        # 了一次，即使 hook 只回報呼叫一次。細節見 0918_階段4_等價性與BN修正.md。
         if getattr(self.args, "grad_ckpt", False):
             import math
             m = 1 - math.sqrt(1 - 0.1)
-            n_bn = 0
-            for mod in model.modules():
-                if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
-                    mod.momentum = m
-                    n_bn += 1
-            print(f"[INFO] grad_ckpt on: adjusted momentum of {n_bn} BN layers to {m:.5f}",
-                  flush=True)
+            scope = getattr(self.args, "bn_fix_scope", "covered")
+            n_bn_total = sum(1 for mod in model.modules()
+                              if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm))
+            if scope == "all":
+                n_bn = 0
+                for mod in model.modules():
+                    if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
+                        mod.momentum = m
+                        n_bn += 1
+                print(f"[INFO] grad_ckpt on (bn_fix_scope=all): adjusted momentum of "
+                      f"{n_bn} BN layers to {m:.5f}", flush=True)
+            else:
+                chain = model._ckpt_chain()
+                n = len(chain)
+                segs = min(getattr(self.args, "ckpt_segments", 8) or 8, n)
+                segment_size = n // segs
+                n_ckpt = segment_size * (segs - 1)
+                covered_ids = {id(sub) for blk in chain[:n_ckpt] for sub in blk.modules()
+                               if isinstance(sub, torch.nn.modules.batchnorm._BatchNorm)}
+                n_bn = 0
+                for mod in model.modules():
+                    if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm) and id(mod) in covered_ids:
+                        mod.momentum = m
+                        n_bn += 1
+                print(f"[INFO] grad_ckpt on (bn_fix_scope=covered): adjusted momentum of "
+                      f"{n_bn} / {n_bn_total} BN layers to {m:.5f} (chain[:{n_ckpt}] of {n})",
+                      flush=True)
 
         return model
 
@@ -299,6 +345,13 @@ class Learner:
                                  'Used for the frozen second track.')
         parser.add_argument('--profile_memory', action='store_true', default=False,
                             help='每 2*tasks_per_batch 個 iteration 記錄顯存峰值並重置統計')
+        parser.add_argument('--bn_fix_scope', choices=['all', 'covered'], default='covered',
+                            help='grad_ckpt 開啟時 BN momentum 修正的套用範圍。'
+                                 '"all"＝套到所有 BN（舊行為，對 checkpoint_sequential 尾段是錯的）；'
+                                 '"covered"＝只套到真正被重算的 chain[:n_ckpt] 段（預設，正確行為）。')
+        parser.add_argument('--loss_csv', default=None,
+                            help='指定路徑時，逐 iteration 把 (iteration, loss) 寫入這個 csv。'
+                                 '預設 None＝不寫，行為與現在完全相同。')
 
         # decouple_gate / decouple_mode — SupportDecoupleRelation args.
         # Use mutually exclusive group for gate so YAML "decouple_gate: false"
@@ -459,6 +512,11 @@ class Learner:
                 losses = []
                 total_iterations = self.args.training_iterations
 
+                _loss_csv_f = None
+                if getattr(self.args, "loss_csv", None):
+                    _loss_csv_f = open(self.args.loss_csv, "w", buffering=1)
+                    _loss_csv_f.write("iteration,loss\n")
+
                 iteration = self.start_iteration
                 for task_dict in self.video_loader:
                     if iteration >= total_iterations:
@@ -467,6 +525,8 @@ class Learner:
                     torch.set_grad_enabled(True)
 
                     task_loss, task_accuracy = self.train_task(task_dict)
+                    if _loss_csv_f is not None:
+                        _loss_csv_f.write(f"{iteration},{task_loss.item():.10f}\n")
                     train_accuracies.append(task_accuracy)
                     losses.append(task_loss)
 
@@ -523,6 +583,9 @@ class Learner:
 
                 # save the final model
                 torch.save(self.model.state_dict(), self.checkpoint_path_final)
+
+                if _loss_csv_f is not None:
+                    _loss_csv_f.close()
 
         self.logfile.close()
 
