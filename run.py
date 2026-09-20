@@ -579,6 +579,7 @@ class Learner:
                         _prof_rows.append(dict(
                             iteration=iteration,
                             data_ms=_data_ms,
+                            h2d_ms=getattr(self, "_prof_h2d_ms", float("nan")),
                             backbone_ms=getattr(self.model, "_prof_backbone_ms", float("nan")),
                             head_ms=getattr(self.model, "_prof_head_ms", float("nan")),
                             backward_step_ms=getattr(self, "_prof_backward_ms", float("nan")) + _step_ms,
@@ -634,16 +635,17 @@ class Learner:
                     def _median(key):
                         return float(np.median([r[key] for r in _prof_rows]))
                     data_med     = _median("data_ms")
+                    h2d_med      = _median("h2d_ms")
                     backbone_med = _median("backbone_ms")
                     head_med     = _median("head_ms")
                     bs_med       = _median("backward_step_ms")
                     total_med    = _median("total_ms")
-                    seg_sum      = data_med + backbone_med + head_med + bs_med
+                    seg_sum      = data_med + h2d_med + backbone_med + head_med + bs_med
                     err_pct      = abs(seg_sum - total_med) / total_med * 100 if total_med else float("nan")
                     print_and_log(self.logfile,
-                        "[time] n={}  data={:.3f}ms  backbone(支+查)={:.3f}ms  head={:.3f}ms  "
-                        "backward+step={:.3f}ms  | 四段加總={:.3f}ms  total(wall)={:.3f}ms  誤差={:.2f}%".format(
-                            len(_prof_rows), data_med, backbone_med, head_med, bs_med,
+                        "[time] n={}  data={:.3f}ms  H2D={:.3f}ms  backbone(支+查)={:.3f}ms  head={:.3f}ms  "
+                        "backward+step={:.3f}ms  | 五段加總={:.3f}ms  total(wall)={:.3f}ms  誤差={:.2f}%".format(
+                            len(_prof_rows), data_med, h2d_med, backbone_med, head_med, bs_med,
                             seg_sum, total_med, err_pct))
 
                 # save the final model
@@ -655,7 +657,16 @@ class Learner:
         self.logfile.close()
 
     def train_task(self, task_dict):
-        context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
+        if getattr(self.args, "profile_time", False):
+            _eh0 = torch.cuda.Event(enable_timing=True)
+            _eh1 = torch.cuda.Event(enable_timing=True)
+            _eh0.record()
+            context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
+            _eh1.record()
+            torch.cuda.synchronize()
+            self._prof_h2d_ms = _eh0.elapsed_time(_eh1)
+        else:
+            context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
 
         model_dict = self.model(context_images, context_labels, target_images)
         target_logits = model_dict['logits']

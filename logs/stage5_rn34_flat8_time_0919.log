@@ -1,7 +1,7 @@
 [WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
-Options: Namespace(config='configs/stage2_true_hyrsm_b4_tuple.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/vram_rn34_flat8_time_0919/hmdb_split3_20260920_111843', test_model_path=None, training_iterations=100, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[999999], num_test_tasks=10000, print_freq=20, seq_len=8, num_workers=10, method='resnet34', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=999999, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=None, grad_ckpt=True, ckpt_segments=8, freeze_backbone=False, profile_memory=False, bn_fix_scope='covered', loss_csv=None, profile_time=True, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=True, use_inter_relation=True, relation_level='tuple', inter_style='true_hyrsm', config_file='configs/stage2_true_hyrsm_b4_tuple.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+Options: Namespace(config='configs/stage2_true_hyrsm_b4_tuple.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/vram_rn34_flat8_time_0919/hmdb_split3_20260920_131306', test_model_path=None, training_iterations=100, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[999999], num_test_tasks=10000, print_freq=20, seq_len=8, num_workers=10, method='resnet34', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=999999, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=None, grad_ckpt=True, ckpt_segments=8, freeze_backbone=False, profile_memory=False, bn_fix_scope='covered', loss_csv=None, profile_time=True, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=True, use_inter_relation=True, relation_level='tuple', inter_style='true_hyrsm', config_file='configs/stage2_true_hyrsm_b4_tuple.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
 
-Checkpoint Directory: /home/ccwu/trx_data/checkpoints/vram_rn34_flat8_time_0919/hmdb_split3_20260920_111843
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/vram_rn34_flat8_time_0919/hmdb_split3_20260920_131306
 
 /home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
   warnings.warn(
@@ -17,9 +17,9 @@ train: 4269, test: 1276
 [INFO] optimizer 收了 46.38 M 個可訓練參數
 /home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
   warnings.warn(
-Task [20/100], Train Loss: 9.8892164, Train Accuracy: 0.4610526
-Task [40/100], Train Loss: 4.2579403, Train Accuracy: 0.4160000
-Task [60/100], Train Loss: 2.0776992, Train Accuracy: 0.5040000
-Task [80/100], Train Loss: 2.0964196, Train Accuracy: 0.5240000
-Task [100/100], Train Loss: 1.9658794, Train Accuracy: 0.5180000
-[time] n=100  data=9.394ms  backbone(支+查)=91.041ms  head=32.926ms  backward+step=320.491ms  | 四段加總=453.852ms  total(wall)=485.633ms  誤差=6.54%
+Task [20/100], Train Loss: 9.9651108, Train Accuracy: 0.4884211
+Task [40/100], Train Loss: 3.4080017, Train Accuracy: 0.5820000
+Task [60/100], Train Loss: 1.9988096, Train Accuracy: 0.5640000
+Task [80/100], Train Loss: 2.0284514, Train Accuracy: 0.5300000
+Task [100/100], Train Loss: 1.9967461, Train Accuracy: 0.5040000
+[time] n=100  data=9.416ms  H2D=30.323ms  backbone(支+查)=90.868ms  head=33.016ms  backward+step=320.477ms  | 五段加總=484.099ms  total(wall)=485.081ms  誤差=0.20%
