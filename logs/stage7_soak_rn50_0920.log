@@ -1,0 +1,96 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+Options: Namespace(config='configs/stage2_true_hyrsm_b4_tuple.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/soak_rn50_flat8_0920/hmdb_split3_20260920_163227', test_model_path=None, training_iterations=3000, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[1000, 2000, 3000], num_test_tasks=500, print_freq=100, seq_len=8, num_workers=10, method='resnet50', trans_linear_out_dim=1152, trans_linear_in_dim=2048, opt='sgd', trans_dropout=0.1, save_freq=1000, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=None, grad_ckpt=True, ckpt_segments=8, freeze_backbone=False, profile_memory=True, bn_fix_scope='covered', loss_csv=None, profile_time=False, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=True, use_inter_relation=True, relation_level='tuple', inter_style='true_hyrsm', config_file='configs/stage2_true_hyrsm_b4_tuple.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/soak_rn50_flat8_0920/hmdb_split3_20260920_163227
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] grad_ckpt on (bn_fix_scope=covered): adjusted momentum of 34 / 53 BN layers to 0.05132 (chain[:14] of 21)
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 52.14 M 個可訓練參數
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+[mem] iter    100 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [100/3000], Train Loss: 2.9343240, Train Accuracy: 0.5167677
+[mem] iter    200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [200/3000], Train Loss: 1.5274924, Train Accuracy: 0.6220000
+[mem] iter    300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [300/3000], Train Loss: 1.4199383, Train Accuracy: 0.6304000
+[mem] iter    400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [400/3000], Train Loss: 1.2567277, Train Accuracy: 0.6792000
+[mem] iter    500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [500/3000], Train Loss: 1.0586306, Train Accuracy: 0.7336000
+[mem] iter    600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [600/3000], Train Loss: 1.1210275, Train Accuracy: 0.7183999
+[mem] iter    700 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [700/3000], Train Loss: 1.0642860, Train Accuracy: 0.7360000
+[mem] iter    800 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [800/3000], Train Loss: 0.9430125, Train Accuracy: 0.7555999
+[mem] iter    900 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [900/3000], Train Loss: 0.9193418, Train Accuracy: 0.7644000
+[mem] iter   1000 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1000/3000], Train Loss: 0.8596001, Train Accuracy: 0.7807999
+[mem][pre-eval] iter   1000 win_alloc 0.411 win_res 9.705 cur_res 9.705 retries 0
+[mem][post-eval] iter   1000 win_alloc 0.845 win_res 9.705 cur_res 9.705 retries 0
+{'hmdb': {'accuracy': 53.240001308917996, 'confidence': 1.8283814923927908}}
+
+Test Accuracies:
+hmdb: 53.2+/-1.8
+
+[mem] profiling run — 跳過 results.csv 寫入
+[mem] iter   1100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1100/3000], Train Loss: 0.7829250, Train Accuracy: 0.8048000
+[mem] iter   1200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1200/3000], Train Loss: 0.7886856, Train Accuracy: 0.8112000
+[mem] iter   1300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1300/3000], Train Loss: 0.7653240, Train Accuracy: 0.8140000
+[mem] iter   1400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1400/3000], Train Loss: 0.6701100, Train Accuracy: 0.8316000
+[mem] iter   1500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1500/3000], Train Loss: 0.7597593, Train Accuracy: 0.8080000
+[mem] iter   1600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1600/3000], Train Loss: 0.6792445, Train Accuracy: 0.8300000
+[mem] iter   1700 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1700/3000], Train Loss: 0.6245861, Train Accuracy: 0.8428000
+[mem] iter   1800 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1800/3000], Train Loss: 0.6369808, Train Accuracy: 0.8371999
+[mem] iter   1900 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [1900/3000], Train Loss: 0.6900394, Train Accuracy: 0.8288000
+[mem] iter   2000 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2000/3000], Train Loss: 0.5358912, Train Accuracy: 0.8724000
+[mem][pre-eval] iter   2000 win_alloc 0.213 win_res 9.705 cur_res 9.705 retries 0
+[mem][post-eval] iter   2000 win_alloc 0.647 win_res 9.705 cur_res 9.705 retries 0
+{'hmdb': {'accuracy': 54.52000134289264, 'confidence': 1.8073912661433402}}
+
+Test Accuracies:
+hmdb: 54.5+/-1.8
+
+[mem] profiling run — 跳過 results.csv 寫入
+[mem] iter   2100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2100/3000], Train Loss: 0.5475162, Train Accuracy: 0.8636000
+[mem] iter   2200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2200/3000], Train Loss: 0.5473456, Train Accuracy: 0.8592000
+[mem] iter   2300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2300/3000], Train Loss: 0.5320018, Train Accuracy: 0.8616001
+[mem] iter   2400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2400/3000], Train Loss: 0.5500831, Train Accuracy: 0.8580000
+[mem] iter   2500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2500/3000], Train Loss: 0.4506080, Train Accuracy: 0.8876000
+[mem] iter   2600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2600/3000], Train Loss: 0.4724233, Train Accuracy: 0.8771999
+[mem] iter   2700 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2700/3000], Train Loss: 0.4261895, Train Accuracy: 0.8960000
+[mem] iter   2800 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2800/3000], Train Loss: 0.4789340, Train Accuracy: 0.8756000
+[mem] iter   2900 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [2900/3000], Train Loss: 0.4738066, Train Accuracy: 0.8772000
+[mem] iter   3000 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+Task [3000/3000], Train Loss: 0.4236056, Train Accuracy: 0.8884000
+[mem] RUN PEAK  alloc 7.664 GB  reserved 9.705 GB

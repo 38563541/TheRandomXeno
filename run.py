@@ -186,6 +186,22 @@ class Learner:
             self.load_checkpoint()
         self.optimizer.zero_grad()
 
+    def _log_mem_line(self, iteration, tag):
+        """階段7 soak：印一行顯存快照。win_alloc/win_res 是自上次
+        reset_peak_memory_stats() 以來的峰值（呼叫方決定要不要 reset，
+        這裡不 reset）；cur_res 是呼叫當下的瞬時 reserved（絕對不 reset，
+        看 C 類階梯用）；retries 是 allocator 重試次數，process 啟動以來
+        累積，看碎片化用。回傳 (win_alloc, win_res) 供呼叫方更新全程峰值。"""
+        _st = torch.cuda.memory_stats()
+        _wa = torch.cuda.max_memory_allocated() / 1024**3
+        _wr = torch.cuda.max_memory_reserved()  / 1024**3
+        _cur = torch.cuda.memory_reserved() / 1024**3
+        _retry = _st.get("num_alloc_retries", 0)
+        print_and_log(self.logfile,
+            "[mem]{} iter {:>6} win_alloc {:.3f} win_res {:.3f} cur_res {:.3f} retries {}".format(
+                tag, iteration, _wa, _wr, _cur, _retry))
+        return _wa, _wr
+
     def init_model(self):
         model = CNN_TRX(self.args)
         model = model.to(self.device)
@@ -587,15 +603,11 @@ class Learner:
                         ))
 
                     if getattr(self.args, "profile_memory", False):
-                        _win = 2 * self.args.tasks_per_batch      # 32，每個視窗恰含 2 次 optimizer.step
+                        _win = 100  # soak (階段7)：每 100 iteration 取樣一次
                         if (iteration + 1) % _win == 0:
-                            _a = torch.cuda.max_memory_allocated() / 1024**3
-                            _r = torch.cuda.max_memory_reserved()  / 1024**3
-                            self._mem_peak_alloc = max(getattr(self, "_mem_peak_alloc", 0.0), _a)
-                            self._mem_peak_res   = max(getattr(self, "_mem_peak_res",   0.0), _r)
-                            print_and_log(self.logfile,
-                                "[mem] iter {:>5}  alloc_peak {:.3f} GB  reserved_peak {:.3f} GB".format(
-                                    iteration + 1, _a, _r))
+                            _wa, _wr = self._log_mem_line(iteration + 1, "")
+                            self._mem_peak_alloc = max(getattr(self, "_mem_peak_alloc", 0.0), _wa)
+                            self._mem_peak_res   = max(getattr(self, "_mem_peak_res",   0.0), _wr)
                             torch.cuda.reset_peak_memory_stats()
 
                     if (iteration + 1) % self.args.print_freq == 0:
@@ -611,7 +623,11 @@ class Learner:
 
 
                     if ((iteration + 1) in self.args.test_iters) and (iteration + 1) != total_iterations:
+                        if getattr(self.args, "profile_memory", False):
+                            self._log_mem_line(iteration + 1, "[pre-eval]")
                         accuracy_dict = self.test(session)
+                        if getattr(self.args, "profile_memory", False):
+                            self._log_mem_line(iteration + 1, "[post-eval]")
                         print(accuracy_dict)
                         self.test_accuracies.print(self.logfile, accuracy_dict)
                         # --- CSV logging (STEP 5) ---
