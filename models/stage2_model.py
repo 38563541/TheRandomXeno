@@ -304,6 +304,13 @@ class CNN_TRXWithRelation(nn.Module):
         return self
 
     def forward(self, context_images, context_labels, target_images):
+        _prof = self.training and getattr(self.args, "profile_time", False)
+        if _prof:
+            _e0 = torch.cuda.Event(enable_timing=True)
+            _e1 = torch.cuda.Event(enable_timing=True)
+            _e2 = torch.cuda.Event(enable_timing=True)
+            _e0.record()
+
         if self.training and getattr(self.args, "grad_ckpt", False):
             from torch.utils.checkpoint import checkpoint_sequential
             # use_reentrant=False: inplace ReLUs are patched to inplace=False
@@ -319,6 +326,9 @@ class CNN_TRXWithRelation(nn.Module):
             context_features = self.resnet(context_images).squeeze()
             target_features  = self.resnet(target_images).squeeze()
 
+        if _prof:
+            _e1.record()
+
         dim = int(context_features.shape[1])
         context_features = context_features.reshape(-1, self.args.seq_len, dim)
         target_features  = target_features.reshape(-1, self.args.seq_len, dim)
@@ -329,6 +339,14 @@ class CNN_TRXWithRelation(nn.Module):
         ]
         all_logits    = torch.stack(all_logits, dim=-1)
         sample_logits = torch.mean(all_logits, dim=-1)
+
+        if _prof:
+            _e2.record()
+            torch.cuda.synchronize()
+            # backbone: support + query 兩次 resnet forward（或 checkpoint 重算）合計；
+            # head: reshape（可忽略）+ transformer 們的 forward。
+            self._prof_backbone_ms = _e0.elapsed_time(_e1)
+            self._prof_head_ms     = _e1.elapsed_time(_e2)
 
         return {
             'logits': split_first_dim_linear(

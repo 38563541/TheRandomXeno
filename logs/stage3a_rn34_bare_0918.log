@@ -1,0 +1,68 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+Options: Namespace(config='configs/stage2_true_hyrsm_b4_tuple.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/vram_rn34_bare_0918/hmdb_split3_20260918_222027', test_model_path=None, training_iterations=300, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[999999], num_test_tasks=10000, print_freq=20, seq_len=8, num_workers=10, method='resnet34', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=100, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=None, grad_ckpt=False, ckpt_segments=8, freeze_backbone=False, profile_memory=True, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=True, use_inter_relation=True, relation_level='tuple', inter_style='true_hyrsm', config_file='configs/stage2_true_hyrsm_b4_tuple.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/vram_rn34_bare_0918/hmdb_split3_20260918_222027
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet34_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet34_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Downloading: "https://download.pytorch.org/models/resnet34-b627a593.pth" to /home/ccwu/.cache/torch/hub/checkpoints/resnet34-b627a593.pth
+  0%|          | 0.00/83.3M [00:00<?, ?B/s] 13%|█▎        | 10.8M/83.3M [00:00<00:00, 112MB/s] 26%|██▋       | 22.0M/83.3M [00:00<00:00, 115MB/s] 40%|███▉      | 33.2M/83.3M [00:00<00:00, 116MB/s] 53%|█████▎    | 44.5M/83.3M [00:00<00:00, 117MB/s] 67%|██████▋   | 55.8M/83.3M [00:00<00:00, 117MB/s] 80%|████████  | 67.0M/83.3M [00:00<00:00, 117MB/s] 94%|█████████▍| 78.2M/83.3M [00:00<00:00, 117MB/s]100%|██████████| 83.3M/83.3M [00:00<00:00, 117MB/s]
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 46.38 M 個可訓練參數
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+Task [20/300], Train Loss: 9.3474350, Train Accuracy: 0.4757895
+[mem] iter    32  alloc_peak 7.864 GB  reserved_peak 11.002 GB
+Task [40/300], Train Loss: 3.3659165, Train Accuracy: 0.4980000
+Task [60/300], Train Loss: 2.1929059, Train Accuracy: 0.5319999
+[mem] iter    64  alloc_peak 7.864 GB  reserved_peak 11.002 GB
+Task [80/300], Train Loss: 2.2713921, Train Accuracy: 0.4800000
+[mem] iter    96  alloc_peak 7.864 GB  reserved_peak 11.002 GB
+Task [100/300], Train Loss: 1.6485914, Train Accuracy: 0.6000000
+Task [120/300], Train Loss: 1.9362772, Train Accuracy: 0.5240000
+[mem] iter   128  alloc_peak 7.864 GB  reserved_peak 11.002 GB
+Task [140/300], Train Loss: 1.5988183, Train Accuracy: 0.5800000
+[mem] iter   160  alloc_peak 7.864 GB  reserved_peak 11.002 GB
+Task [160/300], Train Loss: 1.6500218, Train Accuracy: 0.6119999
+Task [180/300], Train Loss: 1.5373149, Train Accuracy: 0.6179999
+[mem] iter   192  alloc_peak 7.864 GB  reserved_peak 11.004 GB
+Task [200/300], Train Loss: 1.8489678, Train Accuracy: 0.5400000
+Task [220/300], Train Loss: 1.6619896, Train Accuracy: 0.5940000
+[mem] iter   224  alloc_peak 7.864 GB  reserved_peak 11.004 GB
+Task [240/300], Train Loss: 1.2841389, Train Accuracy: 0.6759999
+[mem] iter   256  alloc_peak 7.864 GB  reserved_peak 11.004 GB
+Task [260/300], Train Loss: 1.4959311, Train Accuracy: 0.6479999
+Task [280/300], Train Loss: 1.3867319, Train Accuracy: 0.6539999
+[mem] iter   288  alloc_peak 7.864 GB  reserved_peak 11.004 GB
+Task [300/300], Train Loss: 1.3963099, Train Accuracy: 0.6339999
+[mem] RUN PEAK  alloc 7.864 GB  reserved 11.004 GB
+	Command being timed: "python run.py --dataset hmdb --split 3 --config configs/stage2_true_hyrsm_b4_tuple.yaml --method resnet34 --training_iterations 300 --print_freq 20 --save_freq 100 --test_iters 999999 --profile_memory --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/vram_rn34_bare_0918"
+	User time (seconds): 180.25
+	System time (seconds): 37.26
+	Percent of CPU this job got: 164%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:11.87
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3609832
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 23
+	Minor (reclaiming a frame) page faults: 23393414
+	Voluntary context switches: 28686
+	Involuntary context switches: 121061
+	Swaps: 0
+	File system inputs: 9056
+	File system outputs: 1983944
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,26 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+Options: Namespace(config='configs/stage2_true_hyrsm_b4_tuple.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/vram_rn50_flat8_0918/hmdb_split3_20260918_220242', test_model_path='/home/ccwu/trx_data/checkpoints/vram_rn50_flat8_0918/hmdb_split3_20260918_213938/checkpoint200.pt', training_iterations=100020, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[75000], num_test_tasks=2000, print_freq=1000, seq_len=8, num_workers=10, method='resnet50', trans_linear_out_dim=1152, trans_linear_in_dim=2048, opt='sgd', trans_dropout=0.1, save_freq=5000, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=None, grad_ckpt=True, ckpt_segments=8, freeze_backbone=False, profile_memory=True, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=True, use_inter_relation=True, relation_level='tuple', inter_style='true_hyrsm', config_file='configs/stage2_true_hyrsm_b4_tuple.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/vram_rn50_flat8_0918/hmdb_split3_20260918_220242
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] grad_ckpt on: adjusted momentum of 53 BN layers to 0.05132
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 52.14 M 個可訓練參數
+/home/ccwu/Documents/work/trx/run.py:431: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=self.device)
+[test-only] Loaded /home/ccwu/trx_data/checkpoints/vram_rn50_flat8_0918/hmdb_split3_20260918_213938/checkpoint200.pt  iteration=200
+[mem] EVAL PEAK  alloc 0.837 GB  reserved 0.959 GB
+{'hmdb': {'accuracy': 50.66000117734074, 'confidence': 0.9585626607684754}}
+
+Test Accuracies:
+hmdb: 50.7+/-1.0
+

@@ -15,8 +15,9 @@ from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
 import video_reader
-import random 
+import random
 import datetime
+import time
 
 
 # ---------------------------------------------------------------------------
@@ -202,16 +203,62 @@ class Learner:
         # mode would update running stats twice per batch, doubling momentum
         # from 0.1 to ~0.19.  Correct to m = 1-sqrt(1-0.1) ≈ 0.0513 so that
         # one grad-ckpt cycle equals one normal cycle in expectation.
+        #
+        # bn_fix_scope="all" (舊行為): 套到所有 BN，包含 checkpoint_sequential
+        # 尾段（不被重算）的 BN — 對那些層是錯的修正，因為它們每個 iteration
+        # 只更新一次。bn_fix_scope="covered" (預設): 只套到真正被
+        # checkpoint_sequential 重算的 chain[:n_ckpt] 段。
+        #
+        # ⚠️ 這裡「一次 iteration 更新幾次」跟 forward() 裡 support/query 各跑一次
+        # backbone 是兩件不同的事，兩者疊在一起算才是每個 BN 真正的更新次數：
+        #   - 未開 grad_ckpt: 每個 BN 每 iteration 更新 2 次（support 1 次 + query 1 次），
+        #     這是 PyTorch resnet 的常態，不是 bug，momentum=0.1 是對這個常態算的。
+        #   - 開 grad_ckpt 後: chain[:n_ckpt] 段的 BN 因為 checkpoint 重算，
+        #     在 support 那次forward 內部就變成 2 次，query 那次forward 內部又 2 次，
+        #     合計每 iteration 4 次；chain[n_ckpt:] 尾段不受影響，維持 2 次。
+        #     這裡的修正只處理「checkpoint 重算造成的加倍」，不是「support/query
+        #     造成的加倍」——後者從沒被修正過，也不需要被修正。
+        #
+        # ⚠️ 驗證這件事別用 register_forward_hook 數次數：non-reentrant
+        # checkpoint 的 backward 重算不會觸發 forward hook（PyTorch 2.5.1 驗證過），
+        # 但底層運算（含 BN running_mean 的更新副作用）確實有重跑。用 hook 計數
+        # 量出來的「涵蓋段 vs 未涵蓋段呼叫次數一樣」是假的，不代表沒有加倍。
+        # 若要驗證，直接比較 running_mean 位移，不要透過 hook：
+        #   manual 2x forward（手動呼叫兩次 BN）        running_mean = [-0.0055, 0.0081, 0.0024, -0.0112]
+        #   manual 1x forward（只呼叫一次）              running_mean = [-0.0029, 0.0042, 0.0013, -0.0059]
+        #   checkpoint(fn, x) 一次 + backward()          running_mean = [-0.0055, 0.0081, 0.0024, -0.0112]
+        # checkpoint 版本的數值跟「手動兩次」完全相同，證明重算確實讓底層計算多跑
+        # 了一次，即使 hook 只回報呼叫一次。細節見 0918_階段4_等價性與BN修正.md。
         if getattr(self.args, "grad_ckpt", False):
             import math
             m = 1 - math.sqrt(1 - 0.1)
-            n_bn = 0
-            for mod in model.modules():
-                if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
-                    mod.momentum = m
-                    n_bn += 1
-            print(f"[INFO] grad_ckpt on: adjusted momentum of {n_bn} BN layers to {m:.5f}",
-                  flush=True)
+            scope = getattr(self.args, "bn_fix_scope", "covered")
+            n_bn_total = sum(1 for mod in model.modules()
+                              if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm))
+            if scope == "all":
+                n_bn = 0
+                for mod in model.modules():
+                    if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
+                        mod.momentum = m
+                        n_bn += 1
+                print(f"[INFO] grad_ckpt on (bn_fix_scope=all): adjusted momentum of "
+                      f"{n_bn} BN layers to {m:.5f}", flush=True)
+            else:
+                chain = model._ckpt_chain()
+                n = len(chain)
+                segs = min(getattr(self.args, "ckpt_segments", 8) or 8, n)
+                segment_size = n // segs
+                n_ckpt = segment_size * (segs - 1)
+                covered_ids = {id(sub) for blk in chain[:n_ckpt] for sub in blk.modules()
+                               if isinstance(sub, torch.nn.modules.batchnorm._BatchNorm)}
+                n_bn = 0
+                for mod in model.modules():
+                    if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm) and id(mod) in covered_ids:
+                        mod.momentum = m
+                        n_bn += 1
+                print(f"[INFO] grad_ckpt on (bn_fix_scope=covered): adjusted momentum of "
+                      f"{n_bn} / {n_bn_total} BN layers to {m:.5f} (chain[:{n_ckpt}] of {n})",
+                      flush=True)
 
         return model
 
@@ -292,11 +339,31 @@ class Learner:
                                  'and BN momentum is corrected in init_model().')
         parser.add_argument('--ckpt_segments', type=int, default=8,
                             help='checkpoint_sequential 段數（攤平後的 block 數上限）。'
-                                 '8 是 Colab 實測的最佳點：RN50 從 16.15 GB 降到 11.01 GB，'
-                                 '時間只多 3%%。0 = 不限制（等同 len(chain)）。')
+                                 '8 是 Colab 實測在不同切法之間的最佳點：RN50 從 16.15 GB 降到 '
+                                 '11.01 GB，時間只多 3%%（這個 3%% 講的是切法之間的差，不是開/關 '
+                                 'ckpt 的差）。開 ckpt 本身的純 GPU 時間代價：本機 3080 Ti 用 '
+                                 '--profile_time 量過 RN34（唯一有裸跑對照組的 backbone），扣掉 '
+                                 'data wait 後，backbone+head+backward+step 合計裸跑 377.0 ms、'
+                                 'flat8 444.5 ms，多 17.9%%（含 data wait 的 wall clock 差是 16.1%%，'
+                                 '兩者一致）。RN50 沒有裸跑對照組（裸跑就 OOM），無法直接量出 '
+                                 'RN50 開 ckpt 的時間代價，只能引用 RN34 的量測結果。'
+                                 '0 = 不限制（等同 len(chain)）。')
         parser.add_argument('--freeze_backbone', action='store_true', default=False,
                             help='Freeze the ResNet backbone: no grads, BN in eval mode. '
                                  'Used for the frozen second track.')
+        parser.add_argument('--profile_memory', action='store_true', default=False,
+                            help='每 2*tasks_per_batch 個 iteration 記錄顯存峰值並重置統計')
+        parser.add_argument('--bn_fix_scope', choices=['all', 'covered'], default='covered',
+                            help='grad_ckpt 開啟時 BN momentum 修正的套用範圍。'
+                                 '"all"＝套到所有 BN（舊行為，對 checkpoint_sequential 尾段是錯的）；'
+                                 '"covered"＝只套到真正被重算的 chain[:n_ckpt] 段（預設，正確行為）。')
+        parser.add_argument('--loss_csv', default=None,
+                            help='指定路徑時，逐 iteration 把 (iteration, loss) 寫入這個 csv。'
+                                 '預設 None＝不寫，行為與現在完全相同。')
+        parser.add_argument('--profile_time', action='store_true', default=False,
+                            help='把每個 iteration 拆成 data wait / backbone fwd（support+query 合計）'
+                                 '/ head fwd / backward+step 四段，用 cuda.Event 量 GPU 段落、'
+                                 'perf_counter 量 dataloader 等待，跑完整個 run 後印中位數報告。')
 
         # decouple_gate / decouple_mode — SupportDecoupleRelation args.
         # Use mutually exclusive group for gate so YAML "decouple_gate: false"
@@ -432,16 +499,23 @@ class Learner:
                     iteration = int(m.group(1)) if m else 0
                     print(f"[test-only] Loaded {ckpt_path}  iteration={iteration}", flush=True)
                     accuracy_dict = self.test(session)
+                    if getattr(self.args, "profile_memory", False):
+                        print_and_log(self.logfile, "[mem] EVAL PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
+                            torch.cuda.max_memory_allocated() / 1024**3,
+                            torch.cuda.max_memory_reserved()  / 1024**3))
                     print(accuracy_dict)
                     self.test_accuracies.print(self.logfile, accuracy_dict)
                     _item = self.args.dataset
                     if _item in accuracy_dict:
-                        _log_result_csv(
-                            self.args,
-                            iteration=iteration,
-                            mean_accuracy=accuracy_dict[_item]["accuracy"],
-                            confidence_interval=accuracy_dict[_item]["confidence"],
-                        )
+                        if getattr(self.args, "profile_memory", False):
+                            print_and_log(self.logfile, "[mem] profiling run — 跳過 results.csv 寫入")
+                        else:
+                            _log_result_csv(
+                                self.args,
+                                iteration=iteration,
+                                mean_accuracy=accuracy_dict[_item]["accuracy"],
+                                confidence_interval=accuracy_dict[_item]["confidence"],
+                            )
                     self.logfile.close()
                     return
                 # ------------------------------------------------------------------
@@ -450,22 +524,80 @@ class Learner:
                 losses = []
                 total_iterations = self.args.training_iterations
 
+                _loss_csv_f = None
+                if getattr(self.args, "loss_csv", None):
+                    _loss_csv_f = open(self.args.loss_csv, "w", buffering=1)
+                    _loss_csv_f.write("iteration,loss\n")
+
+                _prof_time = getattr(self.args, "profile_time", False)
+                _prof_rows = [] if _prof_time else None
+
                 iteration = self.start_iteration
-                for task_dict in self.video_loader:
+                _loader_iter = iter(self.video_loader)
+                while True:
+                    # 逐行對應原本 `for task_dict in self.video_loader:` 的行為：
+                    # 先取一筆（不管要不要用），再判斷是否該停——flag 關閉時跟原本
+                    # 逐位元組相同，只是把隱式的 for-iterator 換成顯式 next() 好包計時。
+                    if _prof_time:
+                        _iter_t0 = time.perf_counter()
+                    try:
+                        task_dict = next(_loader_iter)
+                    except StopIteration:
+                        break
                     if iteration >= total_iterations:
                         break
+                    if _prof_time:
+                        _data_ms = (time.perf_counter() - _iter_t0) * 1000
                     iteration += 1
                     torch.set_grad_enabled(True)
 
                     task_loss, task_accuracy = self.train_task(task_dict)
+                    if _loss_csv_f is not None:
+                        _loss_csv_f.write(f"{iteration},{task_loss.item():.10f}\n")
                     train_accuracies.append(task_accuracy)
                     losses.append(task_loss)
 
                     # optimize
+                    _step_ms = 0.0
                     if ((iteration + 1) % self.args.tasks_per_batch == 0) or (iteration == (total_iterations - 1)):
-                        self.optimizer.step()
-                        self.optimizer.zero_grad()
+                        if _prof_time:
+                            _es0 = torch.cuda.Event(enable_timing=True)
+                            _es1 = torch.cuda.Event(enable_timing=True)
+                            _es0.record()
+                            self.optimizer.step()
+                            self.optimizer.zero_grad()
+                            _es1.record()
+                            torch.cuda.synchronize()
+                            _step_ms = _es0.elapsed_time(_es1)
+                        else:
+                            self.optimizer.step()
+                            self.optimizer.zero_grad()
                     self.scheduler.step()
+
+                    if _prof_time:
+                        _iter_total_ms = (time.perf_counter() - _iter_t0) * 1000
+                        _prof_rows.append(dict(
+                            iteration=iteration,
+                            data_ms=_data_ms,
+                            h2d_ms=getattr(self, "_prof_h2d_ms", float("nan")),
+                            backbone_ms=getattr(self.model, "_prof_backbone_ms", float("nan")),
+                            head_ms=getattr(self.model, "_prof_head_ms", float("nan")),
+                            backward_step_ms=getattr(self, "_prof_backward_ms", float("nan")) + _step_ms,
+                            total_ms=_iter_total_ms,
+                        ))
+
+                    if getattr(self.args, "profile_memory", False):
+                        _win = 2 * self.args.tasks_per_batch      # 32，每個視窗恰含 2 次 optimizer.step
+                        if (iteration + 1) % _win == 0:
+                            _a = torch.cuda.max_memory_allocated() / 1024**3
+                            _r = torch.cuda.max_memory_reserved()  / 1024**3
+                            self._mem_peak_alloc = max(getattr(self, "_mem_peak_alloc", 0.0), _a)
+                            self._mem_peak_res   = max(getattr(self, "_mem_peak_res",   0.0), _r)
+                            print_and_log(self.logfile,
+                                "[mem] iter {:>5}  alloc_peak {:.3f} GB  reserved_peak {:.3f} GB".format(
+                                    iteration + 1, _a, _r))
+                            torch.cuda.reset_peak_memory_stats()
+
                     if (iteration + 1) % self.args.print_freq == 0:
                         # print training stats
                         print_and_log(self.logfile,'Task [{}/{}], Train Loss: {:.7f}, Train Accuracy: {:.7f}'
@@ -485,20 +617,56 @@ class Learner:
                         # --- CSV logging (STEP 5) ---
                         _item = self.args.dataset
                         if _item in accuracy_dict:
-                            _log_result_csv(
-                                self.args,
-                                iteration=iteration + 1,
-                                mean_accuracy=accuracy_dict[_item]["accuracy"],
-                                confidence_interval=accuracy_dict[_item]["confidence"],
-                            )
+                            if getattr(self.args, "profile_memory", False):
+                                print_and_log(self.logfile, "[mem] profiling run — 跳過 results.csv 寫入")
+                            else:
+                                _log_result_csv(
+                                    self.args,
+                                    iteration=iteration + 1,
+                                    mean_accuracy=accuracy_dict[_item]["accuracy"],
+                                    confidence_interval=accuracy_dict[_item]["confidence"],
+                                )
+
+                if getattr(self.args, "profile_memory", False):
+                    print_and_log(self.logfile, "[mem] RUN PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
+                        getattr(self, "_mem_peak_alloc", 0.0), getattr(self, "_mem_peak_res", 0.0)))
+
+                if _prof_time and _prof_rows:
+                    def _median(key):
+                        return float(np.median([r[key] for r in _prof_rows]))
+                    data_med     = _median("data_ms")
+                    h2d_med      = _median("h2d_ms")
+                    backbone_med = _median("backbone_ms")
+                    head_med     = _median("head_ms")
+                    bs_med       = _median("backward_step_ms")
+                    total_med    = _median("total_ms")
+                    seg_sum      = data_med + h2d_med + backbone_med + head_med + bs_med
+                    err_pct      = abs(seg_sum - total_med) / total_med * 100 if total_med else float("nan")
+                    print_and_log(self.logfile,
+                        "[time] n={}  data={:.3f}ms  H2D={:.3f}ms  backbone(支+查)={:.3f}ms  head={:.3f}ms  "
+                        "backward+step={:.3f}ms  | 五段加總={:.3f}ms  total(wall)={:.3f}ms  誤差={:.2f}%".format(
+                            len(_prof_rows), data_med, h2d_med, backbone_med, head_med, bs_med,
+                            seg_sum, total_med, err_pct))
 
                 # save the final model
                 torch.save(self.model.state_dict(), self.checkpoint_path_final)
 
+                if _loss_csv_f is not None:
+                    _loss_csv_f.close()
+
         self.logfile.close()
 
     def train_task(self, task_dict):
-        context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
+        if getattr(self.args, "profile_time", False):
+            _eh0 = torch.cuda.Event(enable_timing=True)
+            _eh1 = torch.cuda.Event(enable_timing=True)
+            _eh0.record()
+            context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
+            _eh1.record()
+            torch.cuda.synchronize()
+            self._prof_h2d_ms = _eh0.elapsed_time(_eh1)
+        else:
+            context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
 
         model_dict = self.model(context_images, context_labels, target_images)
         target_logits = model_dict['logits']
@@ -506,7 +674,16 @@ class Learner:
         task_loss = self.loss(target_logits, target_labels, self.device) / self.args.tasks_per_batch
         task_accuracy = self.accuracy_fn(target_logits, target_labels)
 
-        task_loss.backward(retain_graph=False)
+        if getattr(self.args, "profile_time", False):
+            _eb0 = torch.cuda.Event(enable_timing=True)
+            _eb1 = torch.cuda.Event(enable_timing=True)
+            _eb0.record()
+            task_loss.backward(retain_graph=False)
+            _eb1.record()
+            torch.cuda.synchronize()
+            self._prof_backward_ms = _eb0.elapsed_time(_eb1)
+        else:
+            task_loss.backward(retain_graph=False)
 
         return task_loss, task_accuracy
 
