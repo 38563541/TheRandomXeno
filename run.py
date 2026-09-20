@@ -15,8 +15,9 @@ from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
 import video_reader
-import random 
+import random
 import datetime
+import time
 
 
 # ---------------------------------------------------------------------------
@@ -338,8 +339,15 @@ class Learner:
                                  'and BN momentum is corrected in init_model().')
         parser.add_argument('--ckpt_segments', type=int, default=8,
                             help='checkpoint_sequential 段數（攤平後的 block 數上限）。'
-                                 '8 是 Colab 實測的最佳點：RN50 從 16.15 GB 降到 11.01 GB，'
-                                 '時間只多 3%%。0 = 不限制（等同 len(chain)）。')
+                                 '8 是 Colab 實測在不同切法之間的最佳點：RN50 從 16.15 GB 降到 '
+                                 '11.01 GB，時間只多 3%%（這個 3%% 講的是切法之間的差，不是開/關 '
+                                 'ckpt 的差）。開 ckpt 本身的純 GPU 時間代價：本機 3080 Ti 用 '
+                                 '--profile_time 量過 RN34（唯一有裸跑對照組的 backbone），扣掉 '
+                                 'data wait 後，backbone+head+backward+step 合計裸跑 377.0 ms、'
+                                 'flat8 444.5 ms，多 17.9%%（含 data wait 的 wall clock 差是 16.1%%，'
+                                 '兩者一致）。RN50 沒有裸跑對照組（裸跑就 OOM），無法直接量出 '
+                                 'RN50 開 ckpt 的時間代價，只能引用 RN34 的量測結果。'
+                                 '0 = 不限制（等同 len(chain)）。')
         parser.add_argument('--freeze_backbone', action='store_true', default=False,
                             help='Freeze the ResNet backbone: no grads, BN in eval mode. '
                                  'Used for the frozen second track.')
@@ -352,6 +360,10 @@ class Learner:
         parser.add_argument('--loss_csv', default=None,
                             help='指定路徑時，逐 iteration 把 (iteration, loss) 寫入這個 csv。'
                                  '預設 None＝不寫，行為與現在完全相同。')
+        parser.add_argument('--profile_time', action='store_true', default=False,
+                            help='把每個 iteration 拆成 data wait / backbone fwd（support+query 合計）'
+                                 '/ head fwd / backward+step 四段，用 cuda.Event 量 GPU 段落、'
+                                 'perf_counter 量 dataloader 等待，跑完整個 run 後印中位數報告。')
 
         # decouple_gate / decouple_mode — SupportDecoupleRelation args.
         # Use mutually exclusive group for gate so YAML "decouple_gate: false"
@@ -517,10 +529,25 @@ class Learner:
                     _loss_csv_f = open(self.args.loss_csv, "w", buffering=1)
                     _loss_csv_f.write("iteration,loss\n")
 
+                _prof_time = getattr(self.args, "profile_time", False)
+                _prof_rows = [] if _prof_time else None
+
                 iteration = self.start_iteration
-                for task_dict in self.video_loader:
+                _loader_iter = iter(self.video_loader)
+                while True:
+                    # 逐行對應原本 `for task_dict in self.video_loader:` 的行為：
+                    # 先取一筆（不管要不要用），再判斷是否該停——flag 關閉時跟原本
+                    # 逐位元組相同，只是把隱式的 for-iterator 換成顯式 next() 好包計時。
+                    if _prof_time:
+                        _iter_t0 = time.perf_counter()
+                    try:
+                        task_dict = next(_loader_iter)
+                    except StopIteration:
+                        break
                     if iteration >= total_iterations:
                         break
+                    if _prof_time:
+                        _data_ms = (time.perf_counter() - _iter_t0) * 1000
                     iteration += 1
                     torch.set_grad_enabled(True)
 
@@ -531,10 +558,32 @@ class Learner:
                     losses.append(task_loss)
 
                     # optimize
+                    _step_ms = 0.0
                     if ((iteration + 1) % self.args.tasks_per_batch == 0) or (iteration == (total_iterations - 1)):
-                        self.optimizer.step()
-                        self.optimizer.zero_grad()
+                        if _prof_time:
+                            _es0 = torch.cuda.Event(enable_timing=True)
+                            _es1 = torch.cuda.Event(enable_timing=True)
+                            _es0.record()
+                            self.optimizer.step()
+                            self.optimizer.zero_grad()
+                            _es1.record()
+                            torch.cuda.synchronize()
+                            _step_ms = _es0.elapsed_time(_es1)
+                        else:
+                            self.optimizer.step()
+                            self.optimizer.zero_grad()
                     self.scheduler.step()
+
+                    if _prof_time:
+                        _iter_total_ms = (time.perf_counter() - _iter_t0) * 1000
+                        _prof_rows.append(dict(
+                            iteration=iteration,
+                            data_ms=_data_ms,
+                            backbone_ms=getattr(self.model, "_prof_backbone_ms", float("nan")),
+                            head_ms=getattr(self.model, "_prof_head_ms", float("nan")),
+                            backward_step_ms=getattr(self, "_prof_backward_ms", float("nan")) + _step_ms,
+                            total_ms=_iter_total_ms,
+                        ))
 
                     if getattr(self.args, "profile_memory", False):
                         _win = 2 * self.args.tasks_per_batch      # 32，每個視窗恰含 2 次 optimizer.step
@@ -581,6 +630,22 @@ class Learner:
                     print_and_log(self.logfile, "[mem] RUN PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
                         getattr(self, "_mem_peak_alloc", 0.0), getattr(self, "_mem_peak_res", 0.0)))
 
+                if _prof_time and _prof_rows:
+                    def _median(key):
+                        return float(np.median([r[key] for r in _prof_rows]))
+                    data_med     = _median("data_ms")
+                    backbone_med = _median("backbone_ms")
+                    head_med     = _median("head_ms")
+                    bs_med       = _median("backward_step_ms")
+                    total_med    = _median("total_ms")
+                    seg_sum      = data_med + backbone_med + head_med + bs_med
+                    err_pct      = abs(seg_sum - total_med) / total_med * 100 if total_med else float("nan")
+                    print_and_log(self.logfile,
+                        "[time] n={}  data={:.3f}ms  backbone(支+查)={:.3f}ms  head={:.3f}ms  "
+                        "backward+step={:.3f}ms  | 四段加總={:.3f}ms  total(wall)={:.3f}ms  誤差={:.2f}%".format(
+                            len(_prof_rows), data_med, backbone_med, head_med, bs_med,
+                            seg_sum, total_med, err_pct))
+
                 # save the final model
                 torch.save(self.model.state_dict(), self.checkpoint_path_final)
 
@@ -598,7 +663,16 @@ class Learner:
         task_loss = self.loss(target_logits, target_labels, self.device) / self.args.tasks_per_batch
         task_accuracy = self.accuracy_fn(target_logits, target_labels)
 
-        task_loss.backward(retain_graph=False)
+        if getattr(self.args, "profile_time", False):
+            _eb0 = torch.cuda.Event(enable_timing=True)
+            _eb1 = torch.cuda.Event(enable_timing=True)
+            _eb0.record()
+            task_loss.backward(retain_graph=False)
+            _eb1.record()
+            torch.cuda.synchronize()
+            self._prof_backward_ms = _eb0.elapsed_time(_eb1)
+        else:
+            task_loss.backward(retain_graph=False)
 
         return task_loss, task_accuracy
 
