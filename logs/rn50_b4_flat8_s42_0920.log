@@ -1,0 +1,1153 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+[INFO] seed=42 (random, numpy, torch, cuda)
+Options: Namespace(config='configs/stage2_true_hyrsm_b4_tuple.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/rn50_b4_flat8_s42_0920/hmdb_split3_20260920_181558', test_model_path=None, training_iterations=100020, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[25000, 50000, 75000, 100000], num_test_tasks=10000, print_freq=1000, seq_len=8, num_workers=10, method='resnet50', trans_linear_out_dim=1152, trans_linear_in_dim=2048, opt='sgd', trans_dropout=0.1, save_freq=5000, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=42, grad_ckpt=True, ckpt_segments=8, freeze_backbone=False, profile_memory=True, bn_fix_scope='covered', loss_csv=None, profile_time=False, decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=True, use_inter_relation=True, relation_level='tuple', inter_style='true_hyrsm', config_file='configs/stage2_true_hyrsm_b4_tuple.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/rn50_b4_flat8_s42_0920/hmdb_split3_20260920_181558
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] grad_ckpt on (bn_fix_scope=covered): adjusted momentum of 34 / 53 BN layers to 0.05132 (chain[:14] of 21)
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 52.14 M 個可訓練參數
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+[mem] iter    100 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter    900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [1000/100020], Train Loss: 1.2423553, Train Accuracy: 0.7096697
+[mem] iter   1100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   1900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [2000/100020], Train Loss: 0.6849312, Train Accuracy: 0.8286800
+[mem] iter   2100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   2900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [3000/100020], Train Loss: 0.5004398, Train Accuracy: 0.8742000
+[mem] iter   3100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   3900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [4000/100020], Train Loss: 0.3951146, Train Accuracy: 0.9027999
+[mem] iter   4100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   4900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [5000/100020], Train Loss: 0.3196106, Train Accuracy: 0.9207200
+[mem] iter   5100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   5900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [6000/100020], Train Loss: 0.2573247, Train Accuracy: 0.9374801
+[mem] iter   6100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   6900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [7000/100020], Train Loss: 0.2289825, Train Accuracy: 0.9440799
+[mem] iter   7100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   7900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [8000/100020], Train Loss: 0.1868037, Train Accuracy: 0.9539200
+[mem] iter   8100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   8900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [9000/100020], Train Loss: 0.1638157, Train Accuracy: 0.9606400
+[mem] iter   9100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter   9900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [10000/100020], Train Loss: 0.1412685, Train Accuracy: 0.9646400
+[mem] iter  10100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  10900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [11000/100020], Train Loss: 0.1191320, Train Accuracy: 0.9710800
+[mem] iter  11100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  11900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [12000/100020], Train Loss: 0.1001573, Train Accuracy: 0.9757200
+[mem] iter  12100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  12900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [13000/100020], Train Loss: 0.1016067, Train Accuracy: 0.9758800
+[mem] iter  13100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  13900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [14000/100020], Train Loss: 0.0956696, Train Accuracy: 0.9784001
+[mem] iter  14100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  14900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [15000/100020], Train Loss: 0.0845249, Train Accuracy: 0.9792001
+[mem] iter  15100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  15900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [16000/100020], Train Loss: 0.0805883, Train Accuracy: 0.9807999
+[mem] iter  16100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  16900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [17000/100020], Train Loss: 0.0685228, Train Accuracy: 0.9838799
+[mem] iter  17100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  17900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [18000/100020], Train Loss: 0.0676858, Train Accuracy: 0.9844801
+[mem] iter  18100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  18900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [19000/100020], Train Loss: 0.0498729, Train Accuracy: 0.9886000
+[mem] iter  19100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  19900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [20000/100020], Train Loss: 0.0554406, Train Accuracy: 0.9868000
+[mem] iter  20100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  20900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [21000/100020], Train Loss: 0.0558886, Train Accuracy: 0.9871601
+[mem] iter  21100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  21900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [22000/100020], Train Loss: 0.0467984, Train Accuracy: 0.9888800
+[mem] iter  22100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  22900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [23000/100020], Train Loss: 0.0478488, Train Accuracy: 0.9896400
+[mem] iter  23100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  23900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [24000/100020], Train Loss: 0.0442560, Train Accuracy: 0.9899600
+[mem] iter  24100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  24900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [25000/100020], Train Loss: 0.0416175, Train Accuracy: 0.9904801
+[mem][pre-eval] iter  25000 win_alloc 0.412 win_res 9.705 cur_res 9.705 retries 0
+[mem][post-eval] iter  25000 win_alloc 0.845 win_res 9.705 cur_res 9.705 retries 0
+{'hmdb': {'accuracy': 49.98400117620826, 'confidence': 0.4248816027926246}}
+
+Test Accuracies:
+hmdb: 50.0+/-0.4
+
+[mem] profiling run — 跳過 results.csv 寫入
+[mem] iter  25100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  25900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [26000/100020], Train Loss: 0.0356144, Train Accuracy: 0.9928800
+[mem] iter  26100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  26900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [27000/100020], Train Loss: 0.0340653, Train Accuracy: 0.9919601
+[mem] iter  27100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  27900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [28000/100020], Train Loss: 0.0317969, Train Accuracy: 0.9925200
+[mem] iter  28100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  28900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [29000/100020], Train Loss: 0.0338028, Train Accuracy: 0.9920800
+[mem] iter  29100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  29900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [30000/100020], Train Loss: 0.0299939, Train Accuracy: 0.9930800
+[mem] iter  30100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  30900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [31000/100020], Train Loss: 0.0228721, Train Accuracy: 0.9951200
+[mem] iter  31100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  31900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [32000/100020], Train Loss: 0.0218828, Train Accuracy: 0.9950400
+[mem] iter  32100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  32900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [33000/100020], Train Loss: 0.0320774, Train Accuracy: 0.9935600
+[mem] iter  33100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  33900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [34000/100020], Train Loss: 0.0195454, Train Accuracy: 0.9955599
+[mem] iter  34100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  34900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [35000/100020], Train Loss: 0.0248876, Train Accuracy: 0.9950401
+[mem] iter  35100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  35900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [36000/100020], Train Loss: 0.0244236, Train Accuracy: 0.9948000
+[mem] iter  36100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  36900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [37000/100020], Train Loss: 0.0260445, Train Accuracy: 0.9942001
+[mem] iter  37100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  37900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [38000/100020], Train Loss: 0.0183359, Train Accuracy: 0.9959201
+[mem] iter  38100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  38900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [39000/100020], Train Loss: 0.0249737, Train Accuracy: 0.9946800
+[mem] iter  39100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  39900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [40000/100020], Train Loss: 0.0195057, Train Accuracy: 0.9958800
+[mem] iter  40100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  40900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [41000/100020], Train Loss: 0.0226866, Train Accuracy: 0.9950000
+[mem] iter  41100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  41900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [42000/100020], Train Loss: 0.0143604, Train Accuracy: 0.9965200
+[mem] iter  42100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42200 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42300 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42400 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42500 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42600 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42700 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42800 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  42900 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  43000 win_alloc 7.664 win_res 9.705 cur_res 9.705 retries 0
+Task [43000/100020], Train Loss: 0.0156543, Train Accuracy: 0.9967600
+[mem] iter  43100 win_alloc 7.663 win_res 9.705 cur_res 9.705 retries 0
+[mem] iter  43200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  43300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  43400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  43500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  43600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  43700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  43800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  43900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [44000/100020], Train Loss: 0.0165643, Train Accuracy: 0.9963199
+[mem] iter  44100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  44900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [45000/100020], Train Loss: 0.0161319, Train Accuracy: 0.9967600
+[mem] iter  45100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  45900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [46000/100020], Train Loss: 0.0176773, Train Accuracy: 0.9964000
+[mem] iter  46100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  46900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [47000/100020], Train Loss: 0.0189662, Train Accuracy: 0.9954800
+[mem] iter  47100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  47900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [48000/100020], Train Loss: 0.0125195, Train Accuracy: 0.9971600
+[mem] iter  48100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  48900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [49000/100020], Train Loss: 0.0121364, Train Accuracy: 0.9976801
+[mem] iter  49100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  49900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [50000/100020], Train Loss: 0.0120560, Train Accuracy: 0.9972800
+[mem][pre-eval] iter  50000 win_alloc 0.214 win_res 9.707 cur_res 9.707 retries 0
+[mem][post-eval] iter  50000 win_alloc 0.647 win_res 9.707 cur_res 9.707 retries 0
+{'hmdb': {'accuracy': 50.362001181393865, 'confidence': 0.4283884683916564}}
+
+Test Accuracies:
+hmdb: 50.4+/-0.4
+
+[mem] profiling run — 跳過 results.csv 寫入
+[mem] iter  50100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  50900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [51000/100020], Train Loss: 0.0115024, Train Accuracy: 0.9975200
+[mem] iter  51100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  51900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [52000/100020], Train Loss: 0.0137782, Train Accuracy: 0.9970400
+[mem] iter  52100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  52900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [53000/100020], Train Loss: 0.0111826, Train Accuracy: 0.9976400
+[mem] iter  53100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  53900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [54000/100020], Train Loss: 0.0133919, Train Accuracy: 0.9967200
+[mem] iter  54100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  54900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [55000/100020], Train Loss: 0.0118444, Train Accuracy: 0.9973199
+[mem] iter  55100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  55900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [56000/100020], Train Loss: 0.0093328, Train Accuracy: 0.9977599
+[mem] iter  56100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  56900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [57000/100020], Train Loss: 0.0103799, Train Accuracy: 0.9979200
+[mem] iter  57100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  57900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [58000/100020], Train Loss: 0.0137052, Train Accuracy: 0.9970800
+[mem] iter  58100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  58900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [59000/100020], Train Loss: 0.0094257, Train Accuracy: 0.9978400
+[mem] iter  59100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  59900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [60000/100020], Train Loss: 0.0112284, Train Accuracy: 0.9977199
+[mem] iter  60100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  60900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [61000/100020], Train Loss: 0.0075991, Train Accuracy: 0.9982400
+[mem] iter  61100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  61900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [62000/100020], Train Loss: 0.0074811, Train Accuracy: 0.9984000
+[mem] iter  62100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  62900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [63000/100020], Train Loss: 0.0117367, Train Accuracy: 0.9973999
+[mem] iter  63100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  63900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [64000/100020], Train Loss: 0.0085377, Train Accuracy: 0.9983199
+[mem] iter  64100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  64900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [65000/100020], Train Loss: 0.0070461, Train Accuracy: 0.9981999
+[mem] iter  65100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  65900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [66000/100020], Train Loss: 0.0056162, Train Accuracy: 0.9988400
+[mem] iter  66100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  66900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [67000/100020], Train Loss: 0.0087766, Train Accuracy: 0.9980799
+[mem] iter  67100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  67900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [68000/100020], Train Loss: 0.0068498, Train Accuracy: 0.9985200
+[mem] iter  68100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  68900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [69000/100020], Train Loss: 0.0080868, Train Accuracy: 0.9983600
+[mem] iter  69100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  69900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [70000/100020], Train Loss: 0.0068865, Train Accuracy: 0.9984400
+[mem] iter  70100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  70900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [71000/100020], Train Loss: 0.0098056, Train Accuracy: 0.9982400
+[mem] iter  71100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  71900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [72000/100020], Train Loss: 0.0062053, Train Accuracy: 0.9985200
+[mem] iter  72100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  72900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [73000/100020], Train Loss: 0.0079066, Train Accuracy: 0.9982401
+[mem] iter  73100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  73900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [74000/100020], Train Loss: 0.0055966, Train Accuracy: 0.9988799
+[mem] iter  74100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  74900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [75000/100020], Train Loss: 0.0066563, Train Accuracy: 0.9985199
+[mem][pre-eval] iter  75000 win_alloc 0.412 win_res 9.707 cur_res 9.707 retries 0
+[mem][post-eval] iter  75000 win_alloc 0.845 win_res 9.707 cur_res 9.707 retries 0
+{'hmdb': {'accuracy': 50.33800119444728, 'confidence': 0.4224360563935274}}
+
+Test Accuracies:
+hmdb: 50.3+/-0.4
+
+[mem] profiling run — 跳過 results.csv 寫入
+[mem] iter  75100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  75900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [76000/100020], Train Loss: 0.0054276, Train Accuracy: 0.9989601
+[mem] iter  76100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  76900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [77000/100020], Train Loss: 0.0056029, Train Accuracy: 0.9986399
+[mem] iter  77100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  77900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [78000/100020], Train Loss: 0.0064463, Train Accuracy: 0.9987200
+[mem] iter  78100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  78900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [79000/100020], Train Loss: 0.0044076, Train Accuracy: 0.9991200
+[mem] iter  79100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  79900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [80000/100020], Train Loss: 0.0043650, Train Accuracy: 0.9990399
+[mem] iter  80100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  80900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [81000/100020], Train Loss: 0.0056242, Train Accuracy: 0.9988000
+[mem] iter  81100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  81900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [82000/100020], Train Loss: 0.0040445, Train Accuracy: 0.9992000
+[mem] iter  82100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  82900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [83000/100020], Train Loss: 0.0037728, Train Accuracy: 0.9992000
+[mem] iter  83100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  83900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [84000/100020], Train Loss: 0.0076609, Train Accuracy: 0.9982800
+[mem] iter  84100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  84900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [85000/100020], Train Loss: 0.0062922, Train Accuracy: 0.9986799
+[mem] iter  85100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  85900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [86000/100020], Train Loss: 0.0046981, Train Accuracy: 0.9992400
+[mem] iter  86100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  86900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [87000/100020], Train Loss: 0.0048613, Train Accuracy: 0.9988800
+[mem] iter  87100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  87900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [88000/100020], Train Loss: 0.0075292, Train Accuracy: 0.9984000
+[mem] iter  88100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  88900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [89000/100020], Train Loss: 0.0079694, Train Accuracy: 0.9983600
+[mem] iter  89100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  89900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [90000/100020], Train Loss: 0.0052430, Train Accuracy: 0.9986800
+[mem] iter  90100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  90900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [91000/100020], Train Loss: 0.0047007, Train Accuracy: 0.9990800
+[mem] iter  91100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  91900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [92000/100020], Train Loss: 0.0063287, Train Accuracy: 0.9988400
+[mem] iter  92100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  92900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [93000/100020], Train Loss: 0.0059128, Train Accuracy: 0.9987200
+[mem] iter  93100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  93900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [94000/100020], Train Loss: 0.0057246, Train Accuracy: 0.9988000
+[mem] iter  94100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  94900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [95000/100020], Train Loss: 0.0061212, Train Accuracy: 0.9989600
+[mem] iter  95100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  95900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [96000/100020], Train Loss: 0.0062250, Train Accuracy: 0.9990000
+[mem] iter  96100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  96900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [97000/100020], Train Loss: 0.0046333, Train Accuracy: 0.9989200
+[mem] iter  97100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  97900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [98000/100020], Train Loss: 0.0055761, Train Accuracy: 0.9987200
+[mem] iter  98100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  98900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [99000/100020], Train Loss: 0.0056116, Train Accuracy: 0.9988000
+[mem] iter  99100 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99200 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99300 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99400 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99500 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99600 win_alloc 7.663 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99700 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99800 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter  99900 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+[mem] iter 100000 win_alloc 7.664 win_res 9.707 cur_res 9.707 retries 0
+Task [100000/100020], Train Loss: 0.0058172, Train Accuracy: 0.9990400
+[mem][pre-eval] iter 100000 win_alloc 0.214 win_res 9.707 cur_res 9.707 retries 0
+[mem][post-eval] iter 100000 win_alloc 0.647 win_res 9.707 cur_res 9.707 retries 0
+{'hmdb': {'accuracy': 49.75200118303299, 'confidence': 0.42452827041028707}}
+
+Test Accuracies:
+hmdb: 49.8+/-0.4
+
+[mem] profiling run — 跳過 results.csv 寫入
+[mem] RUN PEAK  alloc 7.664 GB  reserved 9.707 GB
