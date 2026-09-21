@@ -1,0 +1,209 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+Options: Namespace(config='configs/stage2_true_hyrsm_b4_tuple.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/m0922_stage5_A4trend/hmdb_split3_20260922_001630', test_model_path=None, training_iterations=3000, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[999999], num_test_tasks=10000, print_freq=500, seq_len=8, num_workers=10, method='resnet50', trans_linear_out_dim=1152, trans_linear_in_dim=2048, opt='sgd', trans_dropout=0.1, save_freq=999999, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=None, grad_ckpt=True, ckpt_segments=7, ckpt_prefix=14, freeze_backbone=False, profile_memory=True, bn_fix_scope='covered', loss_csv=None, profile_time=False, ckpt_policy='full', amp='fp16', decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=True, use_inter_relation=True, relation_level='tuple', inter_style='true_hyrsm', config_file='configs/stage2_true_hyrsm_b4_tuple.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/m0922_stage5_A4trend/hmdb_split3_20260922_001630
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] grad_ckpt on (bn_fix_scope=covered): adjusted momentum of 34 / 53 BN layers to 0.05132 (chain[:14] of 21)
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 52.14 M 個可訓練參數
+/home/ccwu/Documents/work/trx/run.py:186: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self.scaler = torch.cuda.amp.GradScaler(enabled=(getattr(self.args, "amp", "off") == "fp16"))
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+[memsplit] iter    20  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter    40  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter    60  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter    80  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter    100 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   100  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   120  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   140  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   160  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   180  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter    200 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   200  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   220  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   240  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   260  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   280  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter    300 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   300  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   320  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   340  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   360  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   380  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter    400 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   400  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   420  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   440  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   460  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   480  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter    500 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+Task [500/3000], Train Loss: 2.9014056, Train Accuracy: 0.5890179
+[memsplit] iter   500  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   520  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   540  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   560  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   580  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter    600 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   600  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   620  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   640  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   660  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   680  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter    700 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   700  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   720  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   740  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   760  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   780  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter    800 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   800  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   820  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   840  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   860  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   880  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter    900 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter   900  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   920  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   940  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter   960  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter   980  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1000 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+Task [1000/3000], Train Loss: 1.0231026, Train Accuracy: 0.7424800
+[memsplit] iter  1000  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1020  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1040  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1060  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1080  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1100 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1100  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1120  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1140  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1160  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1180  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1200 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1200  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1220  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1240  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1260  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1280  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter   1300 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1300  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1320  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1340  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1360  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1380  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1400 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1400  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1420  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1440  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1460  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1480  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1500 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+Task [1500/3000], Train Loss: 0.7692935, Train Accuracy: 0.8075200
+[memsplit] iter  1500  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1520  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1540  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1560  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1580  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1600 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1600  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1620  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1640  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1660  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1680  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter   1700 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1700  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1720  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1740  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1760  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1780  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1800 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1800  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1820  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1840  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1860  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1880  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   1900 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  1900  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1920  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  1940  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1960  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  1980  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   2000 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+Task [2000/3000], Train Loss: 0.6418565, Train Accuracy: 0.8428000
+[memsplit] iter  2000  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2020  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2040  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2060  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2080  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter   2100 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2100  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2120  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2140  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2160  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2180  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   2200 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2200  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2220  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2240  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2260  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2280  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   2300 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2300  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2320  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2340  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2360  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2380  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   2400 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2400  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2420  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2440  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2460  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2480  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter   2500 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+Task [2500/3000], Train Loss: 0.5594890, Train Accuracy: 0.8631999
+[memsplit] iter  2500  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2520  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2540  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2560  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2580  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   2600 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2600  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2620  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2640  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2660  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2680  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   2700 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2700  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2720  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2740  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2760  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2780  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   2800 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2800  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2820  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2840  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2860  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2880  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] iter   2900 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+[memsplit] iter  2900  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2920  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2940  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[memsplit] iter  2960  persist 0.348  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[memsplit] iter  2980  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
+[mem] iter   3000 win_alloc 4.222 win_res 5.812 cur_res 5.812 retries 0
+Task [3000/3000], Train Loss: 0.4746681, Train Accuracy: 0.8815201
+[memsplit] iter  3000  persist 0.347  bb 2.727  head 0.181  bwd_extra 0.876  peak 4.131
+[mem] RUN PEAK  alloc 4.222 GB  reserved 5.812 GB
+[memsplit] MEDIAN (iter21-3000)  persist 0.547  bb 2.724  head 0.182  bwd_extra 0.768  peak 4.222
