@@ -1,0 +1,148 @@
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet18_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet18_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+
+--- V1: state_dict 鍵名 ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+  keys: 125 total, diff = 0  ✓ PASS
+
+--- V2: 載入既有 checkpoint ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+  Stage1 B1: 0 unexpected keys (missing=0)  ✓ PASS
+
+--- V3: 梯度流 ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+  resnet.0.weight.grad.abs().sum() = 2947205.500000 > 0  ✓ PASS
+
+--- V4: 梯度等價（修好版，checkpoint_sequential 路徑） ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+  [RN18] branch_off='none' branch_on='checkpoint_sequential' (預期 branch_on='checkpoint_sequential')  ✓ 分支正確
+  [RN18] 全體參數梯度 max|grad| = 1.039e+04   backbone 第一層（resnet.0.weight）max|grad| = 3.041e+03  ✓ 非零
+  [RN18] 控制組底線 |off - off2| max = 0.000e+00
+  [RN18] max |grad_off - grad_on| (全體參數) = 0.000e+00  (在 resnet.0.weight)
+  [RN18] |grad_off - grad_on| (backbone 第一層 resnet.0.weight) = 0.000e+00
+  [RN18] ✓ PASS
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=1.0, tuples_len=28, support_chunk=64
+  [RN50] branch_off='none' branch_on='checkpoint_sequential' (預期 branch_on='checkpoint_sequential')  ✓ 分支正確
+  [RN50] 全體參數梯度 max|grad| = 6.479e+03   backbone 第一層（resnet.0.weight）max|grad| = 5.437e+03  ✓ 非零
+  [RN50] 控制組底線 |off - off2| max = 0.000e+00
+  [RN50] max |grad_off - grad_on| (全體參數) = 0.000e+00  (在 resnet.0.weight)
+  [RN50] |grad_off - grad_on| (backbone 第一層 resnet.0.weight) = 0.000e+00
+  [RN50] ✓ PASS
+
+--- V4b: 梯度等價（stage2_model.CNN_TRXWithRelation，B4/true_hyrsm 設定） ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+  [V4b-RN18] branch_off='none' branch_on='checkpoint_sequential' (預期 branch_on='checkpoint_sequential')  ✓ 分支正確
+  [V4b-RN18] 全體參數梯度 max|grad| = 1.631e+03   backbone 第一層（resnet.0.weight）max|grad| = 7.531e+02  ✓ 非零
+  [V4b-RN18] 控制組底線 |off - off2| max = 0.000e+00
+  [V4b-RN18] max |grad_off - grad_on| (全體參數) = 0.000e+00  (在 resnet.0.weight)
+  [V4b-RN18] |grad_off - grad_on| (backbone 第一層 resnet.0.weight) = 0.000e+00
+  [V4b-RN18] ✓ PASS
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+  [V4b-RN50] branch_off='none' branch_on='checkpoint_sequential' (預期 branch_on='checkpoint_sequential')  ✓ 分支正確
+  [V4b-RN50] 全體參數梯度 max|grad| = 1.157e+03   backbone 第一層（resnet.0.weight）max|grad| = 1.157e+03  ✓ 非零
+  [V4b-RN50] 控制組底線 |off - off2| max = 0.000e+00
+  [V4b-RN50] max |grad_off - grad_on| (全體參數) = 0.000e+00  (在 resnet.0.weight)
+  [V4b-RN50] |grad_off - grad_on| (backbone 第一層 resnet.0.weight) = 0.000e+00
+  [V4b-RN50] ✓ PASS
+
+--- 1b: --ckpt_prefix 路徑的等價性（stage2_model，用 V4b 流程） ---
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+  [1b-i (RN18,N=7,segs=7)] BN 涵蓋 8 / 總計 20，n_ckpt=7
+  [1b-i (RN18,N=7,segs=7)] 分組: [0-0][1-1][2-2][3-3][4-4][5-5][6-6]  涵蓋 0..6 完整無重複無遺漏: ✓
+  [1b-i (RN18,N=7,segs=7)] branch_off='none' branch_on='ckpt_prefix' (預期 branch_on='ckpt_prefix')  ✓ 分支正確
+  [1b-i (RN18,N=7,segs=7)] 全體參數梯度 max|grad| = 1.631e+03   backbone 第一層（resnet.0.weight）max|grad| = 7.531e+02  ✓ 非零
+  [1b-i (RN18,N=7,segs=7)] 控制組底線 |off - off2| max = 0.000e+00
+  [1b-i (RN18,N=7,segs=7)] max |grad_off - grad_on| (全體參數) = 0.000e+00  (在 resnet.0.weight)
+  [1b-i (RN18,N=7,segs=7)] |grad_off - grad_on| (backbone 第一層 resnet.0.weight) = 0.000e+00
+  [1b-i (RN18,N=7,segs=7)] ✓ PASS
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+  [1b-ii(RN50,N=14,segs=7)] BN 涵蓋 34 / 總計 53，n_ckpt=14
+  [1b-ii(RN50,N=14,segs=7)] 分組: [0-1][2-3][4-5][6-7][8-9][10-11][12-13]  涵蓋 0..13 完整無重複無遺漏: ✓
+  [1b-ii(RN50,N=14,segs=7)] branch_off='none' branch_on='ckpt_prefix' (預期 branch_on='ckpt_prefix')  ✓ 分支正確
+  [1b-ii(RN50,N=14,segs=7)] 全體參數梯度 max|grad| = 1.157e+03   backbone 第一層（resnet.0.weight）max|grad| = 1.157e+03  ✓ 非零
+  [1b-ii(RN50,N=14,segs=7)] 控制組底線 |off - off2| max = 0.000e+00
+  [1b-ii(RN50,N=14,segs=7)] max |grad_off - grad_on| (全體參數) = 0.000e+00  (在 resnet.0.weight)
+  [1b-ii(RN50,N=14,segs=7)] |grad_off - grad_on| (backbone 第一層 resnet.0.weight) = 0.000e+00
+  [1b-ii(RN50,N=14,segs=7)] ✓ PASS
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+  [1b-iii(RN18,N=11,segs=4)] BN 涵蓋 18 / 總計 20，n_ckpt=11
+  [1b-iii(RN18,N=11,segs=4)] 分組: [0-2][3-5][6-8][9-10]  涵蓋 0..10 完整無重複無遺漏: ✓
+  [1b-iii(RN18,N=11,segs=4)] branch_off='none' branch_on='ckpt_prefix' (預期 branch_on='ckpt_prefix')  ✓ 分支正確
+  [1b-iii(RN18,N=11,segs=4)] 全體參數梯度 max|grad| = 1.631e+03   backbone 第一層（resnet.0.weight）max|grad| = 7.531e+02  ✓ 非零
+  [1b-iii(RN18,N=11,segs=4)] 控制組底線 |off - off2| max = 0.000e+00
+  [1b-iii(RN18,N=11,segs=4)] max |grad_off - grad_on| (全體參數) = 0.000e+00  (在 resnet.0.weight)
+  [1b-iii(RN18,N=11,segs=4)] |grad_off - grad_on| (backbone 第一層 resnet.0.weight) = 0.000e+00
+  [1b-iii(RN18,N=11,segs=4)] ✓ PASS
+
+========================================
+Phase 0.1 驗證結果：
+  V1: ✓ PASS
+  V2: ✓ PASS
+  V3: ✓ PASS
+  V4_RN18: ✓ PASS
+  V4_RN50: ✓ PASS
+  V4b_RN18: ✓ PASS
+  V4b_RN50: ✓ PASS
+  1b-i: ✓ PASS
+  1b-ii: ✓ PASS
+  1b-iii: ✓ PASS
+
+✅ 全部通過 — Phase 0.1 修正正確

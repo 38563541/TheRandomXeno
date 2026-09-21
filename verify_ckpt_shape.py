@@ -220,7 +220,8 @@ def _max_diff(grads_a, grads_b):
     return max_d, max_name
 
 
-def _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu, conv1_prefix="resnet.0."):
+def _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu, conv1_prefix="resnet.0.",
+                           expected_branch_on="checkpoint_sequential"):
     """V4 / V4b 共用的核心：假設 m_off/m_on 已經 .train()、zero 掉隨機性、
     權重同步過了。跑一次 off、一次 on、一次 off 的控制組，比梯度。"""
     # --- m_off: 不開 ckpt ---
@@ -253,8 +254,9 @@ def _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu, conv1_prefix="r
     conv1_grad_abs_max = grads_off[conv1_name].abs().max().item() if conv1_name else float("nan")
     grad_nonzero_ok = all_grad_abs_max > 1e-8 and conv1_grad_abs_max > 1e-8
 
-    branch_ok = (branch_off == "none" and branch_on == "checkpoint_sequential")
-    print(f"  [{label}] branch_off={branch_off!r} branch_on={branch_on!r}  "
+    branch_ok = (branch_off == "none" and branch_on == expected_branch_on)
+    print(f"  [{label}] branch_off={branch_off!r} branch_on={branch_on!r} "
+          f"(預期 branch_on={expected_branch_on!r})  "
           f"{'✓ 分支正確' if branch_ok else '✗ 分支不對，測試本身無效'}")
     print(f"  [{label}] 全體參數梯度 max|grad| = {all_grad_abs_max:.3e}   "
           f"backbone 第一層（{conv1_name}）max|grad| = {conv1_grad_abs_max:.3e}  "
@@ -356,12 +358,86 @@ results["V4b_RN50"] = v4b_rn50_ok
 
 
 # ---------------------------------------------------------------------------
+# 1b: --ckpt_prefix 路徑的等價性（0921，stage2_model 上，用 V4b 流程）
+# ---------------------------------------------------------------------------
+def run_ckpt_prefix_equivalence(label, method, trans_linear_in_dim, N, segs):
+    """驗證新的 --ckpt_prefix 手動分組 checkpoint 路徑：
+      - 梯度等價（同 V4/V4b 的核心比較）
+      - branch_on 走的是 'ckpt_prefix'，不是舊的 'checkpoint_sequential'
+      - BN 涵蓋數對得上（chain[:N] 裡的 BN 數）
+      - 分組（_split_even）恰好涵蓋 0..N-1，不重複不遺漏——N 不整除 segs
+        時最容易漏測到 off-by-one。
+    """
+    device_cpu = "cpu"
+    args_off = make_args_s2(grad_ckpt=False, method=method, trans_linear_in_dim=trans_linear_in_dim)
+    args_on  = make_args_s2(grad_ckpt=True, ckpt_segments=segs, ckpt_prefix=N,
+                             method=method, trans_linear_in_dim=trans_linear_in_dim)
+
+    m_off = CNN_TRXWithRelation(args_off).to(device_cpu).train()
+    m_on  = CNN_TRXWithRelation(args_on ).to(device_cpu).train()
+
+    _zero_stochastic(m_off)
+    _zero_stochastic(m_on)
+    m_on.load_state_dict(m_off.state_dict())
+
+    # --- BN 涵蓋數 ---
+    chain = m_on._ckpt_chain()
+    n_chain = len(chain)
+    N_eff = min(N, n_chain)
+    total_bn = sum(1 for mm in m_on.modules() if isinstance(mm, nn.modules.batchnorm._BatchNorm))
+    covered_bn = sum(1 for blk in chain[:N_eff] for mm in blk.modules()
+                      if isinstance(mm, nn.modules.batchnorm._BatchNorm))
+    print(f"  [{label}] BN 涵蓋 {covered_bn} / 總計 {total_bn}，n_ckpt={N_eff}")
+
+    # --- 分組邊界：恰好涵蓋 0..N-1，不重複不遺漏 ---
+    segs_eff = max(1, min(segs, N_eff)) if N_eff > 0 else 0
+    bounds = m_on._split_even(N_eff, segs_eff) if N_eff > 0 else []
+    group_str = "".join(f"[{s}-{e - 1}]" for s, e in bounds)
+    covered_idx = set()
+    overlap = False
+    for s, e in bounds:
+        rng = set(range(s, e))
+        if covered_idx & rng:
+            overlap = True
+        covered_idx |= rng
+    coverage_ok = (not overlap) and covered_idx == set(range(N_eff))
+    print(f"  [{label}] 分組: {group_str or '(N=0)'}  "
+          f"涵蓋 0..{N_eff - 1} 完整無重複無遺漏: {'✓' if coverage_ok else '✗ 有問題！'}")
+
+    torch.manual_seed(99)
+    ctx = torch.randn(WAY * SHOT * SEQ, 3, 84, 84, device=device_cpu)
+    tgt = torch.randn(WAY * QPC  * SEQ, 3, 84, 84, device=device_cpu)
+    lbl_cpu = lbl.to(device_cpu)
+
+    ok, detail = _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu,
+                                        expected_branch_on="ckpt_prefix")
+    ok = ok and coverage_ok
+    detail["covered_bn"] = covered_bn
+    detail["total_bn"] = total_bn
+    detail["n_ckpt"] = N_eff
+    detail["coverage_ok"] = coverage_ok
+    if not ok:
+        print(f"  [{label}] {FAIL}（含分組/BN 涵蓋檢查）")
+    return ok, detail
+
+
+print("\n--- 1b: --ckpt_prefix 路徑的等價性（stage2_model，用 V4b 流程） ---")
+prefix_1bi_ok, prefix_1bi_detail   = run_ckpt_prefix_equivalence("1b-i (RN18,N=7,segs=7)",  "resnet18", 512,  N=7,  segs=7)
+prefix_1bii_ok, prefix_1bii_detail = run_ckpt_prefix_equivalence("1b-ii(RN50,N=14,segs=7)", "resnet50", 2048, N=14, segs=7)
+prefix_1biii_ok, prefix_1biii_detail = run_ckpt_prefix_equivalence("1b-iii(RN18,N=11,segs=4)", "resnet18", 512, N=11, segs=4)
+results["1b-i"]   = prefix_1bi_ok
+results["1b-ii"]  = prefix_1bii_ok
+results["1b-iii"] = prefix_1biii_ok
+
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 print("\n========================================")
 print("Phase 0.1 驗證結果：")
 all_pass = True
-for k in ["V1", "V2", "V3", "V4_RN18", "V4_RN50", "V4b_RN18", "V4b_RN50"]:
+for k in ["V1", "V2", "V3", "V4_RN18", "V4_RN50", "V4b_RN18", "V4b_RN50",
+          "1b-i", "1b-ii", "1b-iii"]:
     status = PASS if results.get(k) else FAIL
     print(f"  {k}: {status}")
     if not results.get(k):
