@@ -296,7 +296,7 @@ def run_v4(label, method, trans_linear_in_dim):
 
 
 def make_args_s2(grad_ckpt=False, ckpt_segments=8, method="resnet18",
-                  trans_linear_in_dim=512, ckpt_prefix=None):
+                  trans_linear_in_dim=512, ckpt_prefix=None, ckpt_policy="full"):
     """對照 configs/stage2_true_hyrsm_b4_tuple.yaml 的設定。"""
     return types.SimpleNamespace(
         trans_linear_in_dim=trans_linear_in_dim,
@@ -311,6 +311,7 @@ def make_args_s2(grad_ckpt=False, ckpt_segments=8, method="resnet18",
         grad_ckpt=grad_ckpt,
         ckpt_segments=ckpt_segments,
         ckpt_prefix=ckpt_prefix,
+        ckpt_policy=ckpt_policy,
         freeze_backbone=False,
         matching="bidirectional",
         set_aggregation="pool",
@@ -360,17 +361,18 @@ results["V4b_RN50"] = v4b_rn50_ok
 # ---------------------------------------------------------------------------
 # 1b: --ckpt_prefix 路徑的等價性（0921，stage2_model 上，用 V4b 流程）
 # ---------------------------------------------------------------------------
-def run_ckpt_prefix_equivalence(label, method, trans_linear_in_dim, N, segs):
+def run_ckpt_prefix_equivalence(label, method, trans_linear_in_dim, N, segs, ckpt_policy="full"):
     """驗證新的 --ckpt_prefix 手動分組 checkpoint 路徑：
       - 梯度等價（同 V4/V4b 的核心比較）
-      - branch_on 走的是 'ckpt_prefix'，不是舊的 'checkpoint_sequential'
+      - branch_on 走的是 'prefix_full'／'prefix_save_conv'（0922 改名，
+        原本叫 'ckpt_prefix'），不是舊的 'checkpoint_sequential'
       - BN 涵蓋數對得上（chain[:N] 裡的 BN 數）
       - 分組（_split_even）恰好涵蓋 0..N-1，不重複不遺漏——N 不整除 segs
         時最容易漏測到 off-by-one。
     """
     device_cpu = "cpu"
     args_off = make_args_s2(grad_ckpt=False, method=method, trans_linear_in_dim=trans_linear_in_dim)
-    args_on  = make_args_s2(grad_ckpt=True, ckpt_segments=segs, ckpt_prefix=N,
+    args_on  = make_args_s2(grad_ckpt=True, ckpt_segments=segs, ckpt_prefix=N, ckpt_policy=ckpt_policy,
                              method=method, trans_linear_in_dim=trans_linear_in_dim)
 
     m_off = CNN_TRXWithRelation(args_off).to(device_cpu).train()
@@ -409,8 +411,9 @@ def run_ckpt_prefix_equivalence(label, method, trans_linear_in_dim, N, segs):
     tgt = torch.randn(WAY * QPC  * SEQ, 3, 84, 84, device=device_cpu)
     lbl_cpu = lbl.to(device_cpu)
 
+    _expected_branch = "prefix_save_conv" if ckpt_policy == "save_conv" else "prefix_full"
     ok, detail = _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu,
-                                        expected_branch_on="ckpt_prefix")
+                                        expected_branch_on=_expected_branch)
     ok = ok and coverage_ok
     detail["covered_bn"] = covered_bn
     detail["total_bn"] = total_bn
@@ -429,6 +432,14 @@ results["1b-i"]   = prefix_1bi_ok
 results["1b-ii"]  = prefix_1bii_ok
 results["1b-iii"] = prefix_1biii_ok
 
+print("\n--- 3b: selective checkpointing（save_conv）路徑的等價性 ---")
+sac_rn18_ok, sac_rn18_detail = run_ckpt_prefix_equivalence(
+    "3b-RN18(N=7,segs=7,save_conv)", "resnet18", 512, N=7, segs=7, ckpt_policy="save_conv")
+sac_rn50_ok, sac_rn50_detail = run_ckpt_prefix_equivalence(
+    "3b-RN50(N=14,segs=7,save_conv)", "resnet50", 2048, N=14, segs=7, ckpt_policy="save_conv")
+results["3b-RN18"] = sac_rn18_ok
+results["3b-RN50"] = sac_rn50_ok
+
 
 # ---------------------------------------------------------------------------
 # Summary
@@ -437,7 +448,7 @@ print("\n========================================")
 print("Phase 0.1 驗證結果：")
 all_pass = True
 for k in ["V1", "V2", "V3", "V4_RN18", "V4_RN50", "V4b_RN18", "V4b_RN50",
-          "1b-i", "1b-ii", "1b-iii"]:
+          "1b-i", "1b-ii", "1b-iii", "3b-RN18", "3b-RN50"]:
     status = PASS if results.get(k) else FAIL
     print(f"  {k}: {status}")
     if not results.get(k):
