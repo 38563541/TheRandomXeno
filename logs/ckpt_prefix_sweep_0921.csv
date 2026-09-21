@@ -1,0 +1,9 @@
+setting,ckpt_prefix,ckpt_segments,selective,bn_covered,bn_total,alloc_peak_gb,reserved_peak_gb,nvidia_smi_peak_gib,ms_iter,backward_ms,oom,oom_at_iter,commit,note
+3a,4,2,no,1,53,未量測,未量測,11.499,未量測,未量測,yes,1,(見本次sweep commit),"OOM at iter1，第一次forward就崩潰；PyTorch錯誤訊息：11.37GiB in use / 255.75MiB free / 11.75GiB total；崩潰位置在resnet.relu（suffix段，target_features計算）"
+3b,7,4,no,11,53,未量測,未量測,0.851,未量測,未量測,yes,1,(見本次sweep commit),"OOM at iter1；nvidia-smi輪詢(2秒間隔)沒抓到崩潰前瞬間峰值(崩潰太快)，這個0.851GiB不是真峰值；PyTorch錯誤訊息本身顯示11.51GiB in use / 111.75MiB free / 11.75GiB total才是崩潰當下的真實狀態；崩潰位置在resnet.conv3（suffix段）"
+3c-segs6,11,6,no,24,53,8.234,11.182,11.630,712.159,472.670,no,,(見本次sweep commit),"沒有OOM，但nvidia-smi峰值11.630GiB > 11.0GiB門檻——在segs=6下不可行，不代表N=11本身不可行（見3c-segs4）"
+3c-segs4,11,4,no,24,53,8.219,11.059,10.069,715.150,474.887,no,,(見本次sweep commit),"補測：每段約2.75個module（更粗的切法），在此段數下可行(10.069GiB<11.0GiB)。300 iteration完整量測，是這次掃描找到的最快可行設定"
+3c-segs3,11,3,no,24,53,未量測,未量測,11.606,未量測,未量測,yes,1,(見本次sweep commit),"補測：每段約3.67個module（更粗），OOM at iter1；100 iteration mem-only快篩測到的，確認更粗的切法在N=11上不一定更省"
+3d(=1c),14,7,no,34,53,7.664,9.705,未量測,734.975,496.227,no,,(見本次sweep commit),"=1c，直接引用；沒有另外起nvidia-smi輪詢，但reserved(9.705GB)遠低於11.0GiB門檻，可行性無虞；用鄰近設定(3e/3f)的reserved→nvidia-smi差值(~0.45GiB)推估nvidia-smi峰值約10.15GiB，這是推估不是實測"
+3e,17,9,no,43,53,7.451,9.537,9.985,753.234,513.843,no,,(見本次sweep commit),"可行，餘裕大"
+3f,20,10,no,53,53,7.265,9.434,9.884,771.564,532.441,no,,(見本次sweep commit),"可行，涵蓋整個backbone(除avgpool外)，餘裕最大但最慢"

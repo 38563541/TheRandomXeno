@@ -262,9 +262,15 @@ class Learner:
             else:
                 chain = model._ckpt_chain()
                 n = len(chain)
-                segs = min(getattr(self.args, "ckpt_segments", 8) or 8, n)
-                segment_size = n // segs
-                n_ckpt = segment_size * (segs - 1)
+                _ckpt_prefix = getattr(self.args, "ckpt_prefix", None)
+                if _ckpt_prefix:
+                    # 0921：--ckpt_prefix 給了 N，涵蓋範圍就是 chain[:N] 本身，
+                    # 不再用 checkpoint_sequential 的 segment_size*(segments-1) 公式。
+                    n_ckpt = min(_ckpt_prefix, n)
+                else:
+                    segs = min(getattr(self.args, "ckpt_segments", 8) or 8, n)
+                    segment_size = n // segs
+                    n_ckpt = segment_size * (segs - 1)
                 covered_ids = {id(sub) for blk in chain[:n_ckpt] for sub in blk.modules()
                                if isinstance(sub, torch.nn.modules.batchnorm._BatchNorm)}
                 n_bn = 0
@@ -363,7 +369,16 @@ class Learner:
                                  'flat8 444.5 ms，多 17.9%%（含 data wait 的 wall clock 差是 16.1%%，'
                                  '兩者一致）。RN50 沒有裸跑對照組（裸跑就 OOM），無法直接量出 '
                                  'RN50 開 ckpt 的時間代價，只能引用 RN34 的量測結果。'
-                                 '0 = 不限制（等同 len(chain)）。')
+                                 '0 = 不限制（等同 len(chain)）。'
+                                 '若同時給了 --ckpt_prefix，這個 flag 改為「前綴內要切幾段」，'
+                                 '不再是 checkpoint_sequential 的段數。')
+        parser.add_argument('--ckpt_prefix', type=int, default=None,
+                            help='0921 新增：恰好 checkpoint chain[:N] 這 N 個 module，其餘'
+                                 '（chain[N:]）直接跑，不 checkpoint。跟 --ckpt_segments 合用時，'
+                                 'segments 決定 N 個 module 內部要切幾組（純顯存旋鈕，不影響時間'
+                                 '——時間代價只看 N）。不給這個 flag 時行為與舊的 '
+                                 'checkpoint_sequential(chain, segments, x) 路徑完全相同，'
+                                 '預設 None 不啟用。')
         parser.add_argument('--freeze_backbone', action='store_true', default=False,
                             help='Freeze the ResNet backbone: no grads, BN in eval mode. '
                                  'Used for the frozen second track.')
