@@ -32,19 +32,21 @@ CKPT_PATH_S2 = (
     "b2_seed43_1shot_hmdb3/hmdb_split3_20260906_010142/checkpoint25000.pt"
 )
 
-def make_args(grad_ckpt=False, ckpt_segments=8, freeze_backbone=False):
+def make_args(grad_ckpt=False, ckpt_segments=8, freeze_backbone=False,
+              method="resnet18", trans_linear_in_dim=512, ckpt_prefix=None):
     return types.SimpleNamespace(
-        trans_linear_in_dim=512,
+        trans_linear_in_dim=trans_linear_in_dim,
         trans_linear_out_dim=1152,
         way=5, shot=1, query_per_class=5,
         trans_dropout=0.1,
         seq_len=8,
         img_size=84,
-        method="resnet18",
+        method=method,
         num_gpus=1,
         temp_set=[2],
         grad_ckpt=grad_ckpt,
         ckpt_segments=ckpt_segments,
+        ckpt_prefix=ckpt_prefix,
         freeze_backbone=freeze_backbone,
         matching="bidirectional",
         set_aggregation="pool",
@@ -162,44 +164,117 @@ else:
 
 
 # ---------------------------------------------------------------------------
-# V4: numerical equivalence grad_ckpt on vs off
+# V4: 梯度等價（0921 修好版 —— 原版用 .eval() 讓 checkpoint 分支從未執行，
+# 是空測試，見 0918_階段4_等價性與BN修正.md 的「1b. 修好的 V4」）
+#
+# 修法：
+#   - 兩個模型都 .train()（checkpoint 分支才會被觸發）
+#   - 所有 BN 的 momentum 設 0（running stats 不更新，避免污染比較；
+#     不影響 train 模式下這次 forward 的輸出——跟原本用 .eval() 想達到的
+#     效果一樣，但不會連帶關掉 checkpoint 分支）
+#   - 所有 Dropout 的 p 設 0（train() 模式下 dropout 會讓兩個模型隨機不同，
+#     這是原 V4 沒處理到的另一個潛在污染源）
+#   - m_on 的權重從 m_off 複製，同一份輸入
+#   - 不用 no_grad()：做 loss.backward()，比每一個參數的 .grad
+#   - forward() 裡的 self._last_ckpt_branch 旗標：assert m_on 真的走了
+#     checkpoint 分支、m_off 沒走 —— 這是最重要的一行，原 V4 就是沒有
+#     這行才讓 bug 藏了三天
+#   - 控制組：m_off 用同一份輸入跑兩次，兩次的差值當底線（CPU 上兩次
+#     forward+backward 應該逐位元相同，這條底線預期是 0.00e+00）
+#   - 全部在 CPU 上跑，求位元級可比
 # ---------------------------------------------------------------------------
-print("\n--- V4: 數值等價 ---")
-args_v4_off = make_args(grad_ckpt=False)
-args_v4_on  = make_args(grad_ckpt=True, ckpt_segments=8)
+print("\n--- V4: 梯度等價（修好版，checkpoint_sequential 路徑） ---")
 
-m_off = CNN_TRX(args_v4_off).to(device).train()
-m_on  = CNN_TRX(args_v4_on ).to(device).train()
 
-# Copy weights so they start identical
-m_on.load_state_dict(m_off.state_dict())
+def _zero_bn_momentum_and_dropout(model):
+    for mod in model.modules():
+        if isinstance(mod, nn.modules.batchnorm._BatchNorm):
+            mod.momentum = 0.0
+        elif isinstance(mod, nn.Dropout):
+            mod.p = 0.0
 
-# BN momentum correction for grad_ckpt (same as init_model)
-import math
-m_val = 1 - math.sqrt(1 - 0.1)
-for mod in m_on.modules():
-    if isinstance(mod, nn.modules.batchnorm._BatchNorm):
-        mod.momentum = m_val
 
-# Set eval to avoid BN stochasticity between runs
-m_off.eval()
-m_on.eval()
+def _grad_dict(model):
+    return {name: p.grad.detach().clone()
+            for name, p in model.named_parameters() if p.grad is not None}
 
-torch.manual_seed(99)
-ctx2 = torch.randn(WAY * SHOT * SEQ, 3, 84, 84, device=device)
-tgt2 = torch.randn(WAY * QPC  * SEQ, 3, 84, 84, device=device)
 
-with torch.no_grad():
-    logits_off = m_off(ctx2, lbl, tgt2)["logits"]
-    logits_on  = m_on (ctx2, lbl, tgt2)["logits"]
+def _max_diff(grads_a, grads_b):
+    assert set(grads_a.keys()) == set(grads_b.keys()), "參數集合不一致"
+    max_d = -1.0
+    max_name = None
+    for name in grads_a:
+        d = (grads_a[name] - grads_b[name]).abs().max().item()
+        if d > max_d:
+            max_d, max_name = d, name
+    return max_d, max_name
 
-max_diff = (logits_off - logits_on).abs().max().item()
-if max_diff < 1e-4:
-    print(f"  max |logits_off - logits_on| = {max_diff:.2e} < 1e-4  {PASS}")
-    results["V4"] = True
-else:
-    print(f"  max diff = {max_diff:.2e} ≥ 1e-4  {FAIL}")
-    results["V4"] = False
+
+def run_v4(label, method, trans_linear_in_dim):
+    device_cpu = "cpu"
+    args_off = make_args(grad_ckpt=False, method=method, trans_linear_in_dim=trans_linear_in_dim)
+    args_on  = make_args(grad_ckpt=True, ckpt_segments=8, method=method, trans_linear_in_dim=trans_linear_in_dim)
+
+    m_off = CNN_TRX(args_off).to(device_cpu).train()
+    m_on  = CNN_TRX(args_on ).to(device_cpu).train()
+
+    _zero_bn_momentum_and_dropout(m_off)
+    _zero_bn_momentum_and_dropout(m_on)
+    m_on.load_state_dict(m_off.state_dict())
+    # 注意：BN momentum 只影響 running_mean/var 這個「側效應」怎麼被更新，
+    # train() 模式下的正規化用的是當下這個 batch 的統計量，momentum 不影響
+    # 這次 forward/backward 算出來的數值本身——所以這裡不需要（也不該）
+    # 再把 momentum 改回 run.py 的 BN_MOM_FIX，兩個模型全程 momentum=0
+    # 就足以讓比較乾淨，不用假裝在複刻 init_model() 的修正邏輯。
+
+    torch.manual_seed(99)
+    ctx = torch.randn(WAY * SHOT * SEQ, 3, 84, 84, device=device_cpu)
+    tgt = torch.randn(WAY * QPC  * SEQ, 3, 84, 84, device=device_cpu)
+    lbl_cpu = lbl.to(device_cpu)
+
+    # --- m_off: 不開 ckpt ---
+    m_off.zero_grad()
+    logits_off = m_off(ctx, lbl_cpu, tgt)["logits"]
+    logits_off.sum().backward()
+    branch_off = getattr(m_off, "_last_ckpt_branch", None)
+    grads_off = _grad_dict(m_off)
+
+    # --- m_on: 開 ckpt（checkpoint_sequential 路徑） ---
+    m_on.zero_grad()
+    logits_on = m_on(ctx, lbl_cpu, tgt)["logits"]
+    logits_on.sum().backward()
+    branch_on = getattr(m_on, "_last_ckpt_branch", None)
+    grads_on = _grad_dict(m_on)
+
+    # --- 控制組：m_off 用同一份輸入再跑一次，當噪聲底線 ---
+    m_off.zero_grad()
+    logits_off2 = m_off(ctx, lbl_cpu, tgt)["logits"]
+    logits_off2.sum().backward()
+    grads_off2 = _grad_dict(m_off)
+    baseline_diff, _ = _max_diff(grads_off, grads_off2)
+
+    max_diff, max_name = _max_diff(grads_off, grads_on)
+    conv1_name = next((n for n in grads_off if n.startswith("resnet.0.")), None)
+    conv1_diff = (grads_off[conv1_name] - grads_on[conv1_name]).abs().max().item() if conv1_name else float("nan")
+
+    branch_ok = (branch_off == "none" and branch_on == "checkpoint_sequential")
+    print(f"  [{label}] branch_off={branch_off!r} branch_on={branch_on!r}  "
+          f"{'✓ 分支正確' if branch_ok else '✗ 分支不對，測試本身無效'}")
+    print(f"  [{label}] 控制組底線 |off - off2| max = {baseline_diff:.3e}")
+    print(f"  [{label}] max |grad_off - grad_on| (全體參數) = {max_diff:.3e}  (在 {max_name})")
+    print(f"  [{label}] |grad_off - grad_on| (backbone 第一層 {conv1_name}) = {conv1_diff:.3e}")
+
+    ok = branch_ok and (max_diff <= baseline_diff or max_diff < 1e-4)
+    status = PASS if ok else FAIL
+    print(f"  [{label}] {status}")
+    return ok, dict(branch_ok=branch_ok, baseline_diff=baseline_diff,
+                     max_diff=max_diff, max_name=max_name, conv1_diff=conv1_diff)
+
+
+v4_rn18_ok, v4_rn18_detail = run_v4("RN18", "resnet18", 512)
+v4_rn50_ok, v4_rn50_detail = run_v4("RN50", "resnet50", 2048)
+results["V4_RN18"] = v4_rn18_ok
+results["V4_RN50"] = v4_rn50_ok
 
 
 # ---------------------------------------------------------------------------
@@ -208,7 +283,7 @@ else:
 print("\n========================================")
 print("Phase 0.1 驗證結果：")
 all_pass = True
-for k in ["V1", "V2", "V3", "V4"]:
+for k in ["V1", "V2", "V3", "V4_RN18", "V4_RN50"]:
     status = PASS if results.get(k) else FAIL
     print(f"  {k}: {status}")
     if not results.get(k):

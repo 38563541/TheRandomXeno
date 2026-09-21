@@ -294,6 +294,43 @@ class CNN_TRXWithRelation(nn.Module):
                 out.append(m)
         return out
 
+    @staticmethod
+    def _split_even(n, k):
+        """把 n 個元素平均分成 k 組的 (start, end) 邊界，餘數分配給前面的組。"""
+        base, rem = divmod(n, k)
+        bounds = []
+        idx = 0
+        for i in range(k):
+            size = base + (1 if i < rem else 0)
+            bounds.append((idx, idx + size))
+            idx += size
+        return bounds
+
+    def _ckpt_forward_prefix(self, x, N, segs):
+        """0921 新增：恰好 checkpoint chain[:N] 這 N 個 module，其餘直接跑。
+
+        不用 checkpoint_sequential(chain[:N], segs, x) —— 那個函式的最後一段
+        本來就不 checkpoint（已在 0918 查證過），用它包前綴會讓實際涵蓋
+        < N，N 的意義會模糊掉。這裡手動把 chain[:N] 分成 segs 組，每組包成
+        nn.Sequential 個別呼叫 checkpoint()，segs 只影響要存幾個段邊界
+        （顯存），不影響涵蓋範圍（N 決定，也就是時間代價）。
+        """
+        from torch.utils.checkpoint import checkpoint
+
+        chain = self._ckpt_chain()
+        N = min(N, len(chain))
+        prefix, suffix = chain[:N], chain[N:]
+
+        if N > 0:
+            segs = max(1, min(segs, N))
+            for start, end in self._split_even(N, segs):
+                group = torch.nn.Sequential(*prefix[start:end])
+                x = checkpoint(group, x, use_reentrant=False)
+
+        for m in suffix:
+            x = m(x)
+        return x
+
     def train(self, mode=True):
         super().train(mode)
         # 凍結時 backbone 永遠保持 eval（BN running stats 不更新）
@@ -311,7 +348,17 @@ class CNN_TRXWithRelation(nn.Module):
             _e2 = torch.cuda.Event(enable_timing=True)
             _e0.record()
 
-        if self.training and getattr(self.args, "grad_ckpt", False):
+        _ckpt_prefix = getattr(self.args, "ckpt_prefix", None)
+        if self.training and getattr(self.args, "grad_ckpt", False) and _ckpt_prefix:
+            # 0921：手動前綴 checkpoint，涵蓋範圍 = chain[:N]，段數只影響顯存。
+            self._last_ckpt_branch = "ckpt_prefix"
+            segs = getattr(self.args, "ckpt_segments", 8) or 8
+            context_features = self._ckpt_forward_prefix(
+                context_images, _ckpt_prefix, segs).squeeze()
+            target_features  = self._ckpt_forward_prefix(
+                target_images,  _ckpt_prefix, segs).squeeze()
+        elif self.training and getattr(self.args, "grad_ckpt", False):
+            self._last_ckpt_branch = "checkpoint_sequential"
             from torch.utils.checkpoint import checkpoint_sequential
             # use_reentrant=False: inplace ReLUs are patched to inplace=False
             # in __init__, so non-reentrant checkpointing is safe.
@@ -323,6 +370,7 @@ class CNN_TRXWithRelation(nn.Module):
             target_features  = checkpoint_sequential(
                 chain, segs, target_images,  use_reentrant=False).squeeze()
         else:
+            self._last_ckpt_branch = "none"
             context_features = self.resnet(context_images).squeeze()
             target_features  = self.resnet(target_images).squeeze()
 
