@@ -1,2 +1,5 @@
 tag,stage,backbone,grad_ckpt,ckpt_prefix,ckpt_segments,ckpt_policy,amp,status,alloc_peak_gb,reserved_peak_gb,nvidia_smi_peak_gib,persist_gb,bb_retained_gb,head_retained_gb,bwd_extra_gb,ms_iter,data_ms,backbone_fwd_ms,head_fwd_ms,backward_ms,loss_first,loss_last,loss_finite,commit,note
 R0,1c,resnet50,yes,14,7,full,off,ok,7.664,9.705,10.156,0.545,5.349,0.139,1.629,735.313,9.019,164.685,32.882,497.039,2.8894613,1.3609389,yes,87a4144,
+S2,2,resnet50,yes,11,4,full,off,ok,8.219,11.059,11.070,0.546,6.877,0.142,0.654,708.431,8.989,163.834,33.074,471.127,2.9264181,1.3031654,yes,339f45a,
+S3,2,resnet18,no,N/A,N/A,full,off,ok,5.529,8.623,9.068,0.427,4.841,0.132,0.128,297.341,8.960,51.201,34.224,171.189,3.9143894,1.6147381,yes,339f45a,
+S4,2,resnet34,yes,14,7,full,off,ok,3.350,6.453,6.898,0.506,2.179,0.131,0.535,489.593,8.911,91.429,33.778,322.754,3.8063984,1.5283617,yes,339f45a,
