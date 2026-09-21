@@ -20,6 +20,7 @@ import random
 sys.path.insert(0, os.path.dirname(__file__))
 
 from models.stage1_model import CNN_TRX
+from models.stage2_model import CNN_TRXWithRelation
 
 # Stage 1 checkpoint (B1 backbone, no relation modules) — needed for strict load test
 CKPT_PATH = (
@@ -186,12 +187,21 @@ else:
 print("\n--- V4: 梯度等價（修好版，checkpoint_sequential 路徑） ---")
 
 
-def _zero_bn_momentum_and_dropout(model):
+def _zero_stochastic(model):
+    """把所有會讓 train() 模式下兩次 forward 不一樣的隨機性關掉，但不動
+    真正要比較的計算路徑。BN momentum 只影響 running_mean/var 這個側效應
+    的更新，不影響 train 模式下這次 forward 算出來的數值——所以不需要（也
+    不該）複刻 run.py 的 BN_MOM_FIX，全程 momentum=0 就夠。"""
     for mod in model.modules():
         if isinstance(mod, nn.modules.batchnorm._BatchNorm):
             mod.momentum = 0.0
         elif isinstance(mod, nn.Dropout):
             mod.p = 0.0
+        elif isinstance(mod, nn.MultiheadAttention):
+            # nn.MultiheadAttention 的 dropout 是建構時存的 float 屬性，
+            # 不是子模組，不會被上面的 nn.Dropout 分支抓到。
+            # true_hyrsm inter-relation 用到的 self.attn 就是 dropout=0.05。
+            mod.dropout = 0.0
 
 
 def _grad_dict(model):
@@ -210,28 +220,9 @@ def _max_diff(grads_a, grads_b):
     return max_d, max_name
 
 
-def run_v4(label, method, trans_linear_in_dim):
-    device_cpu = "cpu"
-    args_off = make_args(grad_ckpt=False, method=method, trans_linear_in_dim=trans_linear_in_dim)
-    args_on  = make_args(grad_ckpt=True, ckpt_segments=8, method=method, trans_linear_in_dim=trans_linear_in_dim)
-
-    m_off = CNN_TRX(args_off).to(device_cpu).train()
-    m_on  = CNN_TRX(args_on ).to(device_cpu).train()
-
-    _zero_bn_momentum_and_dropout(m_off)
-    _zero_bn_momentum_and_dropout(m_on)
-    m_on.load_state_dict(m_off.state_dict())
-    # 注意：BN momentum 只影響 running_mean/var 這個「側效應」怎麼被更新，
-    # train() 模式下的正規化用的是當下這個 batch 的統計量，momentum 不影響
-    # 這次 forward/backward 算出來的數值本身——所以這裡不需要（也不該）
-    # 再把 momentum 改回 run.py 的 BN_MOM_FIX，兩個模型全程 momentum=0
-    # 就足以讓比較乾淨，不用假裝在複刻 init_model() 的修正邏輯。
-
-    torch.manual_seed(99)
-    ctx = torch.randn(WAY * SHOT * SEQ, 3, 84, 84, device=device_cpu)
-    tgt = torch.randn(WAY * QPC  * SEQ, 3, 84, 84, device=device_cpu)
-    lbl_cpu = lbl.to(device_cpu)
-
+def _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu, conv1_prefix="resnet.0."):
+    """V4 / V4b 共用的核心：假設 m_off/m_on 已經 .train()、zero 掉隨機性、
+    權重同步過了。跑一次 off、一次 on、一次 off 的控制組，比梯度。"""
     # --- m_off: 不開 ckpt ---
     m_off.zero_grad()
     logits_off = m_off(ctx, lbl_cpu, tgt)["logits"]
@@ -254,27 +245,114 @@ def run_v4(label, method, trans_linear_in_dim):
     baseline_diff, _ = _max_diff(grads_off, grads_off2)
 
     max_diff, max_name = _max_diff(grads_off, grads_on)
-    conv1_name = next((n for n in grads_off if n.startswith("resnet.0.")), None)
+    conv1_name = next((n for n in grads_off if n.startswith(conv1_prefix)), None)
     conv1_diff = (grads_off[conv1_name] - grads_on[conv1_name]).abs().max().item() if conv1_name else float("nan")
+
+    # 梯度非零檢查：差值=0 有可能只是兩邊梯度都是零，不是真的等價。
+    all_grad_abs_max = max(g.abs().max().item() for g in grads_off.values())
+    conv1_grad_abs_max = grads_off[conv1_name].abs().max().item() if conv1_name else float("nan")
+    grad_nonzero_ok = all_grad_abs_max > 1e-8 and conv1_grad_abs_max > 1e-8
 
     branch_ok = (branch_off == "none" and branch_on == "checkpoint_sequential")
     print(f"  [{label}] branch_off={branch_off!r} branch_on={branch_on!r}  "
           f"{'✓ 分支正確' if branch_ok else '✗ 分支不對，測試本身無效'}")
+    print(f"  [{label}] 全體參數梯度 max|grad| = {all_grad_abs_max:.3e}   "
+          f"backbone 第一層（{conv1_name}）max|grad| = {conv1_grad_abs_max:.3e}  "
+          f"{'✓ 非零' if grad_nonzero_ok else '✗ 梯度是零，測試空洞'}")
     print(f"  [{label}] 控制組底線 |off - off2| max = {baseline_diff:.3e}")
     print(f"  [{label}] max |grad_off - grad_on| (全體參數) = {max_diff:.3e}  (在 {max_name})")
     print(f"  [{label}] |grad_off - grad_on| (backbone 第一層 {conv1_name}) = {conv1_diff:.3e}")
 
-    ok = branch_ok and (max_diff <= baseline_diff or max_diff < 1e-4)
+    ok = branch_ok and grad_nonzero_ok and (max_diff <= baseline_diff or max_diff < 1e-4)
     status = PASS if ok else FAIL
     print(f"  [{label}] {status}")
-    return ok, dict(branch_ok=branch_ok, baseline_diff=baseline_diff,
-                     max_diff=max_diff, max_name=max_name, conv1_diff=conv1_diff)
+    return ok, dict(branch_ok=branch_ok, grad_nonzero_ok=grad_nonzero_ok,
+                     all_grad_abs_max=all_grad_abs_max, conv1_grad_abs_max=conv1_grad_abs_max,
+                     baseline_diff=baseline_diff, max_diff=max_diff,
+                     max_name=max_name, conv1_diff=conv1_diff)
+
+
+def run_v4(label, method, trans_linear_in_dim):
+    """V4：models.stage1_model.CNN_TRX（B1，無 relation 模組）。"""
+    device_cpu = "cpu"
+    args_off = make_args(grad_ckpt=False, method=method, trans_linear_in_dim=trans_linear_in_dim)
+    args_on  = make_args(grad_ckpt=True, ckpt_segments=8, method=method, trans_linear_in_dim=trans_linear_in_dim)
+
+    m_off = CNN_TRX(args_off).to(device_cpu).train()
+    m_on  = CNN_TRX(args_on ).to(device_cpu).train()
+
+    _zero_stochastic(m_off)
+    _zero_stochastic(m_on)
+    m_on.load_state_dict(m_off.state_dict())
+
+    torch.manual_seed(99)
+    ctx = torch.randn(WAY * SHOT * SEQ, 3, 84, 84, device=device_cpu)
+    tgt = torch.randn(WAY * QPC  * SEQ, 3, 84, 84, device=device_cpu)
+    lbl_cpu = lbl.to(device_cpu)
+
+    return _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu)
+
+
+def make_args_s2(grad_ckpt=False, ckpt_segments=8, method="resnet18",
+                  trans_linear_in_dim=512, ckpt_prefix=None):
+    """對照 configs/stage2_true_hyrsm_b4_tuple.yaml 的設定。"""
+    return types.SimpleNamespace(
+        trans_linear_in_dim=trans_linear_in_dim,
+        trans_linear_out_dim=1152,
+        way=5, shot=1, query_per_class=5,
+        trans_dropout=0.1,
+        seq_len=8,
+        img_size=84,
+        method=method,
+        num_gpus=1,
+        temp_set=[2],
+        grad_ckpt=grad_ckpt,
+        ckpt_segments=ckpt_segments,
+        ckpt_prefix=ckpt_prefix,
+        freeze_backbone=False,
+        matching="bidirectional",
+        set_aggregation="pool",
+        tau=0.1,
+        relation_level="tuple",
+        use_intra_relation=True,
+        use_inter_relation=True,
+        inter_style="true_hyrsm",
+        intra_depth=1,
+    )
+
+
+def run_v4b(label, method, trans_linear_in_dim):
+    """V4b：models.stage2_model.CNN_TRXWithRelation（B4，100k 那次跑的模型），
+    設定照 stage2_true_hyrsm_b4_tuple.yaml。"""
+    device_cpu = "cpu"
+    args_off = make_args_s2(grad_ckpt=False, method=method, trans_linear_in_dim=trans_linear_in_dim)
+    args_on  = make_args_s2(grad_ckpt=True, ckpt_segments=8, method=method, trans_linear_in_dim=trans_linear_in_dim)
+
+    m_off = CNN_TRXWithRelation(args_off).to(device_cpu).train()
+    m_on  = CNN_TRXWithRelation(args_on ).to(device_cpu).train()
+
+    _zero_stochastic(m_off)
+    _zero_stochastic(m_on)
+    m_on.load_state_dict(m_off.state_dict())
+
+    torch.manual_seed(99)
+    ctx = torch.randn(WAY * SHOT * SEQ, 3, 84, 84, device=device_cpu)
+    tgt = torch.randn(WAY * QPC  * SEQ, 3, 84, 84, device=device_cpu)
+    lbl_cpu = lbl.to(device_cpu)
+
+    return _run_equivalence_core(label, m_off, m_on, ctx, tgt, lbl_cpu)
 
 
 v4_rn18_ok, v4_rn18_detail = run_v4("RN18", "resnet18", 512)
 v4_rn50_ok, v4_rn50_detail = run_v4("RN50", "resnet50", 2048)
 results["V4_RN18"] = v4_rn18_ok
 results["V4_RN50"] = v4_rn50_ok
+
+print("\n--- V4b: 梯度等價（stage2_model.CNN_TRXWithRelation，B4/true_hyrsm 設定） ---")
+v4b_rn18_ok, v4b_rn18_detail = run_v4b("V4b-RN18", "resnet18", 512)
+v4b_rn50_ok, v4b_rn50_detail = run_v4b("V4b-RN50", "resnet50", 2048)
+results["V4b_RN18"] = v4b_rn18_ok
+results["V4b_RN50"] = v4b_rn50_ok
 
 
 # ---------------------------------------------------------------------------
@@ -283,7 +361,7 @@ results["V4_RN50"] = v4_rn50_ok
 print("\n========================================")
 print("Phase 0.1 驗證結果：")
 all_pass = True
-for k in ["V1", "V2", "V3", "V4_RN18", "V4_RN50"]:
+for k in ["V1", "V2", "V3", "V4_RN18", "V4_RN50", "V4b_RN18", "V4b_RN50"]:
     status = PASS if results.get(k) else FAIL
     print(f"  {k}: {status}")
     if not results.get(k):
