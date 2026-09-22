@@ -1,0 +1,46 @@
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+建立模型（fp32 基準模型，其餘從它複製權重）...
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+探測參數：backbone 第一層=resnet.0.weight  backbone 最後一個block=resnet.7.0.conv1.weight  head 第一層=transformers.0.matching.embed_linear.weight
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+[INFO] set inplace=False on 17 ReLU modules in resnet
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] TRXSetMatchingWithRelation: relation_level=tuple, use_intra=True, use_inter=True, intra_depth=1, inter_style=true_hyrsm, rel_dim=1152
+
+loss: fp32_a=-7158.497070  fp32_b=-7158.497070  bf16=-7145.500000  fp16=-7157.906250
+|loss_fp32b - loss_fp32a| = 0.000000e+00  (GPU 底線)
+|loss_bf16  - loss_fp32a| = 1.299707e+01
+|loss_fp16  - loss_fp32a| = 5.908203e-01
+
+=== 梯度偏差（相對 fp32_a）===
+
+[backbone第一層conv] (resnet.0.weight)
+  fp32_b(底線): ||g-g_fp32||/||g_fp32|| = 0.0000e+00   cosine similarity = 1.00000000
+  bf16: ||g-g_fp32||/||g_fp32|| = 4.7402e-01   cosine similarity = 0.88807887
+  fp16: ||g-g_fp32||/||g_fp32|| = 1.8677e-01   cosine similarity = 0.98258334
+
+[backbone最後一個block] (resnet.7.0.conv1.weight)
+  fp32_b(底線): ||g-g_fp32||/||g_fp32|| = 0.0000e+00   cosine similarity = 1.00000012
+  bf16: ||g-g_fp32||/||g_fp32|| = 3.7810e-01   cosine similarity = 0.92842478
+  fp16: ||g-g_fp32||/||g_fp32|| = 1.4023e-01   cosine similarity = 0.99019307
+
+[head第一層Linear] (transformers.0.matching.embed_linear.weight)
+  fp32_b(底線): ||g-g_fp32||/||g_fp32|| = 0.0000e+00   cosine similarity = 1.00000000
+  bf16: ||g-g_fp32||/||g_fp32|| = 1.8725e-02   cosine similarity = 0.99982482
+  fp16: ||g-g_fp32||/||g_fp32|| = 3.9301e-03   cosine similarity = 0.99999225
+
+（描述性結果，不是驗收——AMP 跟 fp32 本來就不會位元相同）

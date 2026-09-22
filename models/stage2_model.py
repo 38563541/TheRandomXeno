@@ -306,7 +306,16 @@ class CNN_TRXWithRelation(nn.Module):
             idx += size
         return bounds
 
-    def _ckpt_forward_prefix(self, x, N, segs):
+    @staticmethod
+    def _sac_policy_fn(ctx, op, *args, **kwargs):
+        """0922 selective checkpointing 的 policy：conv 的輸出一定存，其他
+        （BN/ReLU 等）偏好重算。只有 aten.convolution 回傳 MUST_SAVE。"""
+        from torch.utils.checkpoint import CheckpointPolicy
+        if op == torch.ops.aten.convolution.default:
+            return CheckpointPolicy.MUST_SAVE
+        return CheckpointPolicy.PREFER_RECOMPUTE
+
+    def _ckpt_forward_prefix(self, x, N, segs, policy="full"):
         """0921 新增：恰好 checkpoint chain[:N] 這 N 個 module，其餘直接跑。
 
         不用 checkpoint_sequential(chain[:N], segs, x) —— 那個函式的最後一段
@@ -314,6 +323,11 @@ class CNN_TRXWithRelation(nn.Module):
         < N，N 的意義會模糊掉。這裡手動把 chain[:N] 分成 segs 組，每組包成
         nn.Sequential 個別呼叫 checkpoint()，segs 只影響要存幾個段邊界
         （顯存），不影響涵蓋範圍（N 決定，也就是時間代價）。
+
+        0922 新增 policy="save_conv"：selective activation checkpointing，
+        conv 輸出存下來、BN/ReLU 等便宜運算重算，透過 context_fn 傳
+        policy_fn 給 checkpoint()。policy="full"（預設）是原本的行為，
+        整組全部重算，不傳 context_fn。
         """
         from torch.utils.checkpoint import checkpoint
 
@@ -321,11 +335,21 @@ class CNN_TRXWithRelation(nn.Module):
         N = min(N, len(chain))
         prefix, suffix = chain[:N], chain[N:]
 
+        context_fn = None
+        if policy == "save_conv":
+            from torch.utils.checkpoint import create_selective_checkpoint_contexts
+            import functools
+            context_fn = functools.partial(create_selective_checkpoint_contexts,
+                                            self._sac_policy_fn)
+
         if N > 0:
             segs = max(1, min(segs, N))
             for start, end in self._split_even(N, segs):
                 group = torch.nn.Sequential(*prefix[start:end])
-                x = checkpoint(group, x, use_reentrant=False)
+                if context_fn is not None:
+                    x = checkpoint(group, x, use_reentrant=False, context_fn=context_fn)
+                else:
+                    x = checkpoint(group, x, use_reentrant=False)
 
         for m in suffix:
             x = m(x)
@@ -351,12 +375,15 @@ class CNN_TRXWithRelation(nn.Module):
         _ckpt_prefix = getattr(self.args, "ckpt_prefix", None)
         if self.training and getattr(self.args, "grad_ckpt", False) and _ckpt_prefix:
             # 0921：手動前綴 checkpoint，涵蓋範圍 = chain[:N]，段數只影響顯存。
-            self._last_ckpt_branch = "ckpt_prefix"
+            # 0922：ckpt_policy="save_conv" 時走 selective checkpointing，
+            # branch 旗標分辨 full／save_conv。
+            _policy = getattr(self.args, "ckpt_policy", "full") or "full"
+            self._last_ckpt_branch = "prefix_save_conv" if _policy == "save_conv" else "prefix_full"
             segs = getattr(self.args, "ckpt_segments", 8) or 8
             context_features = self._ckpt_forward_prefix(
-                context_images, _ckpt_prefix, segs).squeeze()
+                context_images, _ckpt_prefix, segs, _policy).squeeze()
             target_features  = self._ckpt_forward_prefix(
-                target_images,  _ckpt_prefix, segs).squeeze()
+                target_images,  _ckpt_prefix, segs, _policy).squeeze()
         elif self.training and getattr(self.args, "grad_ckpt", False):
             self._last_ckpt_branch = "checkpoint_sequential"
             from torch.utils.checkpoint import checkpoint_sequential
@@ -376,6 +403,11 @@ class CNN_TRXWithRelation(nn.Module):
 
         if _prof:
             _e1.record()
+
+        # 0922 顯存拆分：support+query 兩次 backbone 都跑完、進匹配頭之前。
+        # 用 memory_allocated()（不是 max_memory_allocated()），不需要 sync。
+        if self.training and getattr(self.args, "profile_memory", False):
+            self._mem_bb = torch.cuda.memory_allocated()
 
         dim = int(context_features.shape[1])
         context_features = context_features.reshape(-1, self.args.seq_len, dim)

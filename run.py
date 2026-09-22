@@ -6,6 +6,7 @@ import pickle
 import csv
 import yaml
 import re
+import sys
 from utils import print_and_log, get_log_files, TestAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir, task_confusion
 from model import CNN_TRX
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Quiet TensorFlow warnings
@@ -178,7 +179,12 @@ class Learner:
         elif self.args.opt == "sgd":
             self.optimizer = torch.optim.SGD(trainable, lr=self.args.learning_rate)
         self.test_accuracies = TestAccuracies(self.test_set)
-        
+
+        # 0922 AMP：GradScaler 只在 --amp fp16 時真的生效（enabled=False 時
+        # scale()/step()/update() 都是恆等操作，但 fp16 以外的路徑完全不會
+        # 呼叫到它，維持舊行為不變）。
+        self.scaler = torch.cuda.amp.GradScaler(enabled=(getattr(self.args, "amp", "off") == "fp16"))
+
         self.scheduler = MultiStepLR(self.optimizer, milestones=self.args.sch, gamma=0.1)
         
         self.start_iteration = 0
@@ -186,15 +192,19 @@ class Learner:
             self.load_checkpoint()
         self.optimizer.zero_grad()
 
-    def _log_mem_line(self, iteration, tag):
-        """階段7 soak：印一行顯存快照。win_alloc/win_res 是自上次
+    def _log_mem_line(self, iteration, tag, win_alloc=None, win_res=None):
+        """階段7 soak：印一行顯存快照。win_alloc/win_res 預設是自上次
         reset_peak_memory_stats() 以來的峰值（呼叫方決定要不要 reset，
-        這裡不 reset）；cur_res 是呼叫當下的瞬時 reserved（絕對不 reset，
-        看 C 類階梯用）；retries 是 allocator 重試次數，process 啟動以來
-        累積，看碎片化用。回傳 (win_alloc, win_res) 供呼叫方更新全程峰值。"""
+        這裡不 reset）；0922 顯存拆分啟用時改成每 iteration 都 reset，
+        這時呼叫方會算好 Python 端累積的視窗峰值傳進來（win_alloc/win_res
+        參數），因為單次 max_memory_allocated() 只剩最近一個 iteration
+        的值，不再是整個視窗的峰值。cur_res 是呼叫當下的瞬時 reserved
+        （絕對不 reset，看 C 類階梯用）；retries 是 allocator 重試次數，
+        process 啟動以來累積，看碎片化用。回傳 (win_alloc, win_res)
+        供呼叫方更新全程峰值。"""
         _st = torch.cuda.memory_stats()
-        _wa = torch.cuda.max_memory_allocated() / 1024**3
-        _wr = torch.cuda.max_memory_reserved()  / 1024**3
+        _wa = win_alloc if win_alloc is not None else torch.cuda.max_memory_allocated() / 1024**3
+        _wr = win_res   if win_res   is not None else torch.cuda.max_memory_reserved()  / 1024**3
         _cur = torch.cuda.memory_reserved() / 1024**3
         _retry = _st.get("num_alloc_retries", 0)
         print_and_log(self.logfile,
@@ -395,6 +405,15 @@ class Learner:
                             help='把每個 iteration 拆成 data wait / backbone fwd（support+query 合計）'
                                  '/ head fwd / backward+step 四段，用 cuda.Event 量 GPU 段落、'
                                  'perf_counter 量 dataloader 等待，跑完整個 run 後印中位數報告。')
+        parser.add_argument('--ckpt_policy', choices=['full', 'save_conv'], default='full',
+                            help='0922 新增：--ckpt_prefix 涵蓋段內的 checkpoint 策略。'
+                                 '"full"（預設）＝現行行為，整組重算。"save_conv"＝selective '
+                                 'activation checkpointing，conv 輸出存下來、BN/ReLU 等重算。')
+        parser.add_argument('--amp', choices=['off', 'bf16', 'fp16'], default='off',
+                            help='0922 新增：訓練步（forward+loss）用 torch.autocast 跑混合精度。'
+                                 '預設 off，行為與現在完全相同。backward/optimizer step 在 '
+                                 'autocast 外。fp16 用 GradScaler，bf16 不用。評估路徑不受影響，'
+                                 '維持 fp32。')
 
         # decouple_gate / decouple_mode — SupportDecoupleRelation args.
         # Use mutually exclusive group for gate so YAML "decouple_gate: false"
@@ -563,6 +582,11 @@ class Learner:
                 _prof_time = getattr(self.args, "profile_time", False)
                 _prof_rows = [] if _prof_time else None
 
+                _profmem = getattr(self.args, "profile_memory", False)
+                _memsplit_rows = [] if _profmem else None
+                self._win100_peak_alloc = 0.0
+                self._win100_peak_res   = 0.0
+
                 iteration = self.start_iteration
                 _loader_iter = iter(self.video_loader)
                 while True:
@@ -582,26 +606,50 @@ class Learner:
                     iteration += 1
                     torch.set_grad_enabled(True)
 
+                    # 0922 顯存拆分：每個 iteration 開頭 reset，讓這個 iteration
+                    # 結束時讀到的 max_memory_allocated() 是「這個 iteration 自己」
+                    # 的峰值，不是累積視窗的峰值。cur_res / retries 不受 reset 影響，
+                    # 既有的 100-iteration 視窗峰值改成 Python 端累積（見下方）。
+                    if _profmem:
+                        torch.cuda.reset_peak_memory_stats()
+
                     task_loss, task_accuracy = self.train_task(task_dict)
+
+                    if not torch.isfinite(task_loss):
+                        print_and_log(self.logfile,
+                            "[FATAL] non-finite loss at iteration {} (amp={}): {}".format(
+                                iteration, getattr(self.args, "amp", "off"), task_loss.item()))
+                        self.logfile.close()
+                        sys.exit(97)
+
                     if _loss_csv_f is not None:
                         _loss_csv_f.write(f"{iteration},{task_loss.item():.10f}\n")
                     train_accuracies.append(task_accuracy)
                     losses.append(task_loss)
 
                     # optimize
+                    _amp = getattr(self.args, "amp", "off")
                     _step_ms = 0.0
                     if ((iteration + 1) % self.args.tasks_per_batch == 0) or (iteration == (total_iterations - 1)):
                         if _prof_time:
                             _es0 = torch.cuda.Event(enable_timing=True)
                             _es1 = torch.cuda.Event(enable_timing=True)
                             _es0.record()
-                            self.optimizer.step()
+                            if _amp == "fp16":
+                                self.scaler.step(self.optimizer)
+                                self.scaler.update()
+                            else:
+                                self.optimizer.step()
                             self.optimizer.zero_grad()
                             _es1.record()
                             torch.cuda.synchronize()
                             _step_ms = _es0.elapsed_time(_es1)
                         else:
-                            self.optimizer.step()
+                            if _amp == "fp16":
+                                self.scaler.step(self.optimizer)
+                                self.scaler.update()
+                            else:
+                                self.optimizer.step()
                             self.optimizer.zero_grad()
                     self.scheduler.step()
 
@@ -617,13 +665,50 @@ class Learner:
                             total_ms=_iter_total_ms,
                         ))
 
-                    if getattr(self.args, "profile_memory", False):
-                        _win = 100  # soak (階段7)：每 100 iteration 取樣一次
+                    if _profmem:
+                        _m_peak_alloc_b = torch.cuda.max_memory_allocated()
+                        _m_peak_res_b   = torch.cuda.max_memory_reserved()
+                        _m_peak_alloc_gb = _m_peak_alloc_b / 1024**3
+                        _m_peak_res_gb   = _m_peak_res_b   / 1024**3
+
+                        # 0922：全程峰值（RUN PEAK）與 100-iteration 視窗峰值都改成
+                        # Python 端累積 max，因為 reset 現在是每 iteration 一次，
+                        # 單次 max_memory_allocated() 只代表這一個 iteration。
+                        # max-of-per-iteration-maxes 在數學上等於 max-of-window，
+                        # 所以印出來的最終數字跟舊版（每 100 iteration 才 reset）完全一樣。
+                        self._mem_peak_alloc = max(getattr(self, "_mem_peak_alloc", 0.0), _m_peak_alloc_gb)
+                        self._mem_peak_res   = max(getattr(self, "_mem_peak_res",   0.0), _m_peak_res_gb)
+                        self._win100_peak_alloc = max(self._win100_peak_alloc, _m_peak_alloc_gb)
+                        self._win100_peak_res   = max(self._win100_peak_res,   _m_peak_res_gb)
+
+                        # --- 顯存拆分（1a）---
+                        _m_pre  = getattr(self, "_mem_pre", float("nan"))
+                        _m_bb   = getattr(self.model, "_mem_bb", float("nan"))
+                        _m_fwd  = getattr(self, "_mem_fwd", float("nan"))
+                        _persist     = _m_pre / 1024**3
+                        _bb_retained = (_m_bb - _m_pre) / 1024**3
+                        _head_retained = (_m_fwd - _m_bb) / 1024**3
+                        _bwd_extra   = (_m_peak_alloc_b - _m_fwd) / 1024**3
+                        if _memsplit_rows is not None:
+                            _memsplit_rows.append(dict(
+                                iteration=iteration, persist=_persist, bb=_bb_retained,
+                                head=_head_retained, bwd_extra=_bwd_extra, peak=_m_peak_alloc_gb,
+                            ))
+                        if iteration % 20 == 0:
+                            print_and_log(self.logfile,
+                                "[memsplit] iter {:>5}  persist {:.3f}  bb {:.3f}  head {:.3f}  "
+                                "bwd_extra {:.3f}  peak {:.3f}".format(
+                                    iteration, _persist, _bb_retained, _head_retained,
+                                    _bwd_extra, _m_peak_alloc_gb))
+
+                        _win = 100  # soak (階段7)：每 100 iteration 印一次視窗峰值
                         if (iteration + 1) % _win == 0:
-                            _wa, _wr = self._log_mem_line(iteration + 1, "")
-                            self._mem_peak_alloc = max(getattr(self, "_mem_peak_alloc", 0.0), _wa)
-                            self._mem_peak_res   = max(getattr(self, "_mem_peak_res",   0.0), _wr)
-                            torch.cuda.reset_peak_memory_stats()
+                            self._log_mem_line(iteration + 1, "",
+                                                win_alloc=self._win100_peak_alloc,
+                                                win_res=self._win100_peak_res)
+                            self._win100_peak_alloc = 0.0
+                            self._win100_peak_res   = 0.0
+                        # 下一個 iteration 開頭會再 reset 一次，這裡不用再 reset。
 
                     if (iteration + 1) % self.args.print_freq == 0:
                         # print training stats
@@ -662,9 +747,22 @@ class Learner:
                     print_and_log(self.logfile, "[mem] RUN PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
                         getattr(self, "_mem_peak_alloc", 0.0), getattr(self, "_mem_peak_res", 0.0)))
 
+                if _memsplit_rows:
+                    _ms_late = [r for r in _memsplit_rows if r["iteration"] > 20]
+                    if _ms_late:
+                        def _msmed(key):
+                            return float(np.median([r[key] for r in _ms_late]))
+                        print_and_log(self.logfile,
+                            "[memsplit] MEDIAN (iter21-{})  persist {:.3f}  bb {:.3f}  head {:.3f}  "
+                            "bwd_extra {:.3f}  peak {:.3f}".format(
+                                len(_memsplit_rows), _msmed("persist"), _msmed("bb"),
+                                _msmed("head"), _msmed("bwd_extra"), _msmed("peak")))
+
                 if _prof_time and _prof_rows:
+                    _rows_late = [r for r in _prof_rows if r["iteration"] > 20]
+                    _rows_for_median = _rows_late if _rows_late else _prof_rows
                     def _median(key):
-                        return float(np.median([r[key] for r in _prof_rows]))
+                        return float(np.median([r[key] for r in _rows_for_median]))
                     data_med     = _median("data_ms")
                     h2d_med      = _median("h2d_ms")
                     backbone_med = _median("backbone_ms")
@@ -674,9 +772,9 @@ class Learner:
                     seg_sum      = data_med + h2d_med + backbone_med + head_med + bs_med
                     err_pct      = abs(seg_sum - total_med) / total_med * 100 if total_med else float("nan")
                     print_and_log(self.logfile,
-                        "[time] n={}  data={:.3f}ms  H2D={:.3f}ms  backbone(支+查)={:.3f}ms  head={:.3f}ms  "
+                        "[time] n={}(iter21-{})  data={:.3f}ms  H2D={:.3f}ms  backbone(支+查)={:.3f}ms  head={:.3f}ms  "
                         "backward+step={:.3f}ms  | 五段加總={:.3f}ms  total(wall)={:.3f}ms  誤差={:.2f}%".format(
-                            len(_prof_rows), data_med, h2d_med, backbone_med, head_med, bs_med,
+                            len(_rows_for_median), len(_prof_rows), data_med, h2d_med, backbone_med, head_med, bs_med,
                             seg_sum, total_med, err_pct))
 
                 # save the final model
@@ -699,22 +797,46 @@ class Learner:
         else:
             context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
 
-        model_dict = self.model(context_images, context_labels, target_images)
-        target_logits = model_dict['logits']
+        _profmem = getattr(self.args, "profile_memory", False)
+        if _profmem:
+            # 0922 顯存拆分 m_pre：H2D 做完、forward 開始前。
+            self._mem_pre = torch.cuda.memory_allocated()
 
-        task_loss = self.loss(target_logits, target_labels, self.device) / self.args.tasks_per_batch
+        _amp = getattr(self.args, "amp", "off")
+        if _amp == "off":
+            model_dict = self.model(context_images, context_labels, target_images)
+            target_logits = model_dict['logits']
+            task_loss = self.loss(target_logits, target_labels, self.device) / self.args.tasks_per_batch
+        else:
+            # 0922：只包訓練步的 forward 與 loss；backward／optimizer step 在外面，
+            # 走 fp32（GradScaler／bf16 的梯度本身不需要也不該在 autocast 內累積）。
+            _dtype = torch.bfloat16 if _amp == "bf16" else torch.float16
+            with torch.autocast("cuda", dtype=_dtype):
+                model_dict = self.model(context_images, context_labels, target_images)
+                target_logits = model_dict['logits']
+                task_loss = self.loss(target_logits, target_labels, self.device) / self.args.tasks_per_batch
         task_accuracy = self.accuracy_fn(target_logits, target_labels)
+
+        if _profmem:
+            # 0922 顯存拆分 m_fwd：loss 算完、backward() 之前。
+            self._mem_fwd = torch.cuda.memory_allocated()
 
         if getattr(self.args, "profile_time", False):
             _eb0 = torch.cuda.Event(enable_timing=True)
             _eb1 = torch.cuda.Event(enable_timing=True)
             _eb0.record()
-            task_loss.backward(retain_graph=False)
+            if _amp == "fp16":
+                self.scaler.scale(task_loss).backward(retain_graph=False)
+            else:
+                task_loss.backward(retain_graph=False)
             _eb1.record()
             torch.cuda.synchronize()
             self._prof_backward_ms = _eb0.elapsed_time(_eb1)
         else:
-            task_loss.backward(retain_graph=False)
+            if _amp == "fp16":
+                self.scaler.scale(task_loss).backward(retain_graph=False)
+            else:
+                task_loss.backward(retain_graph=False)
 
         return task_loss, task_accuracy
 
