@@ -3,3 +3,6 @@
 === 10-05 19:24:15 END rn18_A_B1_anchor25k: rc=0 status=ok evals=46.5+/-0.4
 === budget: 已用 2.02 h ＋ 預估 3.59 h ≤ 48.0 h
 === 10-05 19:24:15 START rn18_E_B1_s42: python run.py --config configs/b1_backbone_1shot.yaml --seed 42 --training_iterations 50020 --test_iters 25000 50000 --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_E_B1_s42
+=== 10-05 22:46:41 END rn18_E_B1_s42: rc=0 status=ok evals=49.5+/-0.4;49.0+/-0.4
+=== budget: 已用 5.39 h ＋ 預估 5.09 h ≤ 48.0 h
+=== 10-05 22:46:41 START rn18_E_B4_s42: python run.py --config configs/stage2_true_hyrsm_b4_tuple.yaml --seed 42 --training_iterations 50020 --test_iters 25000 50000 --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_E_B4_s42
