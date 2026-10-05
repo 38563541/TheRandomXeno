@@ -273,10 +273,13 @@ class VideoDataset(torch.utils.data.Dataset):
         c = self.get_train_or_test_db()
         paths, vid_id = c.get_rand_vid(label, idx) 
         n_frames = len(paths)
+        # 1005: train_aug=none → 訓練也用測試的確定性取樣與 transform。只改增強，
+        # 不動 self.train（self.train 同時決定讀 train 還是 test split）。
+        _aug = self.train and getattr(self.args, "train_aug", "standard") != "none"
         if n_frames == self.args.seq_len:
             idxs = [int(f) for f in range(n_frames)]
         else:
-            if self.train:
+            if _aug:
                 excess_frames = n_frames - self.seq_len
                 excess_pad = int(min(5, excess_frames / 2))
                 if excess_pad < 1:
@@ -303,7 +306,7 @@ class VideoDataset(torch.utils.data.Dataset):
 
         imgs = [self.read_single_image(paths[i]) for i in idxs]
         if (self.transform is not None):
-            if self.train:
+            if _aug:
                 transform = self.transform["train"]
             else:
                 transform = self.transform["test"]

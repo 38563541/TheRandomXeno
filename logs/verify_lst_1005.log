@@ -1,0 +1,154 @@
+參考版本：stage2-decouple @ 06ddba9；新版本：working tree @ 06ddba9
+CPU, img=112, way=5 shot=1 qpc=2 seq=8；dropout=0、BN momentum=0
+
+V1 預設路徑回歸（新程式 vs stage2-decouple HEAD，位元級）
+  [PASS] V1 B1/resnet18/default (new mode=full) state_dict 相同  
+  [PASS] V1 B1/resnet18/default (new mode=full) logits max|Δ|=0  0.000e+00
+  [PASS] V1 B1/resnet18/default (new mode=full) .grad max|Δ|=0  0.000e+00；梯度量級 head=1.102e-01 backbone=3.367e+00
+  [PASS] V1 B4/resnet18/default (new mode=full) state_dict 相同  
+  [PASS] V1 B4/resnet18/default (new mode=full) logits max|Δ|=0  0.000e+00
+  [PASS] V1 B4/resnet18/default (new mode=full) .grad max|Δ|=0  0.000e+00；梯度量級 head=1.381e-02 backbone=5.951e-01
+  [PASS] V1 B4/resnet50/default (new mode=full) state_dict 相同  
+  [PASS] V1 B4/resnet50/default (new mode=full) logits max|Δ|=0  0.000e+00
+  [PASS] V1 B4/resnet50/default (new mode=full) .grad max|Δ|=0  0.000e+00；梯度量級 head=8.642e-03 backbone=4.505e-01
+  [PASS] V1 B1/resnet18/{'freeze_backbone': True} (new mode=frozen) state_dict 相同  
+  [PASS] V1 B1/resnet18/{'freeze_backbone': True} (new mode=frozen) logits max|Δ|=0  0.000e+00
+  [PASS] V1 B1/resnet18/{'freeze_backbone': True} (new mode=frozen) .grad max|Δ|=0  0.000e+00；梯度量級 head=8.600e-03 backbone=0.000e+00
+  [PASS] V1 B4/resnet18/{'freeze_backbone': True} (new mode=frozen) state_dict 相同  
+  [PASS] V1 B4/resnet18/{'freeze_backbone': True} (new mode=frozen) logits max|Δ|=0  0.000e+00
+  [PASS] V1 B4/resnet18/{'freeze_backbone': True} (new mode=frozen) .grad max|Δ|=0  0.000e+00；梯度量級 head=6.090e-04 backbone=0.000e+00
+  [PASS] V1 B4/resnet50/{'grad_ckpt': True, 'ckpt_prefix': 14, 'ckpt_segments': 7} (new mode=full) state_dict 相同  
+  [PASS] V1 B4/resnet50/{'grad_ckpt': True, 'ckpt_prefix': 14, 'ckpt_segments': 7} (new mode=full) logits max|Δ|=0  0.000e+00
+  [PASS] V1 B4/resnet50/{'grad_ckpt': True, 'ckpt_prefix': 14, 'ckpt_segments': 7} (new mode=full) .grad max|Δ|=0  0.000e+00；梯度量級 head=8.642e-03 backbone=4.505e-01
+  [PASS] V1 控制組：擾動 layer4 一個權重 1e-4 → logits 與 .grad 必須不同  logits Δ=4.578e-05 grad Δ=7.915e-05
+
+V2 梯度流向
+  [PASS] V2 B1/frozen backbone 每個參數 .grad is None  60 個
+  [PASS] V2 B1/frozen backbone BN 全部 eval（model.train() 之後）  20 個
+  [PASS] V2 B1/frozen 匹配頭有梯度  量級 8.600e-03
+      可訓練參數 1.183 M（匹配頭 1.183 M）
+  [PASS] V2 B1/lst backbone 每個參數 .grad is None  60 個
+  [PASS] V2 B1/lst backbone BN 全部 eval（model.train() 之後）  20 個
+  [PASS] V2 B1/lst 匹配頭有梯度  量級 8.600e-03
+  [PASS] V2 B1/lst α=0：α 有梯度  |∂L/∂α|=4.013e-01
+  [PASS] V2 B1/lst α=0：其他 side 參數梯度精確為 0（機制如 1-2(e)）  26 個
+  [PASS] V2 B1/lst α=0.1 複本：每個 side 參數 .grad.abs().sum()>0  27 個；量級 3.204e-02
+  [PASS] V2 B1/lst α=0.1 複本：backbone 仍無梯度  
+      可訓練參數 1.964 M（匹配頭 1.183 M）
+  [PASS] V2 B1/top_adapter backbone 每個參數 .grad is None  60 個
+  [PASS] V2 B1/top_adapter backbone BN 全部 eval（model.train() 之後）  20 個
+  [PASS] V2 B1/top_adapter 匹配頭有梯度  量級 8.600e-03
+  [PASS] V2 B1/top_adapter α=0：α 有梯度  |∂L/∂α|=2.319e-01
+  [PASS] V2 B1/top_adapter α=0：其他 side 參數梯度精確為 0（機制如 1-2(e)）  4 個
+  [PASS] V2 B1/top_adapter α=0.1 複本：每個 side 參數 .grad.abs().sum()>0  5 個；量級 4.961e-02
+  [PASS] V2 B1/top_adapter α=0.1 複本：backbone 仍無梯度  
+      可訓練參數 1.964 M（匹配頭 1.183 M）
+  [PASS] V2 B1/partial_l4 layer4 全部參數有梯度  15 個；量級 1.500e+00
+  [PASS] V2 B1/partial_l4 layer4 以外 backbone .grad is None  45 個
+  [PASS] V2 B1/partial_l4 BN 模式：layer1–3 eval、layer4 train  eval=15 train=5
+  [PASS] V2 B1/partial_l4 不設 freeze_backbone（grad_ckpt 不會被 run.py 關掉）  
+  [PASS] V2 B1/partial_l4 匹配頭有梯度  量級 1.222e-01
+      可訓練參數 9.577 M（匹配頭 1.183 M）
+  [PASS] V2 B4/frozen backbone 每個參數 .grad is None  60 個
+  [PASS] V2 B4/frozen backbone BN 全部 eval（model.train() 之後）  20 個
+  [PASS] V2 B4/frozen 匹配頭有梯度  量級 6.090e-04
+      可訓練參數 25.092 M（匹配頭 25.092 M）
+  [PASS] V2 B4/lst backbone 每個參數 .grad is None  60 個
+  [PASS] V2 B4/lst backbone BN 全部 eval（model.train() 之後）  20 個
+  [PASS] V2 B4/lst 匹配頭有梯度  量級 6.090e-04
+  [PASS] V2 B4/lst α=0：α 有梯度  |∂L/∂α|=3.004e-02
+  [PASS] V2 B4/lst α=0：其他 side 參數梯度精確為 0（機制如 1-2(e)）  26 個
+  [PASS] V2 B4/lst α=0.1 複本：每個 side 參數 .grad.abs().sum()>0  27 個；量級 4.932e-03
+  [PASS] V2 B4/lst α=0.1 複本：backbone 仍無梯度  
+      可訓練參數 25.873 M（匹配頭 25.092 M）
+  [PASS] V2 B4/top_adapter backbone 每個參數 .grad is None  60 個
+  [PASS] V2 B4/top_adapter backbone BN 全部 eval（model.train() 之後）  20 個
+  [PASS] V2 B4/top_adapter 匹配頭有梯度  量級 6.090e-04
+  [PASS] V2 B4/top_adapter α=0：α 有梯度  |∂L/∂α|=3.437e-02
+  [PASS] V2 B4/top_adapter α=0：其他 side 參數梯度精確為 0（機制如 1-2(e)）  4 個
+  [PASS] V2 B4/top_adapter α=0.1 複本：每個 side 參數 .grad.abs().sum()>0  5 個；量級 6.650e-03
+  [PASS] V2 B4/top_adapter α=0.1 複本：backbone 仍無梯度  
+      可訓練參數 25.872 M（匹配頭 25.092 M）
+  [PASS] V2 B4/partial_l4 layer4 全部參數有梯度  15 個；量級 2.136e-01
+  [PASS] V2 B4/partial_l4 layer4 以外 backbone .grad is None  45 個
+  [PASS] V2 B4/partial_l4 BN 模式：layer1–3 eval、layer4 train  eval=15 train=5
+  [PASS] V2 B4/partial_l4 不設 freeze_backbone（grad_ckpt 不會被 run.py 關掉）  
+  [PASS] V2 B4/partial_l4 匹配頭有梯度  量級 1.041e-02
+      可訓練參數 33.485 M（匹配頭 25.092 M）
+  [PASS] V2 resnet18 side 參數量 = 公式  780801
+  [PASS] V2 resnet18 top_adapter 參數量與 lst 相差 ≤10%  adapter 780538 vs side 780801（-0.03%）
+  [PASS] V2 resnet50 side 參數量 = 公式  3872769
+  [PASS] V2 resnet50 top_adapter 參數量與 lst 相差 ≤10%  adapter 3873714 vs side 3872769（+0.02%）
+
+V3 初始等價（α=0 → 與 frozen 位元級相同；α=0.1 → 改變）
+  [PASS] V3 B1/lst 與 frozen 共同參數初始化相同（側支在頭之後建立）  
+  [PASS] V3 B1/lst train 模式 logits 與 frozen 位元級相同  max|Δ|=0.000e+00
+  [PASS] V3 B1/lst eval 模式 logits 與特徵位元級相同  
+  [PASS] V3 B1/lst α=0.1 → logits 改變（控制組）  max|Δ|=2.396e+00
+  [PASS] V3 B1/top_adapter 與 frozen 共同參數初始化相同（側支在頭之後建立）  
+  [PASS] V3 B1/top_adapter train 模式 logits 與 frozen 位元級相同  max|Δ|=0.000e+00
+  [PASS] V3 B1/top_adapter eval 模式 logits 與特徵位元級相同  
+  [PASS] V3 B1/top_adapter α=0.1 → logits 改變（控制組）  max|Δ|=2.856e-01
+  [PASS] V3 B4/lst 與 frozen 共同參數初始化相同（側支在頭之後建立）  
+  [PASS] V3 B4/lst train 模式 logits 與 frozen 位元級相同  max|Δ|=0.000e+00
+  [PASS] V3 B4/lst eval 模式 logits 與特徵位元級相同  
+  [PASS] V3 B4/lst α=0.1 → logits 改變（控制組）  max|Δ|=1.954e-01
+  [PASS] V3 B4/top_adapter 與 frozen 共同參數初始化相同（側支在頭之後建立）  
+  [PASS] V3 B4/top_adapter train 模式 logits 與 frozen 位元級相同  max|Δ|=0.000e+00
+  [PASS] V3 B4/top_adapter eval 模式 logits 與特徵位元級相同  
+  [PASS] V3 B4/top_adapter α=0.1 → logits 改變（控制組）  max|Δ|=5.721e-02
+
+V4 rung 可交換性（pool→conv vs conv→pool）
+  [PASS] V4 resnet18 res=7 四個 rung max|Δ|<1e-5  4.023e-07
+  [PASS] V4 resnet50 res=7 四個 rung max|Δ|<1e-5  5.364e-07
+  [PASS] V4 resnet18 res=14 四個 rung max|Δ|<1e-5  5.960e-07
+  [PASS] V4 控制組：加入 ReLU 後差異必須 ≥1e-3  3.118e-01
+
+V5 無 transductive 洩漏（特徵抽取器輸出，不是 logits；B4 頭本身就跨 query）
+  [PASS] V5 side_norm=gn train 模式：第 0 支 query 的特徵必須不變  max|Δ|=0.000e+00
+  [PASS] V5 side_norm=gn eval 模式：第 0 支 query 的特徵必須不變  max|Δ|=0.000e+00
+  [PASS] V5 side_norm=bn train 模式：第 0 支 query 的特徵正控制組，必須改變  max|Δ|=1.755e-02
+  [PASS] V5 side_norm=bn_notrack eval 模式：第 0 支 query 的特徵正控制組，必須改變  max|Δ|=1.755e-02
+  [PASS] V5 frozen eval 模式：第 0 支 query 的特徵不變  max|Δ|=0.000e+00
+  [PASS] V5 top_adapter eval 模式：第 0 支 query 的特徵不變  max|Δ|=0.000e+00
+  [PASS] V5 partial_l4 eval 模式：第 0 支 query 的特徵不變  max|Δ|=0.000e+00
+  [PASS] V5 full eval 模式：第 0 支 query 的特徵不變  max|Δ|=0.000e+00
+
+V6 config 落地
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+  [PASS] V6 argparse 解析新 key  adapter_hidden 自動=237
+  [PASS] V6 每個新 key 都出現在 Options（log.txt 第一行）  
+  [PASS] V6 每個新 key 都寫進 CSV 且值正確  {'backbone_mode': 'lst', 'side_width': '64', 'side_res': '14', 'side_norm': 'gn', 'adapter_hidden': '237', 'train_aug': 'none'}
+  [PASS] V6 side_width 128→64：參數量改變  780801 → 243201
+  [PASS] V6 side_res 7→14：輸出改變（參數量不變）  
+  [PASS] V6 side_norm gn→bn_notrack：輸出改變  
+  [PASS] V6 adapter_hidden 改值：參數量改變  
+      backbone_mode=frozen：可訓練 1.183 M
+      backbone_mode=partial_l4：可訓練 9.577 M
+      backbone_mode=full：可訓練 12.360 M
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+  [PASS] V6 train_aug=none：同一支訓練影片讀兩次完全相同  
+  [PASS] V6 train_aug=none：仍讀訓練 split（vd.train 未被改動）  
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+  [PASS] V6 train_aug=standard：同一支訓練影片讀兩次至少一支不同（有增強）  
+  [PASS] V6 train_aug=standard：仍讀訓練 split（vd.train 未被改動）  
+/home/ccwu/Documents/work/trx/verify_lst.py:424: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  sd = torch.load(path, map_location="cpu")["model_state_dict"]
+
+V7 舊 checkpoint strict 載入（評估數字見 scripts/v7_eval_1005.py 的 log）
+  [PASS] V7 frozen B1 s42 (stage1) → backbone_mode=full strict 載入  
+  [PASS] V7 frozen B1 s42 (stage1) → backbone_mode=frozen strict 載入  
+  [PASS] V7 frozen B1 s42 (stage1) → backbone_mode=partial_l4 strict 載入  
+  [PASS] V7 frozen B1 s42 (stage1) → lst（strict=False）只缺 side_net.*、resnet 鍵名不變  缺 27 個 side_net 鍵
+  [PASS] V7 frozen B4 s42 (stage2) → backbone_mode=full strict 載入  
+  [PASS] V7 frozen B4 s42 (stage2) → backbone_mode=frozen strict 載入  
+  [PASS] V7 frozen B4 s42 (stage2) → backbone_mode=partial_l4 strict 載入  
+  [PASS] V7 frozen B4 s42 (stage2) → lst（strict=False）只缺 side_net.*、resnet 鍵名不變  缺 27 個 side_net 鍵
+  [PASS] V7 full B1 s43 (stage1) → backbone_mode=full strict 載入  
+  [PASS] V7 full B1 s43 (stage1) → backbone_mode=frozen strict 載入  
+  [PASS] V7 full B1 s43 (stage1) → backbone_mode=partial_l4 strict 載入  
+  [PASS] V7 full B1 s43 (stage1) → lst（strict=False）只缺 side_net.*、resnet 鍵名不變  缺 27 個 side_net 鍵
+
+通過 118 項，失敗 0 項

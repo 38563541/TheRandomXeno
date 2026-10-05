@@ -9,6 +9,7 @@ import re
 import sys
 from utils import print_and_log, get_log_files, TestAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir, task_confusion
 from model import CNN_TRX
+from models.backbone_adapt import adapter_alpha
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Quiet TensorFlow warnings
 import tensorflow as tf
 
@@ -60,6 +61,8 @@ _CSV_COLUMNS = [
     "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
     "decouple_gate", "decouple_mode", "intra_depth",
     "way", "shot", "query_per_class",
+    # 1005：backbone 端可調性與 seed（舊列這幾欄留空，由 _ensure_csv_schema 補）
+    "seed", "backbone_mode", "side_width", "side_res", "side_norm", "adapter_hidden", "train_aug",
     "iteration", "mean_accuracy", "confidence_interval",
 ]
 
@@ -175,6 +178,13 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
         "way":                 args.way,
         "shot":                args.shot,
         "query_per_class":     getattr(args, "query_per_class", ""),
+        "seed":                getattr(args, "seed", ""),
+        "backbone_mode":       getattr(args, "backbone_mode", "full"),
+        "side_width":          getattr(args, "side_width", ""),
+        "side_res":            getattr(args, "side_res", ""),
+        "side_norm":           getattr(args, "side_norm", ""),
+        "adapter_hidden":      getattr(args, "adapter_hidden", ""),
+        "train_aug":           getattr(args, "train_aug", "standard"),
         "iteration":           iteration,
         "mean_accuracy":       round(float(mean_accuracy), 4),
         "confidence_interval": round(float(confidence_interval), 4),
@@ -487,6 +497,24 @@ class Learner:
                             help='0922 新增：--ckpt_prefix 涵蓋段內的 checkpoint 策略。'
                                  '"full"（預設）＝現行行為，整組重算。"save_conv"＝selective '
                                  'activation checkpointing，conv 輸出存下來、BN/ReLU 等重算。')
+        parser.add_argument('--backbone_mode', choices=['full', 'frozen', 'partial_l4', 'lst', 'top_adapter'],
+                            default='full',
+                            help='1005 新增：backbone 端的可調性。full（預設）＝現行行為（全微調）；'
+                                 'frozen＝凍結（等同 --freeze_backbone）；partial_l4＝只訓練 layer4；'
+                                 'lst＝凍結 backbone＋ladder side network；top_adapter＝凍結 backbone＋'
+                                 'GAP 後的 MLP（參數量對齊 lst）。見 models/backbone_adapt.py。')
+        parser.add_argument('--side_width', type=int, default=-1,
+                            help='1005：lst side network 寬度；-1＝依 backbone 自動（RN18/34 128，RN50 256）。')
+        parser.add_argument('--side_res', type=int, default=7,
+                            help='1005：lst side network 的空間解析度（rung 先 adaptive avg pool 到這個大小）。')
+        parser.add_argument('--side_norm', choices=['gn', 'bn', 'bn_notrack'], default='gn',
+                            help='1005：side network 的 normalization。gn（預設）；bn／bn_notrack 只給驗證當正控制組，'
+                                 '會造成同 episode 影格之間的 transductive 洩漏，不要拿來訓練。')
+        parser.add_argument('--adapter_hidden', type=int, default=-1,
+                            help='1005：top_adapter 的隱藏寬度；-1＝自動對齊同設定 lst side network 的參數量。')
+        parser.add_argument('--train_aug', choices=['standard', 'none'], default='standard',
+                            help='1005：訓練資料增強。standard（預設）＝現行（時間抖動＋水平翻轉＋隨機裁切）；'
+                                 'none＝訓練也用測試的確定性時間取樣與 CenterCrop（模擬只存一份特徵快取）。')
         parser.add_argument('--eval_write_csv', action='store_true', default=False,
                             help='1005 新增：純評估模式（--test_model_path）預設不寫 results.csv；'
                                  '給這個 flag 才寫。訓練中的評估不受影響，照舊寫入。')
@@ -593,6 +621,10 @@ class Learner:
         # ======================================================
         if (args.method == "resnet50") or (args.method == "resnet34"):
             args.img_size = 224
+        # 1005：解析 backbone_mode（frozen/lst/top_adapter → freeze_backbone=True；
+        # side_width/adapter_hidden 的 -1 解析成實際值，讓 Options log 與 CSV 記到實際值）
+        from models.backbone_adapt import normalize_backbone_mode
+        normalize_backbone_mode(args)
         if args.trans_linear_in_dim == -1:  # not explicitly provided — auto-set from backbone
             if args.method == "resnet50":
                 args.trans_linear_in_dim = 2048
@@ -800,6 +832,9 @@ class Learner:
                         print_and_log(self.logfile,'Task [{}/{}], Train Loss: {:.7f}, Train Accuracy: {:.7f}'
                                       .format(iteration + 1, total_iterations, torch.Tensor(losses).mean().item(),
                                               torch.Tensor(train_accuracies).mean().item()))
+                        _alpha = adapter_alpha(self.model)
+                        if _alpha is not None:
+                            print_and_log(self.logfile, "[adapter] iter {} alpha {:.6g}".format(iteration + 1, _alpha))
                         train_accuracies = []
                         losses = []
 

@@ -36,6 +36,8 @@ from relation.inter_relation import InterRelation
 from relation.hyrsm_inter_relation import HyRSMInterRelation
 from relation.true_hyrsm_inter_relation import TrueHyRSMInterRelation
 from relation.support_decouple_relation import SupportDecoupleRelation
+from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, setup_adapters,
+                                   apply_backbone_train_mode, backbone_features)
 
 
 class TRXSetMatchingWithRelation(nn.Module):
@@ -267,12 +269,16 @@ class CNN_TRXWithRelation(nn.Module):
         if _n_relu:
             print(f"[INFO] set inplace=False on {_n_relu} ReLU modules in resnet")
 
+        # 1005: backbone_mode（frozen/lst/top_adapter 會設 freeze_backbone=True）
+        normalize_backbone_mode(args)
+
         # Phase 2.1: freeze backbone (BN kept in eval via train() override)
         if getattr(args, "freeze_backbone", False):
             for p in self.resnet.parameters():
                 p.requires_grad_(False)
             self.resnet.eval()
             print("[INFO] backbone FROZEN: requires_grad=False, BN in eval mode", flush=True)
+        setup_partial_l4(self)
 
         self.transformers = nn.ModuleList([
             TRXSetMatchingWithRelation(
@@ -283,6 +289,8 @@ class CNN_TRXWithRelation(nn.Module):
                 inter_style=inter_style,
             )
         ])
+        # 1005: side／adapter 在匹配頭之後建立 → 同 seed 下匹配頭初始化與 frozen 相同
+        setup_adapters(self)
 
     def _ckpt_chain(self):
         """攤平 layer1-4 成個別 residual block 的視圖，不重新註冊 → state_dict 鍵名不變。"""
@@ -359,9 +367,8 @@ class CNN_TRXWithRelation(nn.Module):
         super().train(mode)
         # 凍結時 backbone 永遠保持 eval（BN running stats 不更新）
         # guard: __init__ 在 self.resnet 建立前就呼叫 self.train()，必須防衛
-        if getattr(self, "resnet", None) is not None and \
-                getattr(getattr(self, "args", None), "freeze_backbone", False):
-            self.resnet.eval()
+        # 1005: 凍結的部分永遠 eval（frozen/lst/top_adapter 整個 backbone；partial_l4 除 layer4 外）
+        apply_backbone_train_mode(self)
         return self
 
     def forward(self, context_images, context_labels, target_images):
@@ -398,8 +405,9 @@ class CNN_TRXWithRelation(nn.Module):
                 chain, segs, target_images,  use_reentrant=False).squeeze()
         else:
             self._last_ckpt_branch = "none"
-            context_features = self.resnet(context_images).squeeze()
-            target_features  = self.resnet(target_images).squeeze()
+            # 1005: full/frozen/partial_l4 = self.resnet(x).squeeze()；lst/top_adapter 加 side 分支
+            context_features = backbone_features(self, context_images)
+            target_features  = backbone_features(self, target_images)
 
         if _prof:
             _e1.record()
