@@ -1,0 +1,44 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+Options: Namespace(config='configs/b1_backbone_1shot.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/cost1005_RN18_D_B1/hmdb_split3_20261005_181917', test_model_path=None, training_iterations=300, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[999999], num_test_tasks=10000, print_freq=100, seq_len=8, num_workers=10, method='resnet18', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=999999, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=None, grad_ckpt=False, ckpt_segments=8, ckpt_prefix=None, freeze_backbone=False, profile_memory=True, bn_fix_scope='covered', loss_csv=None, profile_time=True, ckpt_policy='full', backbone_mode='partial_l4', side_width=128, side_res=7, side_norm='gn', adapter_hidden=761, train_aug='standard', eval_write_csv=False, amp='off', decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=False, use_inter_relation=False, relation_level='none', config_file='configs/b1_backbone_1shot.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/cost1005_RN18_D_B1/hmdb_split3_20261005_181917
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet18_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet18_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] backbone_mode=partial_l4: 只有 layer4 可訓練（8.39 M），layer1–3 BN 固定 eval
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 9.58 M 個可訓練參數
+/home/ccwu/Documents/work/trx/run.py:274: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self.scaler = torch.cuda.amp.GradScaler(enabled=(getattr(self.args, "amp", "off") == "fp16"))
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+[memsplit] iter    20  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter    40  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter    60  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter    80  persist 0.197  bb nan  head nan  bwd_extra 0.978  peak 1.434
+[mem] iter    100 win_alloc 1.470 win_res 2.246 cur_res 2.246 retries 0
+Task [100/300], Train Loss: 15.7740688, Train Accuracy: 0.4771717
+[memsplit] iter   100  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter   120  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter   140  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter   160  persist 0.197  bb nan  head nan  bwd_extra 0.978  peak 1.434
+[memsplit] iter   180  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[mem] iter    200 win_alloc 1.470 win_res 2.246 cur_res 2.246 retries 0
+Task [200/300], Train Loss: 3.2635248, Train Accuracy: 0.5152000
+[memsplit] iter   200  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter   220  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter   240  persist 0.197  bb nan  head nan  bwd_extra 0.978  peak 1.434
+[memsplit] iter   260  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[memsplit] iter   280  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[mem] iter    300 win_alloc 1.470 win_res 2.246 cur_res 2.246 retries 0
+Task [300/300], Train Loss: 2.5781214, Train Accuracy: 0.5428000
+[memsplit] iter   300  persist 0.197  bb nan  head nan  bwd_extra 0.978  peak 1.434
+[mem] RUN PEAK  alloc 1.470 GB  reserved 2.246 GB
+[memsplit] MEDIAN (iter21-300)  persist 0.232  bb nan  head nan  bwd_extra 0.978  peak 1.470
+[time] n=280(iter21-300)  data=10.893ms  H2D=46.004ms  backbone(支+查)=48.702ms  head=2.957ms  backward+step=18.182ms  | 五段加總=126.738ms  total(wall)=128.613ms  誤差=1.46%

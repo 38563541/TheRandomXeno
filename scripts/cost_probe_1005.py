@@ -63,6 +63,14 @@ for amp in ("off", "fp16"):
     _add(f"RN18_B{s}",  "resnet18", "B",  "B4", ["--backbone_mode", "top_adapter"], amp)
     _add(f"RN18_C{s}",  "resnet18", "C",  "B4", ["--backbone_mode", "lst"], amp)
     _add(f"RN18_D{s}",  "resnet18", "D",  "B4", ["--backbone_mode", "partial_l4"], amp)
+# G4 追加：B1 頭的成本（fp32；b1_backbone_1shot.yaml ＋ --backbone_mode）
+_add("RN50_E1_B1", "resnet50", "E1", "B1", E1)
+for _a, _m in (("A", "frozen"), ("B", "top_adapter"), ("C", "lst"), ("D", "partial_l4")):
+    _add(f"RN50_{_a}_B1", "resnet50", _a, "B1", ["--backbone_mode", _m])
+_add("RN18_E0_B1", "resnet18", "E0", "B1", [])
+for _a, _m in (("A", "frozen"), ("B", "top_adapter"), ("C", "lst"), ("D", "partial_l4")):
+    _add(f"RN18_{_a}_B1", "resnet18", _a, "B1", ["--backbone_mode", _m])
+
 # 只在 RN50_D 超過 11.0 GiB 時才跑：layer4 開 checkpoint（chain 共 21 個 module，前 20 個＝到 layer4 結尾）
 _add("RN50_D_l4ckpt", "resnet50", "D", "B4", ["--backbone_mode", "partial_l4", "--grad_ckpt",
                                               "--ckpt_prefix", "20", "--ckpt_segments", "3"])

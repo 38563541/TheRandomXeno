@@ -1,0 +1,147 @@
+[
+ {
+  "tag": "rn18_A_B1_anchor25k",
+  "args": [
+   "--config",
+   "configs/frozen_rn18_b1.yaml",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "25020",
+   "--test_iters",
+   "25000"
+  ],
+  "est_hours": 1.08
+ },
+ {
+  "tag": "rn18_E_B1_s42",
+  "args": [
+   "--config",
+   "configs/b1_backbone_1shot.yaml",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "50020",
+   "--test_iters",
+   "25000",
+   "50000"
+  ],
+  "est_hours": 3.59
+ },
+ {
+  "tag": "rn18_E_B4_s42",
+  "args": [
+   "--config",
+   "configs/stage2_true_hyrsm_b4_tuple.yaml",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "50020",
+   "--test_iters",
+   "25000",
+   "50000"
+  ],
+  "est_hours": 5.09
+ },
+ {
+  "tag": "rn18_C_B1_s42",
+  "args": [
+   "--config",
+   "configs/frozen_rn18_b1.yaml",
+   "--backbone_mode",
+   "lst",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "50020",
+   "--test_iters",
+   "25000",
+   "50000"
+  ],
+  "est_hours": 2.24
+ },
+ {
+  "tag": "rn18_C_B4_s42",
+  "args": [
+   "--config",
+   "configs/frozen_rn18_b4.yaml",
+   "--backbone_mode",
+   "lst",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "50020",
+   "--test_iters",
+   "25000",
+   "50000"
+  ],
+  "est_hours": 3.56
+ },
+ {
+  "tag": "rn18_D_B1_s42",
+  "args": [
+   "--config",
+   "configs/b1_backbone_1shot.yaml",
+   "--backbone_mode",
+   "partial_l4",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "50020",
+   "--test_iters",
+   "25000",
+   "50000"
+  ],
+  "est_hours": 2.31
+ },
+ {
+  "tag": "rn18_D_B4_s42",
+  "args": [
+   "--config",
+   "configs/stage2_true_hyrsm_b4_tuple.yaml",
+   "--backbone_mode",
+   "partial_l4",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "50020",
+   "--test_iters",
+   "25000",
+   "50000"
+  ],
+  "est_hours": 3.64
+ },
+ {
+  "tag": "rn18_B_B1_s42",
+  "args": [
+   "--config",
+   "configs/frozen_rn18_b1.yaml",
+   "--backbone_mode",
+   "top_adapter",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "50020",
+   "--test_iters",
+   "25000",
+   "50000"
+  ],
+  "est_hours": 2.18
+ },
+ {
+  "tag": "rn18_A_B1_noaug25k",
+  "args": [
+   "--config",
+   "configs/frozen_rn18_b1.yaml",
+   "--train_aug",
+   "none",
+   "--seed",
+   "42",
+   "--training_iterations",
+   "25020",
+   "--test_iters",
+   "25000"
+  ],
+  "est_hours": 1.08
+ }
+]

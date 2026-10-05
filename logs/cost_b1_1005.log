@@ -1,0 +1,21 @@
+=== RN50_E1_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet50 --grad_ckpt --ckpt_prefix 14 --ckpt_segments 7 --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN50_E1_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN50_E1_B1 done: ok ms/iter=665.610 alloc=7.485 smi=10.453 ===
+=== RN50_A_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet50 --backbone_mode frozen --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN50_A_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN50_A_B1 done: ok ms/iter=203.616 alloc=2.218 smi=3.602 ===
+=== RN50_B_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet50 --backbone_mode top_adapter --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN50_B_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN50_B_B1 done: ok ms/iter=205.373 alloc=2.248 smi=3.604 ===
+=== RN50_C_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet50 --backbone_mode lst --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN50_C_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN50_C_B1 done: ok ms/iter=221.656 alloc=2.301 smi=3.609 ===
+=== RN50_D_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet50 --backbone_mode partial_l4 --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN50_D_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN50_D_B1 done: ok ms/iter=238.959 alloc=2.478 smi=4.207 ===
+=== RN18_E0_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet18 --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN18_E0_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN18_E0_B1 done: ok ms/iter=216.391 alloc=5.160 smi=8.771 ===
+=== RN18_A_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet18 --backbone_mode frozen --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN18_A_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN18_A_B1 done: ok ms/iter=118.675 alloc=1.397 smi=2.080 ===
+=== RN18_B_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet18 --backbone_mode top_adapter --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN18_B_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN18_B_B1 done: ok ms/iter=119.486 alloc=1.404 smi=2.082 ===
+=== RN18_C_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet18 --backbone_mode lst --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN18_C_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN18_C_B1 done: ok ms/iter=124.138 alloc=1.422 smi=2.107 ===
+=== RN18_D_B1: python run.py --dataset hmdb --split 3 --config configs/b1_backbone_1shot.yaml --method resnet18 --backbone_mode partial_l4 --training_iterations 300 --print_freq 100 --save_freq 999999 --test_iters 999999 --profile_memory --profile_time -c /home/ccwu/trx_data/checkpoints/cost1005_RN18_D_B1 --scratch /home/ccwu/Documents/work/trx/trx_data ===
+=== RN18_D_B1 done: ok ms/iter=128.613 alloc=1.470 smi=2.684 ===
+=== ALL DONE ===
