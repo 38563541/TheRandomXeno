@@ -1,0 +1,44 @@
+正式檔 /home/ccwu/Documents/work/trx/experiments/results/results.csv：43 列
+C0 負控制（原檔直接 DictReader）
+  （正式檔已是新 header，C0 改用備份檔）
+  [PASS] C0 原檔讀錯位（21/22 欄列的 iteration 讀錯） 5/6 列讀錯
+C1-C3 複本
+[INFO] results.csv header 與 _CSV_COLUMNS 不一致，已備份到 /home/ccwu/Documents/work/trx/logs/verify_csv_1005_tmp/results_backup_1005.csv 並重寫 43 列
+  [PASS] C1 有重寫 
+  [PASS] C1 header == _CSV_COLUMNS 
+  [PASS] C1 列數不變 43 vs 43
+  [PASS] C1 2026-08-04 07:18:50 iteration=75000 acc=67.724
+  [PASS] C1 2026-09-05 18:03:25 iteration=25000 acc=51.7
+  [PASS] C1 2026-09-06 09:30:16 iteration=25000 acc=47.288
+  [PASS] C1 2026-09-07 14:10:16 iteration=25000 acc=49.502
+  [PASS] C1 2026-09-13 15:43:42 iteration=25000 acc=46.456
+  [PASS] C1 2026-09-14 12:59:40 iteration=100000 acc=44.882
+  [PASS] C2 每列 iteration/acc/CI 合理 bad=[]
+  [PASS] C3 冪等（第二次不重寫） 
+C4 模擬之後再加欄位
+[INFO] results.csv header 與 _CSV_COLUMNS 不一致，已備份到 /home/ccwu/Documents/work/trx/logs/verify_csv_1005_tmp/results_backup_1005_164503.csv 並重寫 43 列
+  [PASS] C4 有重寫 
+  [PASS] C4 新欄補空 
+  [PASS] C4 2026-08-04 07:18:50 iteration=75000 acc=67.724
+  [PASS] C4 2026-09-05 18:03:25 iteration=25000 acc=51.7
+  [PASS] C4 2026-09-06 09:30:16 iteration=25000 acc=47.288
+  [PASS] C4 2026-09-07 14:10:16 iteration=25000 acc=49.502
+  [PASS] C4 2026-09-13 15:43:42 iteration=25000 acc=46.456
+  [PASS] C4 2026-09-14 12:59:40 iteration=100000 acc=44.882
+C5 對不上的列要 raise
+  [PASS] C5 raise results.csv 第 45 列有 3 欄，對不上任何已知 schema
+C6 正式檔（已修過，只重驗）
+  [PASS] C6 列數 
+  [PASS] C6 2026-08-04 07:18:50 iteration=75000 acc=67.724
+  [PASS] C6 2026-09-05 18:03:25 iteration=25000 acc=51.7
+  [PASS] C6 2026-09-06 09:30:16 iteration=25000 acc=47.288
+  [PASS] C6 2026-09-07 14:10:16 iteration=25000 acc=49.502
+  [PASS] C6 2026-09-13 15:43:42 iteration=25000 acc=46.456
+  [PASS] C6 2026-09-14 12:59:40 iteration=100000 acc=44.882
+  [PASS] C6 每列 iteration/acc/CI 合理 bad=[]
+
+全部通過
+
+=== 純評估 guard（2026-10-05 16:44，frozen_rn18_b1_s42 checkpoint25000，num_test_tasks=20，_CSV_PATH 指向複本）
+不給 --eval_write_csv：印「未給 --eval_write_csv — 跳過 results.csv 寫入」，列數 43 → 43
+給 --eval_write_csv：列數 43 → 44，新列欄位對齊（iteration=25000, mean_accuracy=51.0）
