@@ -1,0 +1,2 @@
+tag,start,end,hours,rc,status,ckpt_dir,evals,cmd
+rn18_A_B1_anchor25k,2026-10-05 18:21:19,2026-10-05 19:24:15,1.049,0,ok,/home/ccwu/trx_data/checkpoints/lst1005_rn18_A_B1_anchor25k,46.5+/-0.4,python run.py --config configs/frozen_rn18_b1.yaml --seed 42 --training_iterations 25020 --test_iters 25000 --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_A_B1_anchor25k
