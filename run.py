@@ -515,6 +515,10 @@ class Learner:
         parser.add_argument('--train_aug', choices=['standard', 'none'], default='standard',
                             help='1005：訓練資料增強。standard（預設）＝現行（時間抖動＋水平翻轉＋隨機裁切）；'
                                  'none＝訓練也用測試的確定性時間取樣與 CenterCrop（模擬只存一份特徵快取）。')
+        parser.add_argument('--infer_ablate', choices=['none', 'inter', 'intra', 'both'], default='none',
+                            help='1005 新增：只在純評估（--test_model_path）時生效。載入 checkpoint 後把匹配頭的 '
+                                 'inter（inter）、intra（intra）或兩者（both）換成不作用，量推論時各模組的貢獻。'
+                                 '預設 none＝不動。')
         parser.add_argument('--eval_write_csv', action='store_true', default=False,
                             help='1005 新增：純評估模式（--test_model_path）預設不寫 results.csv；'
                                  '給這個 flag 才寫。訓練中的評估不受影響，照舊寫入。')
@@ -658,6 +662,18 @@ class Learner:
                     ckpt_path = self.args.test_model_path
                     checkpoint = torch.load(ckpt_path, map_location=self.device)
                     self.model.load_state_dict(checkpoint['model_state_dict'])
+                    _abl = getattr(self.args, "infer_ablate", "none")
+                    if _abl != "none":
+                        # 1005：推論消融——只在純評估時把匹配頭的 inter／intra 換成不作用。
+                        # inter=None 讓 forward 走「沒有 inter」的分支；intra=Identity。
+                        for _t in self.model.transformers:
+                            if _abl in ("inter", "both"):
+                                assert getattr(_t, "inter", None) is not None, "這顆模型沒有 inter 可以關"
+                                _t.inter = None
+                            if _abl in ("intra", "both"):
+                                assert not isinstance(getattr(_t, "intra", None), torch.nn.Identity), "這顆模型沒有 intra 可以關"
+                                _t.intra = torch.nn.Identity()
+                        print_and_log(self.logfile, f"[test-only] 推論消融 infer_ablate={_abl}")
                     m = re.search(r'(\d+)', os.path.basename(ckpt_path))
                     iteration = int(m.group(1)) if m else 0
                     print(f"[test-only] Loaded {ckpt_path}  iteration={iteration}", flush=True)
