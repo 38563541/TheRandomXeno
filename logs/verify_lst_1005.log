@@ -152,3 +152,9 @@ V7 舊 checkpoint strict 載入（評估數字見 scripts/v7_eval_1005.py 的 lo
   [PASS] V7 full B1 s43 (stage1) → lst（strict=False）只缺 side_net.*、resnet 鍵名不變  缺 27 個 side_net 鍵
 
 通過 118 項，失敗 0 項
+
+V7（純評估，scripts/v7_eval_1005.py，GPU，新程式 @ 2a6b83e 的 working tree，num_test_tasks=10000）
+  [PASS] V7 凍結 B1 s42 checkpoint25000（backbone_mode 由 freeze_backbone 正規化為 frozen）：46.4560011087358 vs 原紀錄 46.456 ✓（完全相同）
+  [PASS] V7 全微調 B1 s43 checkpoint25000（backbone_mode=full）：49.502001163959505 vs 原紀錄 49.502 ✓（完全相同）
+  log：logs/v7_1005_frozen_b1_s42_25k.log、logs/v7_1005_full_b1_s43_25k.log；兩次都沒有寫 results.csv。
+  每次評估 10000 episode 約 13 分鐘（16:50→17:03→17:16）。
