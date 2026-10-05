@@ -63,13 +63,11 @@ for amp in ("off", "fp16"):
     _add(f"RN18_B{s}",  "resnet18", "B",  "B4", ["--backbone_mode", "top_adapter"], amp)
     _add(f"RN18_C{s}",  "resnet18", "C",  "B4", ["--backbone_mode", "lst"], amp)
     _add(f"RN18_D{s}",  "resnet18", "D",  "B4", ["--backbone_mode", "partial_l4"], amp)
+# 只在 RN50_D 超過 11.0 GiB 時才跑：layer4 開 checkpoint（chain 共 21 個 module，前 20 個＝到 layer4 結尾）
 _add("RN50_D_l4ckpt", "resnet50", "D", "B4", ["--backbone_mode", "partial_l4", "--grad_ckpt",
-                                              "--ckpt_prefix", "21", "--ckpt_segments", "3"])
+                                              "--ckpt_prefix", "20", "--ckpt_segments", "3"])
 _add("RN50_C_T16", "resnet50", "C", "B4", ["--backbone_mode", "lst"], seq_len=16)
-_add("RN50_D_T16", "resnet50", "D", "B4", ["--backbone_mode", "partial_l4"], seq_len=16)
 _add("RN18_C_T16", "resnet18", "C", "B4", ["--backbone_mode", "lst"], seq_len=16)
-_add("RN18_D_T16", "resnet18", "D", "B4", ["--backbone_mode", "partial_l4"], seq_len=16)
-_add("RN50_A_T16", "resnet50", "A", "B4", ["--backbone_mode", "frozen"], seq_len=16)
 
 
 def sh(cmd):
