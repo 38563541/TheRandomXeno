@@ -63,10 +63,87 @@ _CSV_COLUMNS = [
     "iteration", "mean_accuracy", "confidence_interval",
 ]
 
+# 1005：results.csv 過去出現過的欄位組合（header 只在建檔時寫一次，之後 _CSV_COLUMNS
+# 加欄位時舊 header 沒更新，造成 19/21/22 欄的列混在同一個檔案）。
+#   19 欄：67bd5c8（2026-08-03）的 _CSV_COLUMNS。
+#   21 欄：2026-09-05～06 的未 commit 版本，比 19 欄多 decouple_gate/decouple_mode
+#          （git 歷史沒有這一版；由資料內容 True,remove 接在 inter_style 後確認）。
+#   22 欄：c2e6c2b（2026-09-13）的 _CSV_COLUMNS，多 intra_depth。
+_CSV_LEGACY_SCHEMAS = [
+    ["timestamp", "config_file", "dataset", "split",
+     "backbone", "temp_set", "matching", "set_aggregation", "tau",
+     "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
+     "way", "shot", "query_per_class",
+     "iteration", "mean_accuracy", "confidence_interval"],
+    ["timestamp", "config_file", "dataset", "split",
+     "backbone", "temp_set", "matching", "set_aggregation", "tau",
+     "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
+     "decouple_gate", "decouple_mode",
+     "way", "shot", "query_per_class",
+     "iteration", "mean_accuracy", "confidence_interval"],
+    ["timestamp", "config_file", "dataset", "split",
+     "backbone", "temp_set", "matching", "set_aggregation", "tau",
+     "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
+     "decouple_gate", "decouple_mode", "intra_depth",
+     "way", "shot", "query_per_class",
+     "iteration", "mean_accuracy", "confidence_interval"],
+]
+
+
+def _ensure_csv_schema(path=None, backup_dir=None):
+    """
+    寫入前檢查 results.csv 的 header 是否等於 _CSV_COLUMNS；不同就先備份到
+    logs/results_backup_<MMDD>.csv（已存在則加時分秒），再整檔重寫：每一列依
+    「欄數 == 檔案 header 欄數 → 用檔案 header；否則用欄數唯一相符的歷史 schema」
+    對應成 dict，缺的欄位補空字串。對不上任何 schema 的列 → raise，不默默寫壞。
+    回傳是否有重寫。
+    """
+    path = path or _CSV_PATH
+    if not os.path.exists(path):
+        return False
+    with open(path, newline="") as f:
+        rows = list(csv.reader(f))
+    if not rows or rows[0] == _CSV_COLUMNS:
+        return False
+    header, body = rows[0], [r for r in rows[1:] if r]
+    schemas = [header]
+    for s in _CSV_LEGACY_SCHEMAS + [_CSV_COLUMNS]:
+        if s not in schemas:
+            schemas.append(s)
+    fixed = []
+    for i, r in enumerate(body, start=2):
+        cand = [s for s in schemas if len(s) == len(r)]
+        if not cand or (len(cand) > 1 and cand[0] is not header):
+            raise RuntimeError(f"results.csv 第 {i} 列有 {len(r)} 欄，對不上任何已知 schema")
+        d = dict(zip(cand[0], r))
+        unknown = set(d) - set(_CSV_COLUMNS)
+        if unknown:
+            raise RuntimeError(f"results.csv 第 {i} 列有 _CSV_COLUMNS 沒有的欄位 {sorted(unknown)}")
+        fixed.append({k: d.get(k, "") for k in _CSV_COLUMNS})
+    log_dir = backup_dir or os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    now = datetime.datetime.now()
+    backup = os.path.join(log_dir, f"results_backup_{now.strftime('%m%d')}.csv")
+    if os.path.exists(backup):
+        backup = os.path.join(log_dir, f"results_backup_{now.strftime('%m%d_%H%M%S')}.csv")
+    import shutil
+    shutil.copy2(path, backup)
+    tmp = path + ".tmp"
+    with open(tmp, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=_CSV_COLUMNS)
+        w.writeheader()
+        w.writerows(fixed)
+    os.replace(tmp, path)
+    print(f"[INFO] results.csv header 與 _CSV_COLUMNS 不一致，已備份到 {backup} 並重寫 "
+          f"{len(fixed)} 列", flush=True)
+    return True
+
+
 def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
     """
     Append one row to experiments/results/results.csv.
     Creates the file with a header row if it does not yet exist.
+    1005：寫入前先 _ensure_csv_schema()，header 與 _CSV_COLUMNS 不一致時整檔重寫。
 
     Args:
         args               : parsed argparse namespace (provides dataset, split, etc.)
@@ -75,6 +152,7 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
         confidence_interval: float — 95% confidence interval (±%)
     """
     os.makedirs(os.path.dirname(_CSV_PATH), exist_ok=True)
+    _ensure_csv_schema(_CSV_PATH)
     write_header = not os.path.exists(_CSV_PATH)
 
     row = {
@@ -409,6 +487,9 @@ class Learner:
                             help='0922 新增：--ckpt_prefix 涵蓋段內的 checkpoint 策略。'
                                  '"full"（預設）＝現行行為，整組重算。"save_conv"＝selective '
                                  'activation checkpointing，conv 輸出存下來、BN/ReLU 等重算。')
+        parser.add_argument('--eval_write_csv', action='store_true', default=False,
+                            help='1005 新增：純評估模式（--test_model_path）預設不寫 results.csv；'
+                                 '給這個 flag 才寫。訓練中的評估不受影響，照舊寫入。')
         parser.add_argument('--amp', choices=['off', 'bf16', 'fp16'], default='off',
                             help='0922 新增：訓練步（forward+loss）用 torch.autocast 跑混合精度。'
                                  '預設 off，行為與現在完全相同。backward/optimizer step 在 '
@@ -559,6 +640,10 @@ class Learner:
                     if _item in accuracy_dict:
                         if getattr(self.args, "profile_memory", False):
                             print_and_log(self.logfile, "[mem] profiling run — 跳過 results.csv 寫入")
+                        elif not getattr(self.args, "eval_write_csv", False):
+                            # 1005：純評估預設不寫 results.csv（重評既有 checkpoint 不該
+                            # 多出一列訓練結果），要寫就明確給 --eval_write_csv。
+                            print_and_log(self.logfile, "[test-only] 未給 --eval_write_csv — 跳過 results.csv 寫入")
                         else:
                             _log_result_csv(
                                 self.args,
