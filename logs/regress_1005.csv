@@ -1,0 +1,3 @@
+tag,backbone,arm,head,amp,seq_len,flags,status,alloc_peak_gb,reserved_peak_gb,nvidia_smi_peak_gib,ms_iter,data_ms,backbone_fwd_ms,head_fwd_ms,backward_ms,trainable_M,loss_first,loss_last,commit,note
+R0_1005,resnet50,E1,B4,off,8,--grad_ckpt --ckpt_prefix 14 --ckpt_segments 7,ok,7.664,9.705,10.155,749.349,11.663,166.360,34.495,502.248,52.14,2.9225156,1.3418480,f7d9654,
+R0_1005,resnet50,E1,B4,off,8,--grad_ckpt --ckpt_prefix 14 --ckpt_segments 7,ok,7.664,9.705,10.148,747.914,9.298,166.389,34.700,502.387,52.14,2.7138240,1.3432012,f7d9654,
