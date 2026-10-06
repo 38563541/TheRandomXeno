@@ -58,3 +58,10 @@ timestamp,config_file,dataset,split,backbone,temp_set,matching,set_aggregation,t
 2026-10-06 15:24:14,configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,top_adapter,128,7,gn,761,standard,25000,47.09,0.4216
 2026-10-06 16:27:47,configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,top_adapter,128,7,gn,761,standard,50000,46.576,0.4276
 2026-10-06 17:31:05,configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,frozen,128,7,gn,761,none,25000,45.89,0.4149
+2026-10-06 19:51:12,configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,43,lst,128,7,gn,761,standard,25000,47.638,0.4293
+2026-10-06 20:54:26,configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,43,lst,128,7,gn,761,standard,50000,47.172,0.4308
+2026-10-06 21:57:17,configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,43,top_adapter,128,7,gn,761,standard,25000,47.53,0.4226
+2026-10-06 22:59:36,configs/frozen_rn18_b1.yaml,hmdb,3,resnet18,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,43,top_adapter,128,7,gn,761,standard,50000,44.406,0.42
+2026-10-07 01:23:41,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,42,lst,256,7,gn,945,standard,25000,45.564,0.4161
+2026-10-07 03:47:34,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,42,lst,256,7,gn,945,standard,50000,46.426,0.4235
+2026-10-07 05:36:28,configs/b1_backbone_1shot.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,lst,256,7,gn,945,standard,25000,48.494,0.4281
