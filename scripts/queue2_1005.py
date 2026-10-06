@@ -9,7 +9,7 @@ GPU 佔用 wall-clock 預算、開跑前自己做多線吞吐測試並機械判�
   1. 多線吞吐測試（logs/parallel_decision_1005.json 不存在時才做）：RN18 A（凍結 B1）300 iter，
      同時跑 1／2／3 個 job，記每個 job 的 --profile_time 中位數、nvidia-smi 峰值（整張卡）、
      系統 RAM 最小 available。採用 n 個並行的條件（全部要成立）：
-        總吞吐 Σ(1000/ms_i) ≥ 1.3 × 單 job 吞吐；nvidia-smi 峰值 < 11.0 GiB；RAM 最小 available ≥ 1024 MB。
+        總吞吐 Σ(1000/ms_i) ≥ 1.3 × 單 job 吞吐；nvidia-smi 峰值 < 11.0 GiB；RAM 最小 available > 3072 MB。
      max_jobs = 通過條件的最大 n（都不過 = 1，等於序列）。
   2. 依序跑 logs/queue2_1005.json 的 group。每個 group 有多條 lane（lane 內的 job 依序跑）；
      lane 以 min(max_jobs, group.max_parallel) 個槽位並行。group.max_parallel=1 → 永遠單獨跑
@@ -45,7 +45,7 @@ STOP = os.path.join(LOG, "queue2_1005.STOP")
 OLD_PID = os.path.join(LOG, "queue_1005.pid")
 BUDGET_H = 48.0
 SMI_LIMIT_GIB = 11.0
-RAM_FLOOR_MB = 1024
+RAM_FLOOR_MB = 3072   # 使用者 10-06 17:50：測試期間 available 必須 > 3 GiB
 FIELDS = ["kind", "name", "start", "end", "hours", "parallel", "rc", "status", "evals",
           "min_avail_mb", "smi_peak_gib", "note", "cmd"]
 
@@ -189,30 +189,43 @@ def parallel_test():
             procs.append((subprocess.Popen(base + ["-c", os.path.join(CKPT_ROOT, f"par1005_n{n}_{i}")],
                                            cwd=REPO, stdout=open(log, "w"), stderr=subprocess.STDOUT,
                                            env={**os.environ, "PYTHONUNBUFFERED": "1"}), log))
+        aborted = False
+        while any(p.poll() is None for p, _ in procs):
+            if avail_mb() < 1536:          # 保護：RAM 快見底就中止這一級，不讓系統 OOM
+                aborted = True
+                for p, _ in procs:
+                    p.terminate()
+                say(f"n={n}：RAM available < 1.5 GB，中止這一級")
+                break
+            time.sleep(2)
         rcs = [p.wait() for p, _ in procs]
         smi, mavail = s.stop()
         ms = []
         for _, log in procs:
             m = re.search(r"total\(wall\)=([\d.]+)ms", open(log, errors="replace").read())
             ms.append(float(m.group(1)) if m else None)
-        ok = all(r == 0 for r in rcs) and None not in ms
+        ok = (not aborted) and all(r == 0 for r in rcs) and None not in ms
         thr = sum(1000.0 / x for x in ms) if ok else 0.0
-        res[n] = dict(rc=rcs, ms=ms, it_s=thr, smi_peak_gib=smi, min_avail_mb=mavail, ok=ok)
+        res[n] = dict(rc=rcs, ms=ms, it_s=thr, smi_peak_gib=smi, min_avail_mb=mavail, ok=ok, aborted=aborted)
+        if aborted:
+            break
         say(f"n={n}: rc={rcs} ms={ms} 總 it/s={thr:.3f} smi={smi:.3f} GiB RAM 最小 available={mavail} MB")
     t1 = res[1]["it_s"]
     max_jobs, speed = 1, {1: 1.0}
     for n in (2, 3):
+        if n not in res:
+            break
         r = res[n]
         sp = r["it_s"] / t1 if t1 else 0.0
         speed[n] = sp
         r["speedup"] = sp
         r["pass"] = bool(r["ok"] and sp >= 1.3 and r["smi_peak_gib"] < SMI_LIMIT_GIB
-                         and r["min_avail_mb"] >= RAM_FLOOR_MB)
+                         and r["min_avail_mb"] > RAM_FLOOR_MB)
         if r["pass"] and n == max_jobs + 1:
             max_jobs = n
     dec = dict(time=f"{now():%F %T}", results=res, max_jobs=max_jobs,
                speedup={str(k): v for k, v in speed.items()},
-               rule="總吞吐 ≥ 1.3×單 job、nvidia-smi < 11.0 GiB、RAM 最小 available ≥ 1024 MB；取連續通過的最大 n")
+               rule="總吞吐 ≥ 1.3×單 job、nvidia-smi < 11.0 GiB、RAM 最小 available > 3072 MB；取連續通過的最大 n")
     json.dump(dec, open(DECISION, "w"), indent=1, ensure_ascii=False)
     say(f"吞吐測試結論：max_jobs={max_jobs}，加速比 {speed}")
     return dec
