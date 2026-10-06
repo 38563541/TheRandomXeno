@@ -1,0 +1,285 @@
+[
+ {
+  "name": "g1_rn18_ablation_and_s43",
+  "lanes": [
+   [
+    {
+     "tag": "rn18_C_B4_s42_abl_none",
+     "est_hours": 0.32,
+     "args": [
+      "--config",
+      "configs/frozen_rn18_b4.yaml",
+      "--backbone_mode",
+      "lst",
+      "--seed",
+      "42",
+      "-m",
+      "/home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42/hmdb_split3_20261006_053519/checkpoint50000.pt",
+      "--infer_ablate",
+      "none"
+     ]
+    },
+    {
+     "tag": "rn18_C_B4_s42_abl_inter",
+     "est_hours": 0.32,
+     "args": [
+      "--config",
+      "configs/frozen_rn18_b4.yaml",
+      "--backbone_mode",
+      "lst",
+      "--seed",
+      "42",
+      "-m",
+      "/home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42/hmdb_split3_20261006_053519/checkpoint50000.pt",
+      "--infer_ablate",
+      "inter"
+     ]
+    },
+    {
+     "tag": "rn18_C_B4_s42_abl_intra",
+     "est_hours": 0.32,
+     "args": [
+      "--config",
+      "configs/frozen_rn18_b4.yaml",
+      "--backbone_mode",
+      "lst",
+      "--seed",
+      "42",
+      "-m",
+      "/home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42/hmdb_split3_20261006_053519/checkpoint50000.pt",
+      "--infer_ablate",
+      "intra"
+     ]
+    },
+    {
+     "tag": "rn18_C_B4_s42_abl_both",
+     "est_hours": 0.32,
+     "args": [
+      "--config",
+      "configs/frozen_rn18_b4.yaml",
+      "--backbone_mode",
+      "lst",
+      "--seed",
+      "42",
+      "-m",
+      "/home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42/hmdb_split3_20261006_053519/checkpoint50000.pt",
+      "--infer_ablate",
+      "both"
+     ]
+    }
+   ],
+   [
+    {
+     "tag": "rn18_C_B1_s43",
+     "est_hours": 2.24,
+     "args": [
+      "--config",
+      "configs/frozen_rn18_b1.yaml",
+      "--backbone_mode",
+      "lst",
+      "--seed",
+      "43",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ],
+   [
+    {
+     "tag": "rn18_B_B1_s43",
+     "est_hours": 2.18,
+     "args": [
+      "--config",
+      "configs/frozen_rn18_b1.yaml",
+      "--backbone_mode",
+      "top_adapter",
+      "--seed",
+      "43",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ]
+  ]
+ },
+ {
+  "name": "g2_rn50_C_B4+A_B4",
+  "max_parallel": 2,
+  "lanes": [
+   [
+    {
+     "tag": "rn50_C_B4_s42",
+     "est_hours": 5.07,
+     "args": [
+      "--config",
+      "configs/stage2_true_hyrsm_b4_tuple.yaml",
+      "--method",
+      "resnet50",
+      "--backbone_mode",
+      "lst",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ],
+   [
+    {
+     "tag": "rn50_A_B4_s42",
+     "est_hours": 4.81,
+     "args": [
+      "--config",
+      "configs/stage2_true_hyrsm_b4_tuple.yaml",
+      "--method",
+      "resnet50",
+      "--backbone_mode",
+      "frozen",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ]
+  ]
+ },
+ {
+  "name": "g3_rn50_D_B4+C_B1",
+  "max_parallel": 2,
+  "lanes": [
+   [
+    {
+     "tag": "rn50_D_B4_s42",
+     "est_hours": 5.33,
+     "args": [
+      "--config",
+      "configs/stage2_true_hyrsm_b4_tuple.yaml",
+      "--method",
+      "resnet50",
+      "--backbone_mode",
+      "partial_l4",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ],
+   [
+    {
+     "tag": "rn50_C_B1_s42",
+     "est_hours": 3.7,
+     "args": [
+      "--config",
+      "configs/b1_backbone_1shot.yaml",
+      "--method",
+      "resnet50",
+      "--backbone_mode",
+      "lst",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ]
+  ]
+ },
+ {
+  "name": "g4_rn50_A_B1+D_B1",
+  "max_parallel": 2,
+  "lanes": [
+   [
+    {
+     "tag": "rn50_A_B1_s42",
+     "est_hours": 3.44,
+     "args": [
+      "--config",
+      "configs/b1_backbone_1shot.yaml",
+      "--method",
+      "resnet50",
+      "--backbone_mode",
+      "frozen",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ],
+   [
+    {
+     "tag": "rn50_D_B1_s42",
+     "est_hours": 3.95,
+     "args": [
+      "--config",
+      "configs/b1_backbone_1shot.yaml",
+      "--method",
+      "resnet50",
+      "--backbone_mode",
+      "partial_l4",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ]
+  ]
+ },
+ {
+  "name": "g5_rn50_E1_B1_alone",
+  "max_parallel": 1,
+  "lanes": [
+   [
+    {
+     "tag": "rn50_E1_B1_s42",
+     "est_hours": 10.17,
+     "args": [
+      "--config",
+      "configs/b1_backbone_1shot.yaml",
+      "--method",
+      "resnet50",
+      "--grad_ckpt",
+      "--ckpt_prefix",
+      "14",
+      "--ckpt_segments",
+      "7",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ]
+  ]
+ }
+]
