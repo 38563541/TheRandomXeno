@@ -109,8 +109,8 @@
   ]
  },
  {
-  "name": "g2_rn50_C_B4+A_B4",
-  "max_parallel": 2,
+  "name": "g2b_rn50_C_B4+C_B1",
+  "max_parallel": 1,
   "lanes": [
    [
     {
@@ -123,54 +123,6 @@
       "resnet50",
       "--backbone_mode",
       "lst",
-      "--seed",
-      "42",
-      "--training_iterations",
-      "50020",
-      "--test_iters",
-      "25000",
-      "50000"
-     ]
-    }
-   ],
-   [
-    {
-     "tag": "rn50_A_B4_s42",
-     "est_hours": 4.81,
-     "args": [
-      "--config",
-      "configs/stage2_true_hyrsm_b4_tuple.yaml",
-      "--method",
-      "resnet50",
-      "--backbone_mode",
-      "frozen",
-      "--seed",
-      "42",
-      "--training_iterations",
-      "50020",
-      "--test_iters",
-      "25000",
-      "50000"
-     ]
-    }
-   ]
-  ]
- },
- {
-  "name": "g3_rn50_D_B4+C_B1",
-  "max_parallel": 2,
-  "lanes": [
-   [
-    {
-     "tag": "rn50_D_B4_s42",
-     "est_hours": 5.33,
-     "args": [
-      "--config",
-      "configs/stage2_true_hyrsm_b4_tuple.yaml",
-      "--method",
-      "resnet50",
-      "--backbone_mode",
-      "partial_l4",
       "--seed",
       "42",
       "--training_iterations",
@@ -205,9 +157,30 @@
   ]
  },
  {
-  "name": "g4_rn50_A_B1+D_B1",
-  "max_parallel": 2,
+  "name": "g3b_rn50_A_B4+A_B1",
+  "max_parallel": 1,
   "lanes": [
+   [
+    {
+     "tag": "rn50_A_B4_s42",
+     "est_hours": 4.81,
+     "args": [
+      "--config",
+      "configs/stage2_true_hyrsm_b4_tuple.yaml",
+      "--method",
+      "resnet50",
+      "--backbone_mode",
+      "frozen",
+      "--seed",
+      "42",
+      "--training_iterations",
+      "50020",
+      "--test_iters",
+      "25000",
+      "50000"
+     ]
+    }
+   ],
    [
     {
      "tag": "rn50_A_B1_s42",
@@ -228,14 +201,20 @@
       "50000"
      ]
     }
-   ],
+   ]
+  ]
+ },
+ {
+  "name": "g4b_rn50_D_B4",
+  "max_parallel": 1,
+  "lanes": [
    [
     {
-     "tag": "rn50_D_B1_s42",
-     "est_hours": 3.95,
+     "tag": "rn50_D_B4_s42",
+     "est_hours": 5.33,
      "args": [
       "--config",
-      "configs/b1_backbone_1shot.yaml",
+      "configs/stage2_true_hyrsm_b4_tuple.yaml",
       "--method",
       "resnet50",
       "--backbone_mode",

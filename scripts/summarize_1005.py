@@ -154,7 +154,11 @@ def main():
     na = get("rn18", "A", "B1_noaug")
     if na and na[0] is not None:
         d = na[0] - A1[0]
-        L.append(f"- R4 快取可行（#9 − A B1 25k ≥ −0.4）：**{'成立' if d >= -THR else '不成立'}**（{d:+.3f}）")
+        if d >= -THR:
+            L.append(f"- R4 快取可行（#9 − A B1 25k ≥ −0.4）：**成立**（{d:+.3f}）")
+        else:
+            L.append(f"- R4 快取可行（#9 − A B1 25k ≥ −0.4）：**不成立**（{d:+.3f} pp，離門檻 {abs(d)-THR:.2f}，"
+                     f"單一 seed、單一檢查點）→ 單份快取有疑慮，需要多份增強或補 seed；不等於「快取不可行」。")
     else:
         L.append("- R4：無法判定（缺資料）")
 
