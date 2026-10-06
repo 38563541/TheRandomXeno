@@ -24,3 +24,6 @@
 === 10-06 16:27:51 END rn18_B_B1_s42: rc=0 status=ok evals=47.1+/-0.4;46.6+/-0.4
 === budget: 已用 23.08 h ＋ 預估 1.08 h ≤ 48.0 h
 === 10-06 16:27:51 START rn18_A_B1_noaug25k: python run.py --config configs/frozen_rn18_b1.yaml --train_aug none --seed 42 --training_iterations 25020 --test_iters 25000 --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_A_B1_noaug25k
+=== 10-06 17:31:09 END rn18_A_B1_noaug25k: rc=0 status=ok evals=45.9+/-0.4
+=== queue empty
+=== driver exit
