@@ -53,6 +53,7 @@ TAGS = {  # (backbone, arm, head) -> queue tag
     ("rn50", "E", "B1"): "rn50_E1_B1_s42",
     ("rn18", "C", "B1_s43"): "rn18_C_B1_s43",
     ("rn18", "C", "B4_s43"): "rn18_C_B4_s43",
+    ("rn18", "B", "B1_s43"): "rn18_B_B1_s43",
 }
 
 
@@ -113,7 +114,7 @@ def main():
                 ("rn18", "B", "B1"), ("rn18", "C", "B1"), ("rn18", "C", "B4"), ("rn18", "D", "B1"),
                 ("rn18", "D", "B4"), ("rn18", "E", "B1"), ("rn18", "E", "B4"),
                 ("rn18", "E'", "B1"), ("rn18", "E'", "B4"),
-                ("rn18", "C", "B1_s43"), ("rn18", "C", "B4_s43"),
+                ("rn18", "C", "B1_s43"), ("rn18", "B", "B1_s43"),
                 ("rn50", "A", "B1"), ("rn50", "A", "B4"), ("rn50", "B", "B4"), ("rn50", "C", "B1"),
                 ("rn50", "C", "B4"), ("rn50", "D", "B1"), ("rn50", "D", "B4"), ("rn50", "E", "B1"),
                 ("rn50", "E", "B4")]:
@@ -151,6 +152,14 @@ def main():
                  f"（D−C：25k {D1[0]-C1[0]:+.3f}／50k {D1[1]-C1[1]:+.3f}；ms 比 {msr:.3f}，B1 頭）")
     else:
         L.append("- R3：無法判定（缺資料）")
+    C43, B43 = get("rn18", "C", "B1_s43"), get("rn18", "B", "B1_s43")
+    if C43 and B43 and None not in C43 and None not in B43 and B1_ and C1:
+        d42 = [c - b for c, b in zip(C1, B1_)]
+        d43 = [c - b for c, b in zip(C43, B43)]
+        avg = [(a + b) / 2 for a, b in zip(d42, d43)]
+        ok = all(v >= THR for v in avg) and (d42[1] > 0) == (d43[1] > 0)
+        L.append(f"- R2′ 兩 seed（平均 C B1 − B B1 在 25k、50k 都 ≥ +0.4，且 50k 兩 seed 同號）：**{'成立' if ok else '不成立'}**"
+                 f"（s42 {d42[0]:+.3f}／{d42[1]:+.3f}；s43 {d43[0]:+.3f}／{d43[1]:+.3f}；平均 {avg[0]:+.3f}／{avg[1]:+.3f}）")
     na = get("rn18", "A", "B1_noaug")
     if na and na[0] is not None:
         d = na[0] - A1[0]

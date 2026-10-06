@@ -1,0 +1,132 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+[INFO] seed=43 (random, numpy, torch, cuda)
+Options: Namespace(config='configs/frozen_rn18_b1.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/lst1005_rn18_B_B1_s43/hmdb_split3_20261006_205432', test_model_path=None, training_iterations=50020, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[25000, 50000], num_test_tasks=10000, print_freq=1000, seq_len=8, num_workers=10, method='resnet18', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=5000, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=43, grad_ckpt=False, ckpt_segments=8, ckpt_prefix=None, freeze_backbone=True, profile_memory=False, bn_fix_scope='covered', loss_csv=None, profile_time=False, ckpt_policy='full', backbone_mode='top_adapter', side_width=128, side_res=7, side_norm='gn', adapter_hidden=761, train_aug='standard', infer_ablate='none', eval_write_csv=False, amp='off', decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=False, use_inter_relation=False, relation_level='none', config_file='configs/frozen_rn18_b1.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/lst1005_rn18_B_B1_s43/hmdb_split3_20261006_205432
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet18_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet18_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] backbone FROZEN: requires_grad=False, BN in eval mode
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+[INFO] backbone_mode=top_adapter: hidden=761，可訓練 0.781 M，α 初始 0
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 1.96 M 個可訓練參數
+/home/ccwu/Documents/work/trx/run.py:274: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self.scaler = torch.cuda.amp.GradScaler(enabled=(getattr(self.args, "amp", "off") == "fp16"))
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torch/optim/lr_scheduler.py:224: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+Task [1000/50020], Train Loss: 4.4456329, Train Accuracy: 0.4611812
+[adapter] iter 1000 alpha 0.275639
+Task [2000/50020], Train Loss: 2.0199413, Train Accuracy: 0.5060000
+[adapter] iter 2000 alpha 0.501235
+Task [3000/50020], Train Loss: 1.8177247, Train Accuracy: 0.5361999
+[adapter] iter 3000 alpha 0.594224
+Task [4000/50020], Train Loss: 1.7618341, Train Accuracy: 0.5488800
+[adapter] iter 4000 alpha 0.645098
+Task [5000/50020], Train Loss: 1.7119272, Train Accuracy: 0.5635200
+[adapter] iter 5000 alpha 0.673415
+Task [6000/50020], Train Loss: 1.6595014, Train Accuracy: 0.5765200
+[adapter] iter 6000 alpha 0.703289
+Task [7000/50020], Train Loss: 1.6259938, Train Accuracy: 0.5838400
+[adapter] iter 7000 alpha 0.738615
+Task [8000/50020], Train Loss: 1.5925556, Train Accuracy: 0.5954000
+[adapter] iter 8000 alpha 0.772866
+Task [9000/50020], Train Loss: 1.5469561, Train Accuracy: 0.6091599
+[adapter] iter 9000 alpha 0.814196
+Task [10000/50020], Train Loss: 1.5553348, Train Accuracy: 0.6023600
+[adapter] iter 10000 alpha 0.862637
+Task [11000/50020], Train Loss: 1.5385317, Train Accuracy: 0.6077200
+[adapter] iter 11000 alpha 0.91107
+Task [12000/50020], Train Loss: 1.4613829, Train Accuracy: 0.6255199
+[adapter] iter 12000 alpha 0.962296
+Task [13000/50020], Train Loss: 1.4481803, Train Accuracy: 0.6328400
+[adapter] iter 13000 alpha 1.01733
+Task [14000/50020], Train Loss: 1.3857017, Train Accuracy: 0.6448000
+[adapter] iter 14000 alpha 1.07464
+Task [15000/50020], Train Loss: 1.3774296, Train Accuracy: 0.6530800
+[adapter] iter 15000 alpha 1.13023
+Task [16000/50020], Train Loss: 1.3815320, Train Accuracy: 0.6507600
+[adapter] iter 16000 alpha 1.19429
+Task [17000/50020], Train Loss: 1.3252035, Train Accuracy: 0.6625200
+[adapter] iter 17000 alpha 1.2547
+Task [18000/50020], Train Loss: 1.3029858, Train Accuracy: 0.6715600
+[adapter] iter 18000 alpha 1.31866
+Task [19000/50020], Train Loss: 1.2779800, Train Accuracy: 0.6788400
+[adapter] iter 19000 alpha 1.37949
+Task [20000/50020], Train Loss: 1.2693156, Train Accuracy: 0.6764801
+[adapter] iter 20000 alpha 1.44171
+Task [21000/50020], Train Loss: 1.2328217, Train Accuracy: 0.6873200
+[adapter] iter 21000 alpha 1.50886
+Task [22000/50020], Train Loss: 1.1958350, Train Accuracy: 0.6954800
+[adapter] iter 22000 alpha 1.56998
+Task [23000/50020], Train Loss: 1.1858563, Train Accuracy: 0.6989201
+[adapter] iter 23000 alpha 1.63998
+Task [24000/50020], Train Loss: 1.1440545, Train Accuracy: 0.7130401
+[adapter] iter 24000 alpha 1.70736
+Task [25000/50020], Train Loss: 1.1422281, Train Accuracy: 0.7085199
+[adapter] iter 25000 alpha 1.77432
+{'hmdb': {'accuracy': 47.530001116991045, 'confidence': 0.42258760060238937}}
+
+Test Accuracies:
+hmdb: 47.5+/-0.4
+
+Task [26000/50020], Train Loss: 1.0704552, Train Accuracy: 0.7302800
+[adapter] iter 26000 alpha 1.84172
+Task [27000/50020], Train Loss: 1.0321822, Train Accuracy: 0.7410799
+[adapter] iter 27000 alpha 1.90726
+Task [28000/50020], Train Loss: 1.0331242, Train Accuracy: 0.7390400
+[adapter] iter 28000 alpha 1.97337
+Task [29000/50020], Train Loss: 1.0055010, Train Accuracy: 0.7419600
+[adapter] iter 29000 alpha 2.03788
+Task [30000/50020], Train Loss: 0.9594363, Train Accuracy: 0.7589601
+[adapter] iter 30000 alpha 2.10377
+Task [31000/50020], Train Loss: 0.9128246, Train Accuracy: 0.7693601
+[adapter] iter 31000 alpha 2.16742
+Task [32000/50020], Train Loss: 0.9015061, Train Accuracy: 0.7728400
+[adapter] iter 32000 alpha 2.23076
+Task [33000/50020], Train Loss: 0.8756077, Train Accuracy: 0.7774000
+[adapter] iter 33000 alpha 2.29103
+Task [34000/50020], Train Loss: 0.8432633, Train Accuracy: 0.7875600
+[adapter] iter 34000 alpha 2.34793
+Task [35000/50020], Train Loss: 0.7854633, Train Accuracy: 0.8024400
+[adapter] iter 35000 alpha 2.40773
+Task [36000/50020], Train Loss: 0.7786593, Train Accuracy: 0.8019201
+[adapter] iter 36000 alpha 2.46407
+Task [37000/50020], Train Loss: 0.7548915, Train Accuracy: 0.8087201
+[adapter] iter 37000 alpha 2.51594
+Task [38000/50020], Train Loss: 0.7108214, Train Accuracy: 0.8216401
+[adapter] iter 38000 alpha 2.56912
+Task [39000/50020], Train Loss: 0.6721193, Train Accuracy: 0.8322001
+[adapter] iter 39000 alpha 2.6132
+Task [40000/50020], Train Loss: 0.6653143, Train Accuracy: 0.8345200
+[adapter] iter 40000 alpha 2.65904
+Task [41000/50020], Train Loss: 0.6587680, Train Accuracy: 0.8356001
+[adapter] iter 41000 alpha 2.70644
+Task [42000/50020], Train Loss: 0.6361472, Train Accuracy: 0.8407200
+[adapter] iter 42000 alpha 2.74958
+Task [43000/50020], Train Loss: 0.5900424, Train Accuracy: 0.8519601
+[adapter] iter 43000 alpha 2.79091
+Task [44000/50020], Train Loss: 0.5842249, Train Accuracy: 0.8541601
+[adapter] iter 44000 alpha 2.82907
+Task [45000/50020], Train Loss: 0.5642706, Train Accuracy: 0.8588000
+[adapter] iter 45000 alpha 2.86893
+Task [46000/50020], Train Loss: 0.5462732, Train Accuracy: 0.8643600
+[adapter] iter 46000 alpha 2.90646
+Task [47000/50020], Train Loss: 0.5180771, Train Accuracy: 0.8707600
+[adapter] iter 47000 alpha 2.9423
+Task [48000/50020], Train Loss: 0.4951612, Train Accuracy: 0.8755200
+[adapter] iter 48000 alpha 2.97643
+Task [49000/50020], Train Loss: 0.5039680, Train Accuracy: 0.8725600
+[adapter] iter 49000 alpha 3.00931
+Task [50000/50020], Train Loss: 0.4713311, Train Accuracy: 0.8816000
+[adapter] iter 50000 alpha 3.03874
+{'hmdb': {'accuracy': 44.40600104644894, 'confidence': 0.4200381921740113}}
+
+Test Accuracies:
+hmdb: 44.4+/-0.4
+

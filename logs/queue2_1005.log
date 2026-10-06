@@ -20,3 +20,9 @@
 === 10-06 18:36:38 START rn18_C_B4_s42_abl_both: python run.py --config configs/frozen_rn18_b4.yaml --backbone_mode lst --seed 42 -m /home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42/hmdb_split3_20261006_053519/checkpoint50000.pt --infer_ablate both --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42_abl_both
 === 10-06 18:48:26 END rn18_C_B4_s42_abl_both: rc=0 status=ok evals=45.0400+/-0.4117
 === 10-06 18:48:26 START rn18_C_B1_s43: python run.py --config configs/frozen_rn18_b1.yaml --backbone_mode lst --seed 43 --training_iterations 50020 --test_iters 25000 50000 --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B1_s43
+=== 10-06 20:54:30 END rn18_C_B1_s43: rc=0 status=ok evals=47.6380+/-0.4293;47.1720+/-0.4308
+=== 10-06 20:54:30 START rn18_B_B1_s43: python run.py --config configs/frozen_rn18_b1.yaml --backbone_mode top_adapter --seed 43 --training_iterations 50020 --test_iters 25000 50000 --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_B_B1_s43
+=== 10-06 22:59:39 END rn18_B_B1_s43: rc=0 status=ok evals=47.5300+/-0.4226;44.4060+/-0.4200
+=== 10-06 22:59:41 GROUP END g1_rn18_ablation_and_s43：wall-clock 5.053 h，smi 峰值 2.629 GiB，RAM 最小 available 4769 MB
+=== 10-06 22:59:41 GROUP g2b_rn50_C_B4+C_B1：2 條 lane、1 個槽位；已用 29.25 h ＋ 預估 8.77 h ≤ 48.0
+=== 10-06 22:59:41 START rn50_C_B4_s42: python run.py --config configs/stage2_true_hyrsm_b4_tuple.yaml --method resnet50 --backbone_mode lst --seed 42 --training_iterations 50020 --test_iters 25000 50000 --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn50_C_B4_s42
