@@ -1,0 +1,19 @@
+[WARN] config 有廢棄鍵 ['num_samples']（程式碼不讀取，對模型無作用）
+[INFO] seed=42 (random, numpy, torch, cuda)
+Options: Namespace(config='configs/frozen_rn18_b1.yaml', dataset='hmdb', learning_rate=0.001, tasks_per_batch=16, checkpoint_dir='/home/ccwu/trx_data/checkpoints/par1005_n2_1/hmdb_split3_20261006_175606', test_model_path=None, training_iterations=300, resume_from_checkpoint=False, way=5, shot=1, query_per_class=5, query_per_class_test=1, test_iters=[999999], num_test_tasks=10000, print_freq=100, seq_len=8, num_workers=10, method='resnet18', trans_linear_out_dim=1152, trans_linear_in_dim=512, opt='sgd', trans_dropout=0.1, save_freq=999999, img_size=224, temp_set=[2], scratch='/home/ccwu/Documents/work/trx/trx_data', num_gpus=1, debug_loader=False, split=3, sch=[1000000], seed=42, grad_ckpt=False, ckpt_segments=8, ckpt_prefix=None, freeze_backbone=True, profile_memory=False, bn_fix_scope='covered', loss_csv=None, profile_time=True, ckpt_policy='full', backbone_mode='frozen', side_width=128, side_res=7, side_norm='gn', adapter_hidden=761, train_aug='standard', infer_ablate='none', eval_write_csv=False, amp='off', decouple_gate=True, decouple_mode='remove', intra_depth=1, matching='bidirectional', set_aggregation='pool', tau=0.1, num_samples=1, use_intra_relation=False, use_inter_relation=False, relation_level='none', config_file='configs/frozen_rn18_b1.yaml', traintestlist='/home/ccwu/Documents/work/trx/trx_data/video_datasets/splits/hmdb_ARN', path='/home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip')
+
+Checkpoint Directory: /home/ccwu/trx_data/checkpoints/par1005_n2_1/hmdb_split3_20261006_175606
+
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/ccwu/miniconda3/envs/trx/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet18_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet18_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+[INFO] set inplace=False on 9 ReLU modules in resnet
+[INFO] backbone FROZEN: requires_grad=False, BN in eval mode
+[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]
+[INFO] matching=bidirectional, set_aggregation=pool, tau=0.1, tuples_len=28, support_chunk=64
+loaded /home/ccwu/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+train: 4269, test: 1276
+[INFO] optimizer 收了 1.18 M 個可訓練參數
+/home/ccwu/Documents/work/trx/run.py:274: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self.scaler = torch.cuda.amp.GradScaler(enabled=(getattr(self.args, "amp", "off") == "fp16"))

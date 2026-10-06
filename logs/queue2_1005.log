@@ -1,0 +1,14 @@
+=== 10-06 17:08:37 queue2 driver 啟動
+=== 10-06 17:31:38 舊 driver 已結束
+=== 10-06 17:31:48 吞吐測試 n=1
+=== 10-06 17:32:33 n=1: rc=[0] ms=[118.818] 總 it/s=8.416 smi=2.081 GiB RAM 最小 available=5712 MB
+=== 10-06 17:32:43 吞吐測試 n=2
+=== 10-06 17:54:25 queue2 driver 啟動
+=== 10-06 17:54:25 舊 driver 已結束
+=== 10-06 17:54:35 吞吐測試 n=1
+=== 10-06 17:55:53 n=1: rc=[0] ms=[115.198] 總 it/s=8.681 smi=2.079 GiB RAM 最小 available=5803 MB
+=== 10-06 17:56:03 吞吐測試 n=2
+=== 10-06 17:56:25 n=2：RAM available < 1.5 GB，中止這一級
+=== 10-06 17:56:27 吞吐測試結論：max_jobs=1，加速比 {1: 1.0, 2: 0.0}
+=== 10-06 17:56:27 GROUP g1_rn18_ablation_and_s43：3 條 lane、1 個槽位；已用 24.13 h ＋ 預估 5.70 h ≤ 48.0
+=== 10-06 17:57:27 START rn18_C_B4_s42_abl_none: python run.py --config configs/frozen_rn18_b4.yaml --backbone_mode lst --seed 42 -m /home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42/hmdb_split3_20261006_053519/checkpoint50000.pt --infer_ablate none --dataset hmdb --split 3 --scratch /home/ccwu/Documents/work/trx/trx_data -c /home/ccwu/trx_data/checkpoints/lst1005_rn18_C_B4_s42_abl_none

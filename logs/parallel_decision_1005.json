@@ -1,0 +1,41 @@
+{
+ "time": "2026-10-06 17:56:27",
+ "results": {
+  "1": {
+   "rc": [
+    0
+   ],
+   "ms": [
+    115.198
+   ],
+   "it_s": 8.680706262261499,
+   "smi_peak_gib": 2.0791015625,
+   "min_avail_mb": 5803,
+   "ok": true,
+   "aborted": false
+  },
+  "2": {
+   "rc": [
+    -15,
+    -15
+   ],
+   "ms": [
+    null,
+    null
+   ],
+   "it_s": 0.0,
+   "smi_peak_gib": 2.62890625,
+   "min_avail_mb": 2286,
+   "ok": false,
+   "aborted": true,
+   "speedup": 0.0,
+   "pass": false
+  }
+ },
+ "max_jobs": 1,
+ "speedup": {
+  "1": 1.0,
+  "2": 0.0
+ },
+ "rule": "總吞吐 ≥ 1.3×單 job、nvidia-smi < 11.0 GiB、RAM 最小 available > 3072 MB；取連續通過的最大 n"
+}
