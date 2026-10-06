@@ -28,15 +28,15 @@ FIXED = {
     ("rn18", "A", "B1"): (46.456, 46.836),   # 凍結 B1 s42（d99ea37）
     ("rn18", "A", "B4"): (45.510, 45.960),   # 凍結 B4 s42（2c15625）
     ("rn50", "E", "B4"): (49.984, 50.362),   # RN50 E1 B4 s42（bf34a2a，0920）
+    # 使用者 10-06 指示：RN18 的 E 主列用 §A 那兩次 run（舊程式、無 seed、評估 episode 不配對）
+    ("rn18", "E", "B1"): (46.736, 47.488),   # abl_bidir_hmdb3/hmdb_split3_20260407_220041
+    ("rn18", "E", "B4"): (49.534, 49.880),   # true_hyrsm_b4_1shot/hmdb_split3_20260526_202630
 }
-LEGACY = {  # 舊程式、無 seed，只當參考
-    ("rn18", "E", "B1"): (46.736, 47.488),
-    ("rn18", "E", "B4"): (49.534, 49.880),
-}
+LEGACY = {}
 TAGS = {  # (backbone, arm, head) -> queue tag
     ("rn18", "A", "B1_anchor"): "rn18_A_B1_anchor25k",
-    ("rn18", "E", "B1"): "rn18_E_B1_s42",
-    ("rn18", "E", "B4"): "rn18_E_B4_s42",
+    ("rn18", "E'", "B1"): "rn18_E_B1_s42",   # E′：1005 seed 42 重跑（G1）
+    ("rn18", "E'", "B4"): "rn18_E_B4_s42",
     ("rn18", "C", "B1"): "rn18_C_B1_s42",
     ("rn18", "C", "B4"): "rn18_C_B4_s42",
     ("rn18", "D", "B1"): "rn18_D_B1_s42",
@@ -112,17 +112,19 @@ def main():
     for key in [("rn18", "A", "B1"), ("rn18", "A", "B1_anchor"), ("rn18", "A", "B1_noaug"), ("rn18", "A", "B4"),
                 ("rn18", "B", "B1"), ("rn18", "C", "B1"), ("rn18", "C", "B4"), ("rn18", "D", "B1"),
                 ("rn18", "D", "B4"), ("rn18", "E", "B1"), ("rn18", "E", "B4"),
+                ("rn18", "E'", "B1"), ("rn18", "E'", "B4"),
                 ("rn18", "C", "B1_s43"), ("rn18", "C", "B4_s43"),
                 ("rn50", "A", "B1"), ("rn50", "A", "B4"), ("rn50", "B", "B4"), ("rn50", "C", "B1"),
                 ("rn50", "C", "B4"), ("rn50", "D", "B1"), ("rn50", "D", "B4"), ("rn50", "E", "B1"),
                 ("rn50", "E", "B4")]:
         v = get(*key)
-        src = "既有（0-7）" if key in FIXED else (f"`lst1005_{TAGS[key]}`" if key in TAGS else "")
+        src = ("§A（舊程式、無 seed、不配對）" if key[:2] == ("rn18", "E") else "既有（0-7）") if key in FIXED else (f"`lst1005_{TAGS[key]}`" if key in TAGS else "")
         if v is None:
             v = (None, None)
             src += "（未跑／未完成）"
         L.append(f"| {key[0].upper()} | {key[1]} | {key[2]} | {fmt_acc(v[0])} | {fmt_acc(v[1])} | {src} |")
-    L.append("\n（legacy 參考，舊程式、無 seed、評估 episode 不配對：RN18 全微調 B1 46.736／47.488、B4 49.534／49.880）\n")
+    L.append("\n（RN18 的 E ＝ §A 那兩次 run：2026-04-07／05-26 舊程式、沒有 seed、評估 episode 與 seed 42 的 run 不配對；"
+             "E′ ＝ 1005 用現行程式 seed 42 重跑，與 A／B／C／D 同 seed、同評估 episode。兩者都列。）\n")
 
     A1, A4 = get("rn18", "A", "B1"), get("rn18", "A", "B4")
     C1, C4 = get("rn18", "C", "B1"), get("rn18", "C", "B4")
@@ -160,7 +162,7 @@ def main():
     L.append("| backbone | arm | 25k | 50k |")
     L.append("|---|---|---|---|")
     for bb in ("rn18", "rn50"):
-        for arm in ("A", "D", "C", "E"):
+        for arm in ("A", "D", "C", "E") + (("E'",) if bb == "rn18" else ()):
             d = diff(get(bb, arm, "B4"), get(bb, arm, "B1"))
             d = d or (None, None)
             L.append(f"| {bb.upper()} | {arm} | {fmt(d[0])} | {fmt(d[1])} |")
@@ -169,11 +171,11 @@ def main():
         L.append(f"| RN18 s43 | C | {fmt(d[0])} | {fmt(d[1])} |")
 
     L.append("\n### 回收比例 (arm − A)/(E − A)\n")
-    L.append("| backbone | head | arm | 25k | 50k |")
-    L.append("|---|---|---|---|---|")
-    for bb in ("rn18", "rn50"):
+    L.append("| backbone | E 用哪個 | head | arm | 25k | 50k |")
+    L.append("|---|---|---|---|---|---|")
+    for bb, ek in (("rn18", "E"), ("rn18", "E'"), ("rn50", "E")):
         for head in ("B1", "B4"):
-            A_, E_ = get(bb, "A", head), get(bb, "E", head)
+            A_, E_ = get(bb, "A", head), get(bb, ek, head)
             for arm in ("B", "C", "D"):
                 X = get(bb, arm, head)
                 cells = []
@@ -184,7 +186,7 @@ def main():
                         cells.append(f"分母過小（E−A={E_[i]-A_[i]:+.2f}），不計算")
                     else:
                         cells.append(f"{(X[i]-A_[i])/(E_[i]-A_[i]):.2f}")
-                L.append(f"| {bb.upper()} | {head} | {arm} | {cells[0]} | {cells[1]} |")
+                L.append(f"| {bb.upper()} | {'E（§A）' if ek == 'E' and bb == 'rn18' else ek} | {head} | {arm} | {cells[0]} | {cells[1]} |")
     open(os.path.join(LOG, "summary_1005.md"), "w").write("\n".join(L) + "\n")
     print("\n".join(L))
 
