@@ -1,0 +1,39 @@
+# name	est_min	kind	command（@P@=python、@V@=verify 腳本、@DET@=確定性包裝、@C@=checkpoint 根目錄、@COMMON@=共同參數）
+p1_episode	2	p1	@P@ @V@ episode
+p1_resnet18_A	4	p1	@P@ @V@ run --backbone resnet18 --group A
+p1_resnet18_Ap	5	p1	@P@ @V@ run --backbone resnet18 --group Ap
+p1_resnet18_B	6	p1	@P@ @V@ run --backbone resnet18 --group B
+p1_resnet18_C	6	p1	@P@ @V@ run --backbone resnet18 --group C
+p1_resnet18_D	4	p1	@P@ @V@ run --backbone resnet18 --group D
+p1_resnet18_B2	6	p1	@P@ @V@ run --backbone resnet18 --group B2
+p1_resnet18_compare	2	p1	@P@ @V@ compare --backbone resnet18
+p1_resnet18_cleanup	1	p1	rm -rf @C@/1102_p1/resnet18_Aref
+p1_resnet34_A	5	p1	@P@ @V@ run --backbone resnet34 --group A
+p1_resnet34_Ap	7	p1	@P@ @V@ run --backbone resnet34 --group Ap
+p1_resnet34_B	9	p1	@P@ @V@ run --backbone resnet34 --group B
+p1_resnet34_C	9	p1	@P@ @V@ run --backbone resnet34 --group C
+p1_resnet34_compare	3	p1	@P@ @V@ compare --backbone resnet34
+p1_resnet34_cleanup	1	p1	rm -rf @C@/1102_p1/resnet34_Aref
+p1_resnet50_A	5	rn50a	@P@ @V@ run --backbone resnet50 --group A
+p1_resnet50_Ap	7	p1	@P@ @V@ run --backbone resnet50 --group Ap
+p1_resnet50_B	9	p1	@P@ @V@ run --backbone resnet50 --group B
+p1_resnet50_C	9	p1	@P@ @V@ run --backbone resnet50 --group C
+p1_resnet50_D	5	p1	@P@ @V@ run --backbone resnet50 --group D
+p1_resnet50_B2	9	p1	@P@ @V@ run --backbone resnet50 --group B2
+p1_resnet50_compare	3	p1	@P@ @V@ compare --backbone resnet50
+p1_resnet50_cleanup	1	p1	rm -rf @C@/1102_p1/resnet50_Aref
+p3_hash_LA	4	p3	@P@ @V@ hashes --tag LA -- @P3@ -c @C@/1102_p3hash_LA
+p3_hash_LB	4	p3	@P@ @V@ hashes --tag LB -- @P3@ --grad_ckpt --ckpt_prefix 8 --ckpt_segments 4 -c @C@/1102_p3hash_LB
+p3_hash_LAp	4	p3	@P@ @V@ hashes --tag LAp -- @P3@ -c @C@/1102_p3hash_LAp
+p3_LA	150	p3	@P@ run.py @P3@ --training_iterations 25020 --test_iters 25000 --save_freq 5000 --profile_memory --profile_time --loss_csv logs/1102_p3_LA_loss.csv -c @C@/1102_p3_LA
+p3_LB	170	p3	@P@ run.py @P3@ --grad_ckpt --ckpt_prefix 8 --ckpt_segments 4 --training_iterations 25020 --test_iters 25000 --save_freq 5000 --profile_memory --profile_time --loss_csv logs/1102_p3_LB_loss.csv -c @C@/1102_p3_LB
+p2_resnet18_A	8	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet18_A_warnings.txt -- @P2@ --method resnet18 --loss_csv logs/1102_p2_resnet18_A_loss.csv -c @C@/1102_p2_resnet18_A
+p2_resnet18_Ap	8	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet18_Ap_warnings.txt -- @P2@ --method resnet18 --loss_csv logs/1102_p2_resnet18_Ap_loss.csv -c @C@/1102_p2_resnet18_Ap
+p2_resnet18_B	9	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet18_B_warnings.txt -- @P2@ --method resnet18 --grad_ckpt --ckpt_prefix 8 --ckpt_segments 4 --loss_csv logs/1102_p2_resnet18_B_loss.csv -c @C@/1102_p2_resnet18_B
+p2_resnet18_C	9	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet18_C_warnings.txt -- @P2@ --method resnet18 --grad_ckpt --ckpt_prefix 8 --ckpt_segments 4 --bn_fix_scope all --loss_csv logs/1102_p2_resnet18_C_loss.csv -c @C@/1102_p2_resnet18_C
+p2_resnet50_A	9	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet50_A_warnings.txt -- @P2@ --method resnet50 --query_per_class 1 @RN50SEQ@ --loss_csv logs/1102_p2_resnet50_A_loss.csv -c @C@/1102_p2_resnet50_A
+p2_resnet50_Ap	9	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet50_Ap_warnings.txt -- @P2@ --method resnet50 --query_per_class 1 @RN50SEQ@ --loss_csv logs/1102_p2_resnet50_Ap_loss.csv -c @C@/1102_p2_resnet50_Ap
+p2_resnet50_B	10	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet50_B_warnings.txt -- @P2@ --method resnet50 --query_per_class 1 @RN50SEQ@ --grad_ckpt --ckpt_prefix 14 --ckpt_segments 7 --loss_csv logs/1102_p2_resnet50_B_loss.csv -c @C@/1102_p2_resnet50_B
+p2_resnet50_C	10	p2	@P@ @DET@ --warn_log logs/1102_p2_resnet50_C_warnings.txt -- @P2@ --method resnet50 --query_per_class 1 @RN50SEQ@ --grad_ckpt --ckpt_prefix 14 --ckpt_segments 7 --bn_fix_scope all --loss_csv logs/1102_p2_resnet50_C_loss.csv -c @C@/1102_p2_resnet50_C
+p3_LAp	150	lap	@P@ run.py @P3@ @LAPITER@ --save_freq 5000 --profile_memory --profile_time --loss_csv logs/1102_p3_LAp_loss.csv -c @C@/1102_p3_LAp
+p3_evaldump	45	opt	@P@ scripts/eval_dump_1102.py
