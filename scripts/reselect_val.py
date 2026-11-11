@@ -220,6 +220,9 @@ B4_S43_DIR = f"{CKPT_ROOT}/b4_seed43_1shot_hmdb3/hmdb_split3_20260905_154706"
 B2_S42_DIR = f"{CKPT_ROOT}/b2_intra_hmdb3_1shot/hmdb_split3_20260504_100143"
 B2_S43_DIR = f"{CKPT_ROOT}/b2_seed43_1shot_hmdb3/hmdb_split3_20260906_010142"
 B1_S42_DIR = f"{CKPT_ROOT}/abl_bidir_hmdb3/hmdb_split3_20260407_220041"
+# 1111：B3 = stage2_b3_inter_only（inter_style: global，transductive），seed 未記錄於 log
+CFG_B3 = os.path.join(REPO, "configs/stage2_b3_inter_only.yaml")
+B3_DIR = f"{CKPT_ROOT}/b3_inter_hmdb3_1shot/hmdb_split3_20260505_044436"
 # B1 seed=43: pick the latest run dir (non-empty one)
 _b1s43_base = f"{CKPT_ROOT}/b1_seed43_1shot_hmdb3"
 # find the run dir with the most checkpoint files
@@ -246,6 +249,7 @@ SETTINGS = [
     ("B2_seed43", CFG_B2, ckpt_map(B2_S43_DIR)),
     ("B1_seed42", CFG_B1, ckpt_map(B1_S42_DIR)),   # seed unknown, likely 42
     ("B1_seed43", CFG_B1, ckpt_map(_b1s43_dir) if _b1s43_dir else {}),
+    ("B3_global_transductive", CFG_B3, ckpt_map(B3_DIR)),   # 1111 加入；放最後，不影響下面以索引取值的三句回答
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -276,6 +280,7 @@ setting_labels = [
     ("B4", "42"), ("B4", "43"),
     ("B2", "42"), ("B2", "43"),
     ("B1", "42*"), ("B1", "43"),
+    ("B3 (global, transductive)", "未記錄"),
 ]
 
 for (label, seed), r in zip(setting_labels, results):
