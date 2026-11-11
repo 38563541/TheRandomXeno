@@ -567,7 +567,16 @@ class Learner:
             # They appear in all 17 configs but are harmless.
             # Kept as deprecated (not unknown) so the label is accurate,
             # and flagged every run as a reminder to clean them up.
-            deprecated = {"num_samples", "matching_method", "bidirectional"}
+            deprecated = {"num_samples"}
+
+            # 1111：舊的距離鍵不再只是 WARN。8/3 以前的程式不讀它們，config 寫單向
+            # 實際卻跑雙向；現在直接擋下，避免再跑出名不符實的結果。
+            legacy_fatal = {"matching_method", "bidirectional"} & set(yaml_cfg)
+            if legacy_fatal:
+                raise SystemExit(
+                    f"[ERROR] config {pre_args.config} 用了已停用的鍵 {sorted(legacy_fatal)}："
+                    f"這兩個鍵從來沒有被程式讀取。請改用 matching（unidirectional／bidirectional／"
+                    f"attention_weighted）與 set_aggregation（pool／instance）。")
 
             unknown = set(yaml_cfg) - known - passthrough - deprecated
             if unknown:

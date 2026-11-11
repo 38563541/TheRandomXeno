@@ -1,9 +1,10 @@
+# 1111：改用新鍵。8/3 以前的程式一律是雙向 pool，因此 4 月以後用這個 config 跑出的 B1 結果都等同於這個設定。
 # Stage 1 — Bidirectional mean-Hausdorff (0.5*(Q->S + S->Q))
 # Symmetric version of stage1_hausdorff.
 # Tests whether S->Q direction adds useful signal over unidirectional.
 
-matching_method: mean_hausdorff
-bidirectional: true
+matching: bidirectional
+set_aggregation: pool
 tau: 0.1                       # unused; kept for schema consistency
 
 # Backbone

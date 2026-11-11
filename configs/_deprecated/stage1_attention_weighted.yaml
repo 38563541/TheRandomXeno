@@ -1,3 +1,4 @@
+# 1111 淘汰：8/3 以前程式不讀 matching_method，這個 config 實際跑的是雙向。正確的對照請改用 m1（單向）／m2（attention_weighted）。
 # Stage 1 — Attention-weighted Hausdorff
 # Softmax-attends over query tuples weighted by nearest-support distance.
 # tau controls sharpness: small tau = winner-take-all, large tau = mean-Hausdorff.
