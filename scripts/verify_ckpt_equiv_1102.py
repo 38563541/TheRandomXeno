@@ -571,8 +571,10 @@ def emulate(init_sd, bn_batch, name, m, seq):
 
 def mode_compare(bb):
     groups = [g for g in ("A", "Ap", "B", "C", "D", "B2") if os.path.exists(os.path.join(P1DIR, f"{bb}_{g}.pt"))]
-    R = {g: torch.load(os.path.join(P1DIR, f"{bb}_{g}.pt"), weights_only=False) for g in groups}
-    A = R["A"]
+    # 每組結果檔數 GB：用 mmap 載入、一次只開一組（全部同時載入會超過 15 GiB 的系統 RAM）
+    def load(g):
+        return torch.load(os.path.join(P1DIR, f"{bb}_{g}.pt"), weights_only=False, mmap=True)
+    A = load("A")
     init_sd = torch.load(os.path.join(P1DIR, f"{bb}_init.pt"), weights_only=False)
     summ, grow, brow = [], [], []
     J = dict(backbone=bb, groups={})
@@ -581,7 +583,7 @@ def mode_compare(bb):
         summ.append(dict(group=g, item=item, maxabs=maxabs, equal=equal, refmax=refmax, note=note))
 
     for g in groups:
-        X = R[g]
+        X = A if g == "A" else load(g)
         mx = X["meta"]
         jg = dict(meta={k: mx.get(k) for k in ("branch", "branch_expected", "groups", "episode_hash", "episode_tensor_hash",
                                            "init_hash", "seq_len", "n_support_frames", "n_target_frames", "clean",

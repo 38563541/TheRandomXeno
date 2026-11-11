@@ -65,3 +65,8 @@ timestamp,config_file,dataset,split,backbone,temp_set,matching,set_aggregation,t
 2026-10-07 01:23:41,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,42,lst,256,7,gn,945,standard,25000,45.564,0.4161
 2026-10-07 03:47:34,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,42,lst,256,7,gn,945,standard,50000,46.426,0.4235
 2026-10-07 05:36:28,configs/b1_backbone_1shot.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,lst,256,7,gn,945,standard,25000,48.494,0.4281
+2026-10-07 07:24:23,configs/b1_backbone_1shot.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,lst,256,7,gn,945,standard,50000,48.026,0.4242
+2026-10-07 09:40:36,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,42,frozen,256,7,gn,945,standard,25000,45.388,0.4162
+2026-10-07 11:55:55,configs/stage2_true_hyrsm_b4_tuple.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,tuple,True,True,true_hyrsm,True,remove,1,5,1,5,42,frozen,256,7,gn,945,standard,50000,46.968,0.4219
+2026-10-07 13:37:48,configs/b1_backbone_1shot.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,frozen,256,7,gn,945,standard,25000,48.18,0.4196
+2026-10-07 15:18:39,configs/b1_backbone_1shot.yaml,hmdb,3,resnet50,[2],bidirectional,pool,0.1,none,False,False,,True,remove,1,5,1,5,42,frozen,256,7,gn,945,standard,50000,47.64,0.4179
