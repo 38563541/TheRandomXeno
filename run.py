@@ -64,6 +64,8 @@ _CSV_COLUMNS = [
     # 1005：backbone 端可調性與 seed（舊列這幾欄留空，由 _ensure_csv_schema 補）
     "seed", "backbone_mode", "side_width", "side_res", "side_norm", "adapter_hidden", "train_aug",
     "iteration", "mean_accuracy", "confidence_interval",
+    # 1111：val（固定 val_seed 的 num_val_tasks 個 episode）；舊列留空
+    "val_accuracy", "val_confidence_interval",
 ]
 
 # 1005：results.csv 過去出現過的欄位組合（header 只在建檔時寫一次，之後 _CSV_COLUMNS
@@ -89,6 +91,14 @@ _CSV_LEGACY_SCHEMAS = [
      "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
      "decouple_gate", "decouple_mode", "intra_depth",
      "way", "shot", "query_per_class",
+     "iteration", "mean_accuracy", "confidence_interval"],
+    # 29 欄：1005（2026-10-05）～1111 之前的 _CSV_COLUMNS，多 seed／backbone 端可調性欄位。
+    ["timestamp", "config_file", "dataset", "split",
+     "backbone", "temp_set", "matching", "set_aggregation", "tau",
+     "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
+     "decouple_gate", "decouple_mode", "intra_depth",
+     "way", "shot", "query_per_class",
+     "seed", "backbone_mode", "side_width", "side_res", "side_norm", "adapter_hidden", "train_aug",
      "iteration", "mean_accuracy", "confidence_interval"],
 ]
 
@@ -142,7 +152,8 @@ def _ensure_csv_schema(path=None, backup_dir=None):
     return True
 
 
-def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
+def _log_result_csv(args, iteration, mean_accuracy, confidence_interval,
+                    val_accuracy=None, val_confidence_interval=None):
     """
     Append one row to experiments/results/results.csv.
     Creates the file with a header row if it does not yet exist.
@@ -188,6 +199,8 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval):
         "iteration":           iteration,
         "mean_accuracy":       round(float(mean_accuracy), 4),
         "confidence_interval": round(float(confidence_interval), 4),
+        "val_accuracy":        "" if val_accuracy is None else round(float(val_accuracy), 4),
+        "val_confidence_interval": "" if val_confidence_interval is None else round(float(val_confidence_interval), 4),
     }
 
     with open(_CSV_PATH, "a", newline="") as f:
@@ -545,6 +558,10 @@ class Learner:
                             help="1111：評估 test 時用的固定 seed（與 scripts/reselect_val.py 的 TEST_SEED 相同）。"
                                  "評估前存下四個亂數狀態、用這個 seed 重設、評估完還原，所以每次評估抽到同一批 episode，"
                                  "訓練的亂數序列也不受評估影響。")
+        parser.add_argument("--num_val_tasks", type=int, default=1000,
+                            help="1111：每個 test_iters 檢查點先評 val 的 episode 數（0 = 不評 val）。只記錄，不自動挑 best、不提前停止。")
+        parser.add_argument("--val_seed", type=int, default=10001,
+                            help="1111：評估 val 時用的固定 seed（與 scripts/reselect_val.py 的 VAL_SEED 相同）。")
         parser.add_argument("--intra_depth", type=int, default=1,
                             help="number of stacked IntraRelation blocks")
 
@@ -690,6 +707,7 @@ class Learner:
                     m = re.search(r'(\d+)', os.path.basename(ckpt_path))
                     iteration = int(m.group(1)) if m else 0
                     print(f"[test-only] Loaded {ckpt_path}  iteration={iteration}", flush=True)
+                    val_acc, val_ci = self._eval_val(session, iteration)
                     accuracy_dict = self.test(session, iteration)
                     if getattr(self.args, "profile_memory", False):
                         print_and_log(self.logfile, "[mem] EVAL PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
@@ -711,6 +729,8 @@ class Learner:
                                 iteration=iteration,
                                 mean_accuracy=accuracy_dict[_item]["accuracy"],
                                 confidence_interval=accuracy_dict[_item]["confidence"],
+                                val_accuracy=val_acc,
+                                val_confidence_interval=val_ci,
                             )
                     self.logfile.close()
                     return
@@ -874,6 +894,7 @@ class Learner:
                     if ((iteration + 1) in self.args.test_iters) and (iteration + 1) != total_iterations:
                         if getattr(self.args, "profile_memory", False):
                             self._log_mem_line(iteration + 1, "[pre-eval]")
+                        val_acc, val_ci = self._eval_val(session, iteration + 1)
                         accuracy_dict = self.test(session, iteration + 1)
                         if getattr(self.args, "profile_memory", False):
                             self._log_mem_line(iteration + 1, "[post-eval]")
@@ -890,6 +911,8 @@ class Learner:
                                     iteration=iteration + 1,
                                     mean_accuracy=accuracy_dict[_item]["accuracy"],
                                     confidence_interval=accuracy_dict[_item]["confidence"],
+                                    val_accuracy=val_acc,
+                                    val_confidence_interval=val_ci,
                                 )
 
                 if getattr(self.args, "profile_memory", False):
@@ -1015,6 +1038,20 @@ class Learner:
     def test(self, session, iteration=0):
         return self.evaluate(session, "test", iteration)
 
+    def _has_val(self):
+        return getattr(self.args, "num_val_tasks", 0) > 0 and len(self.vd.val_split) > 0
+
+    def _eval_val(self, session, iteration):
+        """1111：先評 val（只記錄）。沒有 val 時回傳 (None, None)。"""
+        if not self._has_val():
+            return None, None
+        d = self.evaluate(session, "val", iteration)[self.args.dataset]
+        print_and_log(self.logfile, "")
+        print_and_log(self.logfile, "Val Accuracies:")
+        print_and_log(self.logfile, "{0:}: {1:.1f}+/-{2:.1f}  ({3} episodes, val_seed {4})".format(
+            self.args.dataset, d["accuracy"], d["confidence"], self.args.num_val_tasks, self.args.val_seed))
+        return d["accuracy"], d["confidence"]
+
     def evaluate(self, session, split, iteration=0):
         """
         在 split 上評估 n 個 episode。一進來先存下 random／np.random／torch／torch.cuda 四個亂數狀態，
@@ -1022,8 +1059,11 @@ class Learner:
         訓練的亂數序列因此不受評估影響。每個 episode 的結果存成
         <checkpoint_dir>/eval_<split>_<iteration>.npz。
         """
-        n_tasks = self.args.num_test_tasks
-        seed = self.args.test_seed
+        assert split in ("val", "test"), split
+        if split == "val":
+            n_tasks, seed = self.args.num_val_tasks, self.args.val_seed
+        else:
+            n_tasks, seed = self.args.num_test_tasks, self.args.test_seed
         saved_rng = self._get_rng_state()
         # 重設要在建立 test_loader 的 iterator 之前：建立 iterator 本身會從 torch CPU RNG 抽一個數。
         self._seed_all(seed)
@@ -1032,6 +1072,7 @@ class Learner:
         try:
             with torch.no_grad():
                 self.vd.train = False
+                self.vd.eval_split = split
                 accuracy_dict = {}
                 iteration_ep = 0
                 item = self.args.dataset
@@ -1058,6 +1099,7 @@ class Learner:
                 accuracy_dict[item] = {"accuracy": accuracy, "confidence": confidence}
         finally:
             self.vd.train = True
+            self.vd.eval_split = "test"
             self.model.train()
             self._set_rng_state(saved_rng)
 

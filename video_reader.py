@@ -71,6 +71,9 @@ class VideoDataset(torch.utils.data.Dataset):
 
         self.train_split = Split()
         self.test_split = Split()
+        # 1111：val split。train=False 時讀哪一個由 eval_split 決定（預設 test，與以前相同）。
+        self.val_split = Split()
+        self.eval_split = "test"
 
         self.setup_transforms()
         self._select_fold()
@@ -206,6 +209,8 @@ class VideoDataset(torch.utils.data.Dataset):
                     c.add_vid(paths, class_id)
         print("loaded {}".format(self.data_dir))
         print("train: {}, test: {}".format(len(self.train_split), len(self.test_split)))
+        if "val" in self.train_test_lists:
+            print("val: {}".format(len(self.val_split)))
 
     """ return the current split being used """
     def get_train_or_test_db(self, split=None):
@@ -216,19 +221,30 @@ class VideoDataset(torch.utils.data.Dataset):
                 get_train_split = True
             elif split in self.train_test_lists["test"]:
                 get_train_split = False
+            elif split in self.train_test_lists.get("val", ()):
+                # 1111：val 影片（三個清單互不重疊，以前這些影片直接被丟掉）
+                return self.val_split
             else:
                 return None
+            if get_train_split:
+                return self.train_split
+            return self.test_split
         if get_train_split:
             return self.train_split
-        else:
-            return self.test_split
+        if self.eval_split == "val":
+            return self.val_split
+        return self.test_split
     
     """ load the paths of all videos in the train and test splits. """ 
     def _select_fold(self):
         lists = {}
-        for name in ["train", "test"]:
+        for name in ["train", "test", "val"]:
             fname = "{}list{:02d}.txt".format(name, self.args.split)
             f = os.path.join(self.annotation_path, fname)
+            if name == "val" and not os.path.exists(f):
+                # 1111：沒有 vallist 時只 WARN，val 停用
+                print(f"[WARN] 找不到 {f}，val 停用", flush=True)
+                continue
             selected_files = []
             with open(f, "r") as fid:
                 data = fid.readlines()
