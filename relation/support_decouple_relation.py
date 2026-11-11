@@ -1,3 +1,6 @@
+# 1111：此檔是 D1b（中心化 gate + alpha 零初始化），從未訓練過。
+# logs/decouple_d1_1shot.log 與 C/stage2_decouple_1shot_hmdb3 是 D1a（原始 cosine gate、沒有 alpha），兩者不能互相對照。
+# 已收掉：中心化後各類均值的兩兩 cosine 平均約 −1/(N−1)，clamp 後 gate 幾乎全為 0。
 """
 Support-side class decoupling module (tuple level).
 

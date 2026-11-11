@@ -218,7 +218,7 @@ SPREAD_CFGS = {
     "B4":  ("configs/stage2_true_hyrsm_b4_tuple.yaml",
             os.path.join(CKPT_ROOT,
                 "true_hyrsm_b4_1shot/hmdb_split3_20260526_202630/checkpoint75000.pt")),
-    "D1a": ("configs/stage2_decouple_tuple.yaml",
+    "D1a": ("configs/_deprecated/stage2_decouple_tuple.yaml",
             os.path.join(CKPT_ROOT,
                 "stage2_decouple_1shot_hmdb3/hmdb_split3_20260905_014628/checkpoint100000.pt")),
 }
@@ -432,7 +432,7 @@ D1A_DIR = os.path.join(CKPT_ROOT,
 
 results_0e = val_select_and_test(
     "D1a",
-    "configs/stage2_decouple_tuple.yaml",
+    "configs/_deprecated/stage2_decouple_tuple.yaml",
     {
         25000:  os.path.join(D1A_DIR, "checkpoint25000.pt"),
         50000:  os.path.join(D1A_DIR, "checkpoint50000.pt"),

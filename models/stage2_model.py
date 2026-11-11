@@ -103,6 +103,11 @@ class TRXSetMatchingWithRelation(nn.Module):
             self.intra = nn.Identity()
         if use_inter:
             if inter_style == "decouple":
+                print("[WARN] inter_style=decouple 已淘汰（1111）：relation/support_decouple_relation.py 是 D1b"
+                      "（中心化 gate + alpha 零初始化），從未訓練過；logs/decouple_d1_1shot.log 與 "
+                      "stage2_decouple_1shot_hmdb3 是 D1a（原始 cosine gate、沒有 alpha），兩者不能互相對照。"
+                      "已收掉：中心化後各類均值的兩兩 cosine 平均約 −1/(N−1)，clamp 後 gate 幾乎全為 0。",
+                      flush=True)
                 self.inter = SupportDecoupleRelation(
                     rel_dim, num_heads,
                     gate=getattr(args, "decouple_gate", True),

@@ -1,3 +1,4 @@
+# 1111 淘汰：decouple（D1b）已收掉，見 relation/support_decouple_relation.py 檔頭。
 # Stage 2 — D1: Support-side class decoupling at tuple level
 # Based on TEAM Eq. 10-12 (CVPR 2025), adapted for tuple-set matching.
 # Query is NOT modified; only support is rewritten class-conditionally.
