@@ -1,0 +1,35 @@
+# 1112 乙3：stage1_bidirectional.yaml 原樣複製，只在最後加 data_path 與 img_norm。
+# 1111：改用新鍵。8/3 以前的程式一律是雙向 pool，因此 4 月以後用這個 config 跑出的 B1 結果都等同於這個設定。
+# Stage 1 — Bidirectional mean-Hausdorff (0.5*(Q->S + S->Q))
+# Symmetric version of stage1_hausdorff.
+# Tests whether S->Q direction adds useful signal over unidirectional.
+
+matching: bidirectional
+set_aggregation: pool
+tau: 0.1                       # unused; kept for schema consistency
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (Stage 1: disabled)
+use_intra_relation: false
+use_inter_relation: false
+relation_level: none
+
+# 1112 乙3
+data_path: ~/Documents/work/trx/trx_data/video_datasets/data/hmdb51_256q5.zip
+img_norm: none
