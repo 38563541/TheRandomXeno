@@ -537,6 +537,10 @@ class Learner:
         parser.add_argument('--eval_save_preds', action='store_true', default=False,
                             help='1112：評估時把每個 query 的預測（pred_labels）與 episode 內標籤（target_labels）'
                                  '也存進 eval_<split>_<iteration>.npz，用來算各類準確率。預設關＝npz 內容與以前相同。')
+        parser.add_argument('--eval_at_end', action='store_true', default=False,
+                            help='1112：最後一個 iteration 若在 --test_iters 裡，也做 val／test 評估並寫 results.csv。'
+                                 '預設關＝現行行為（最後一步不評估，只存 fully_trained.pt）。評估在最後一步訓練之後、'
+                                 '並會還原亂數狀態，不影響訓練。')
         parser.add_argument('--infer_ablate', choices=['none', 'inter', 'intra', 'both'], default='none',
                             help='1005 新增：只在純評估（--test_model_path）時生效。載入 checkpoint 後把匹配頭的 '
                                  'inter（inter）、intra（intra）或兩者（both）換成不作用，量推論時各模組的貢獻。'
@@ -902,7 +906,9 @@ class Learner:
                         self.save_checkpoint(iteration + 1)
 
 
-                    if ((iteration + 1) in self.args.test_iters) and (iteration + 1) != total_iterations:
+                    # 1112：--eval_at_end 時，最後一步若在 test_iters 裡也評估（預設關＝與以前相同，最後一步不評）。
+                    if ((iteration + 1) in self.args.test_iters) and (
+                            (iteration + 1) != total_iterations or getattr(self.args, "eval_at_end", False)):
                         if getattr(self.args, "profile_memory", False):
                             self._log_mem_line(iteration + 1, "[pre-eval]")
                         val_acc, val_ci = self._eval_val(session, iteration + 1)
