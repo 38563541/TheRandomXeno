@@ -316,6 +316,11 @@ class VideoDataset(torch.utils.data.Dataset):
         return imgs, vid_id
 
 
+    @staticmethod
+    def _video_name(split_obj, vid_id):
+        """影片資料夾名（frame 路徑的上一層）。"""
+        return os.path.basename(os.path.dirname(split_obj.videos[vid_id][0]))
+
     """returns dict of support and target images and labels"""
     def __getitem__(self, index):
 
@@ -335,6 +340,10 @@ class VideoDataset(torch.utils.data.Dataset):
         target_labels = []
         real_support_labels = []
         real_target_labels = []
+        # 1111：記下影片名稱（影片資料夾名）供評估存 episode 識別資訊。
+        # 名稱跟著 support／query 一起 shuffle；random.shuffle 只看長度，抽的亂數與以前相同。
+        support_names = []
+        target_names = []
 
         for bl, bc in enumerate(batch_classes):
             
@@ -346,19 +355,24 @@ class VideoDataset(torch.utils.data.Dataset):
                 vid, vid_id = self.get_seq(bc, idx)
                 support_set.append(vid)
                 support_labels.append(bl)
+                support_names.append(self._video_name(c, vid_id))
             for idx in idxs[self.args.shot:]:
                 vid, vid_id = self.get_seq(bc, idx)
                 target_set.append(vid)
                 target_labels.append(bl)
                 real_target_labels.append(bc)
+                target_names.append(self._video_name(c, vid_id))
         
-        s = list(zip(support_set, support_labels))
+        s = list(zip(support_set, support_labels, support_names))
         random.shuffle(s)
-        support_set, support_labels = zip(*s)
+        support_set, support_labels, support_names = zip(*s)
         
-        t = list(zip(target_set, target_labels, real_target_labels))
+        t = list(zip(target_set, target_labels, real_target_labels, target_names))
         random.shuffle(t)
-        target_set, target_labels, real_target_labels = zip(*t)
+        target_set, target_labels, real_target_labels, target_names = zip(*t)
+        # 不放進回傳的 dict（訓練路徑完全不變）；評估時 test_loader 是 num_workers=0，
+        # 由主行程讀這個屬性。
+        self.last_episode_names = {"support": list(support_names), "query": list(target_names)}
         
         support_set = torch.cat(support_set)
         target_set = torch.cat(target_set)

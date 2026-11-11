@@ -541,6 +541,10 @@ class Learner:
                             choices=["remove", "inject"],
                             help="Decouple mode: 'remove' subtracts other-class signal, "
                                  "'inject' adds it (ablation only).")
+        parser.add_argument("--test_seed", type=int, default=20001,
+                            help="1111：評估 test 時用的固定 seed（與 scripts/reselect_val.py 的 TEST_SEED 相同）。"
+                                 "評估前存下四個亂數狀態、用這個 seed 重設、評估完還原，所以每次評估抽到同一批 episode，"
+                                 "訓練的亂數序列也不受評估影響。")
         parser.add_argument("--intra_depth", type=int, default=1,
                             help="number of stacked IntraRelation blocks")
 
@@ -686,7 +690,7 @@ class Learner:
                     m = re.search(r'(\d+)', os.path.basename(ckpt_path))
                     iteration = int(m.group(1)) if m else 0
                     print(f"[test-only] Loaded {ckpt_path}  iteration={iteration}", flush=True)
-                    accuracy_dict = self.test(session)
+                    accuracy_dict = self.test(session, iteration)
                     if getattr(self.args, "profile_memory", False):
                         print_and_log(self.logfile, "[mem] EVAL PEAK  alloc {:.3f} GB  reserved {:.3f} GB".format(
                             torch.cuda.max_memory_allocated() / 1024**3,
@@ -870,7 +874,7 @@ class Learner:
                     if ((iteration + 1) in self.args.test_iters) and (iteration + 1) != total_iterations:
                         if getattr(self.args, "profile_memory", False):
                             self._log_mem_line(iteration + 1, "[pre-eval]")
-                        accuracy_dict = self.test(session)
+                        accuracy_dict = self.test(session, iteration + 1)
                         if getattr(self.args, "profile_memory", False):
                             self._log_mem_line(iteration + 1, "[post-eval]")
                         print(accuracy_dict)
@@ -985,34 +989,88 @@ class Learner:
 
         return task_loss, task_accuracy
 
-    def test(self, session):
-        self.model.eval()
-        with torch.no_grad():
+    # ── 1111：評估用固定 episode ───────────────────────────────────────────
+    @staticmethod
+    def _get_rng_state():
+        st = {"random": random.getstate(), "np": np.random.get_state(), "torch": torch.get_rng_state()}
+        if torch.cuda.is_available():
+            st["cuda"] = torch.cuda.get_rng_state_all()
+        return st
 
+    @staticmethod
+    def _set_rng_state(st):
+        random.setstate(st["random"])
+        np.random.set_state(st["np"])
+        torch.set_rng_state(st["torch"])
+        if "cuda" in st:
+            torch.cuda.set_rng_state_all(st["cuda"])
+
+    @staticmethod
+    def _seed_all(seed):
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+
+    def test(self, session, iteration=0):
+        return self.evaluate(session, "test", iteration)
+
+    def evaluate(self, session, split, iteration=0):
+        """
+        在 split 上評估 n 個 episode。一進來先存下 random／np.random／torch／torch.cuda 四個亂數狀態，
+        用固定 seed 重設（所以每次評估、每個模型抽到的都是同一批 episode），評估完還原，
+        訓練的亂數序列因此不受評估影響。每個 episode 的結果存成
+        <checkpoint_dir>/eval_<split>_<iteration>.npz。
+        """
+        n_tasks = self.args.num_test_tasks
+        seed = self.args.test_seed
+        saved_rng = self._get_rng_state()
+        # 重設要在建立 test_loader 的 iterator 之前：建立 iterator 本身會從 torch CPU RNG 抽一個數。
+        self._seed_all(seed)
+        self.model.eval()
+        accuracies, class_lists, real_targets, sup_names, qry_names = [], [], [], [], []
+        try:
+            with torch.no_grad():
                 self.vd.train = False
-                accuracy_dict ={}
-                accuracies = []
-                iteration = 0
+                accuracy_dict = {}
+                iteration_ep = 0
                 item = self.args.dataset
                 for task_dict in self.test_loader:
-                    if iteration >= self.args.num_test_tasks:
+                    if iteration_ep >= n_tasks:
                         break
-                    iteration += 1
+                    iteration_ep += 1
+                    names = getattr(self.vd, "last_episode_names", None) or {}
 
                     context_images, target_images, context_labels, target_labels, real_target_labels, batch_class_list = self.prepare_task(task_dict)
                     model_dict = self.model(context_images, context_labels, target_images)
                     target_logits = model_dict['logits']
                     accuracy = self.accuracy_fn(target_logits, target_labels)
                     accuracies.append(accuracy.item())
+                    class_lists.append(batch_class_list.cpu().numpy().astype(np.int64))
+                    real_targets.append(real_target_labels.cpu().numpy().astype(np.int64))
+                    sup_names.append(list(names.get("support", [])))
+                    qry_names.append(list(names.get("query", [])))
                     del target_logits
 
                 accuracy = np.array(accuracies).mean() * 100.0
                 confidence = (196.0 * np.array(accuracies).std()) / np.sqrt(len(accuracies))
 
                 accuracy_dict[item] = {"accuracy": accuracy, "confidence": confidence}
-                self.vd.train = True
-        self.model.train()
-        
+        finally:
+            self.vd.train = True
+            self.model.train()
+            self._set_rng_state(saved_rng)
+
+        try:
+            out = os.path.join(self.checkpoint_dir, f"eval_{split}_{iteration}.npz")
+            np.savez(out, accuracy=np.array(accuracies, dtype=np.float64),
+                     batch_class_list=np.array(class_lists), real_target_labels=np.array(real_targets),
+                     support_names=np.array(sup_names, dtype=str), query_names=np.array(qry_names, dtype=str),
+                     split=split, seed=seed, iteration=iteration)
+            print_and_log(self.logfile, f"[eval] {split} iter {iteration}: {len(accuracies)} episodes (seed {seed}) → {out}")
+        except Exception as ex:   # 存檔失敗不影響訓練
+            print_and_log(self.logfile, f"[WARN] eval npz 存檔失敗: {ex}")
+
         return accuracy_dict
 
 
