@@ -1,3 +1,4 @@
+# 1111：明確標示。global = 所有 query 與 support 互相注意（transductive），與 B4 的 true_hyrsm（逐 query，inductive）不是同一個模組，不能直接相減。
 # Stage 2 — B3: Inter-relation only (tuple level)
 # Ablation: InterRelation only, IntraRelation disabled.
 # Used to isolate whether InterRelation alone is the culprit hurting set-matching signal.
@@ -27,3 +28,4 @@ tasks_per_batch: 16
 use_intra_relation: false
 use_inter_relation: true
 relation_level: tuple
+inter_style: global

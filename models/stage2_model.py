@@ -40,6 +40,9 @@ from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, se
                                    apply_backbone_train_mode, backbone_features)
 
 
+INTER_STYLES = ("global", "hyrsm", "true_hyrsm", "decouple")
+
+
 class TRXSetMatchingWithRelation(nn.Module):
     """
     Stage 2: TRXSetMatching with optional relation modules.
@@ -52,12 +55,18 @@ class TRXSetMatchingWithRelation(nn.Module):
     """
 
     def __init__(self, args, relation_level="tuple", use_intra=True, use_inter=True,
-                 inter_style="global"):
+                 inter_style=None):
         super().__init__()
         assert relation_level in ("frame", "tuple"), \
             f"relation_level must be 'frame' or 'tuple', got {relation_level!r}"
-        assert inter_style in ("global", "hyrsm", "true_hyrsm", "decouple"), \
-            f"inter_style must be 'global', 'hyrsm', 'true_hyrsm', or 'decouple', got {inter_style!r}"
+        # 1111：inter_style 不再有預設值。global（transductive）與 true_hyrsm（inductive）
+        # 是不同的模組，預設成 global 會讓沒寫的 config 默默變成 transductive。
+        if use_inter and inter_style is None:
+            raise ValueError(
+                "use_inter_relation=True 時必須明確指定 inter_style，可用的值："
+                f"{INTER_STYLES}")
+        assert inter_style is None or inter_style in INTER_STYLES, \
+            f"inter_style must be one of {INTER_STYLES}, got {inter_style!r}"
         # Phase 0.2: frame 分支只支援 global/hyrsm；decouple/true_hyrsm 的 API 與 frame 不相容
         assert not (relation_level == "frame" and inter_style in ("decouple", "true_hyrsm")), \
             f"inter_style={inter_style!r} 只支援 relation_level='tuple'"
@@ -249,7 +258,7 @@ class CNN_TRXWithRelation(nn.Module):
         relation_level = getattr(args, "relation_level",     "tuple")
         use_intra      = getattr(args, "use_intra_relation", True)
         use_inter      = getattr(args, "use_inter_relation", True)
-        inter_style    = getattr(args, "inter_style",        "global")
+        inter_style    = getattr(args, "inter_style",        None)   # 1111：不給預設，見 TRXSetMatchingWithRelation
 
         # Backbone (last avg-pool removed)
         if args.method == "resnet18":
