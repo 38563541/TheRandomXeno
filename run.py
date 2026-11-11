@@ -415,7 +415,7 @@ class Learner:
             "--config",
             default=None,
             metavar="PATH",
-            help="Path to a YAML config file (e.g. configs/stage1_hausdorff.yaml). "
+            help="Path to a YAML config file (e.g. configs/m1_uni_pool_1shot.yaml). "
                  "Values in the file set argparse defaults; explicit CLI flags override them.",
         )
 

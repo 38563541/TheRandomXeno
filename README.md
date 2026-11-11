@@ -33,9 +33,9 @@ Pass `--config` to select a config; any CLI flag overrides the YAML value.
 
 ```bash
 python run.py \
-  --config configs/stage1_hausdorff.yaml \
+  --config configs/m1_uni_pool_1shot.yaml \
   --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/stage1_hausdorff_hmdb3
+  -c ~/trx_data/checkpoints/m1_uni_pool_hmdb3
 ```
 
 That is the canonical launch command for Stage 1 experiments.
@@ -46,13 +46,15 @@ That is the canonical launch command for Stage 1 experiments.
 
 | Config file | Matching method | Direction | Notes |
 |---|---|---|---|
-| `configs/stage1_hausdorff.yaml` | Mean-Hausdorff | Q→S only | Stage 1 baseline |
+| `configs/m1_uni_pool_1shot.yaml` | Mean-Hausdorff (`matching: unidirectional`) | Q→S only | Stage 1 baseline |
 | `configs/stage1_bidirectional.yaml` | Mean-Hausdorff | Q↔S (avg) | Symmetric variant |
-| `configs/stage1_attention_weighted.yaml` | Attention-weighted Hausdorff | Q→S | Softmax-attends query tuples |
+| `configs/m2_attn_pool_1shot.yaml` | Attention-weighted Hausdorff (`matching: attention_weighted`) | Q→S | Softmax-attends query tuples |
 | `configs/stage2_option_a.yaml` | Bidirectional Hausdorff | Q↔S | + Relation at **frame** level |
 | `configs/stage2_option_b.yaml` | Bidirectional Hausdorff | Q↔S | + Relation at **tuple** level |
 
 Stage 2 configs require the relation modules in `relation/` to be implemented first.
+
+已淘汰（`inter_style: hyrsm`、`inter_style: decouple`、舊鍵 `matching_method`／`bidirectional` 的 Stage 1 config）：已淘汰，見 `configs/_deprecated/`。
 
 ---
 
@@ -69,14 +71,14 @@ python run.py \
 
 # Quick smoke-test: 1-shot, fewer iterations, small batch
 python run.py \
-  --config configs/stage1_hausdorff.yaml \
+  --config configs/m1_uni_pool_1shot.yaml \
   --shot 1 --training_iterations 5000 --tasks_per_batch 4 \
   --dataset hmdb --split 3 \
   -c ~/trx_data/checkpoints/smoke_test
 
 # Change attention tau without editing the yaml
 python run.py \
-  --config configs/stage1_attention_weighted.yaml \
+  --config configs/m2_attn_pool_1shot.yaml \
   --tau 0.05 \
   --dataset hmdb --split 3 \
   -c ~/trx_data/checkpoints/attn_tau005
@@ -91,7 +93,7 @@ Results are appended automatically to `experiments/results/results.csv`.
 
 ```bash
 # Unidirectional
-python run.py --config configs/stage1_hausdorff.yaml \
+python run.py --config configs/m1_uni_pool_1shot.yaml \
   --dataset hmdb --split 3 \
   -c ~/trx_data/checkpoints/abl_uni
 
@@ -101,7 +103,7 @@ python run.py --config configs/stage1_bidirectional.yaml \
   -c ~/trx_data/checkpoints/abl_bidir
 
 # Attention-weighted
-python run.py --config configs/stage1_attention_weighted.yaml \
+python run.py --config configs/m2_attn_pool_1shot.yaml \
   --dataset hmdb --split 3 \
   -c ~/trx_data/checkpoints/abl_attn
 ```
@@ -110,7 +112,7 @@ To sweep all three HMDB splits:
 
 ```bash
 for split in 1 2 3; do
-  for cfg in stage1_hausdorff stage1_bidirectional stage1_attention_weighted; do
+  for cfg in m1_uni_pool_1shot stage1_bidirectional m2_attn_pool_1shot; do
     python run.py --config configs/${cfg}.yaml \
       --dataset hmdb --split ${split} \
       -c ~/trx_data/checkpoints/${cfg}_hmdb${split}
@@ -124,9 +126,9 @@ done
 
 ```bash
 python run.py \
-  --config configs/stage1_hausdorff.yaml \
+  --config configs/m1_uni_pool_1shot.yaml \
   --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/stage1_hausdorff_hmdb3 \
+  -c ~/trx_data/checkpoints/m1_uni_pool_hmdb3 \
   -r
 ```
 
@@ -159,9 +161,10 @@ python -c "import csv, sys; [print(r) for r in csv.DictReader(open('experiments/
 ```
 TheRandomXeno/
 ├── configs/                   ← YAML experiment configs
-│   ├── stage1_hausdorff.yaml
+│   ├── m1_uni_pool_1shot.yaml
 │   ├── stage1_bidirectional.yaml
-│   ├── stage1_attention_weighted.yaml
+│   ├── m2_attn_pool_1shot.yaml
+│   ├── _deprecated/           ← 已淘汰的 config（舊鍵 Stage 1、hyrsm、decouple），見 configs/_deprecated/
 │   ├── stage2_option_a.yaml   (frame-level relation — Stage 2)
 │   └── stage2_option_b.yaml   (tuple-level relation — Stage 2)
 │
@@ -193,9 +196,12 @@ TheRandomXeno/
 
 | YAML key | CLI flag | Default | Description |
 |---|---|---|---|
-| `matching_method` | — | — | `mean_hausdorff` / `attention_weighted_hausdorff` / `bidirectional_hausdorff` |
-| `bidirectional` | `--bidirectional` | `false` | Enable symmetric Q↔S distance |
+| `matching` | — | `bidirectional` | `unidirectional` / `bidirectional` / `attention_weighted` |
+| `set_aggregation` | — | `pool` | `pool` / `instance` |
 | `tau` | `--tau` | `0.1` | Softmax temperature (attention-weighted only) |
+
+舊鍵 `matching_method`、`bidirectional` 已停用：config 裡出現這兩個鍵，run.py 會直接報錯退出。
+
 | `backbone` | `--method` | `resnet18` | `resnet18` / `resnet34` / `resnet50` |
 | `trans_linear_out_dim` | `--trans_linear_out_dim` | `1152` | Tuple embedding output dim |
 | `temp_set` | `--temp_set` | `[2]` | Tuple cardinalities (pairs = `[2]`) |

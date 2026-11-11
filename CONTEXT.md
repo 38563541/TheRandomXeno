@@ -101,9 +101,9 @@ Goal: establish which matching function performs best before adding relation mod
 
 | Experiment | Config | Key variable |
 |---|---|---|
-| A1 | `stage1_hausdorff.yaml` | Unidirectional Q→S |
+| A1 | `m1_uni_pool_1shot.yaml` | Unidirectional Q→S |
 | A2 | `stage1_bidirectional.yaml` | Symmetric Q↔S |
-| A3 | `stage1_attention_weighted.yaml` | Attention-weighted, τ=0.1 |
+| A3 | `m2_attn_pool_1shot.yaml` | Attention-weighted, τ=0.1 |
 
 Run each on HMDB splits 1, 2, 3. Report mean ± 95% CI across splits.
 

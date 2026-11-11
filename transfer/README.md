@@ -30,7 +30,7 @@ transfer/
     ├── stage2_b2_intra_x2.yaml     B2-x2：intra depth=2，無 inter
     ├── b4_true_hyrsm_1shot.yaml    B4：intra+inter（TrueHyRSM），雙向
     ├── m1_uni_pool_1shot.yaml      uni_m1：單向 pool Hausdorff，無 relation（= B1 單向版）
-    └── stage1_hausdorff.yaml       Stage 1 原始 config（廢棄鍵 warning，已棄用於 uni 實驗）
+    └── stage1_hausdorff.yaml       Stage 1 原始 config 的副本（舊鍵；現行 run.py 會直接報錯，請改用 configs/m1_uni_pool_1shot.yaml；repo 版已移到 configs/_deprecated/）
 ```
 
 ---
@@ -65,8 +65,8 @@ B4 高於 B2 的檢查點數：**8 / 8**（4 ckpt × 2 seed）。
    - B4/B2 的 N=1000 val 補跑因 nn.Sequential key mismatch 未完成（修復後可重跑）。
    - B1 的 N=1000 val 已完成：seed=42 最佳@25k→test=46.71%，seed=43 最佳@50k→test=47.90%。
 3. **B1 seed=42（abl_bidir_hmdb3）** 使用 `temp_set=[2,3]`（pairs+triples），非嚴格控制組。
-4. **stage1_hausdorff.yaml 廢棄鍵問題**：`matching_method`、`bidirectional` 不被程式碼讀取；
-   使用 `m1_uni_pool_1shot.yaml`（新式 `matching: unidirectional`）才能正確設定距離函數。
+4. **stage1_hausdorff.yaml 廢棄鍵問題**：`matching_method`、`bidirectional` 不被程式碼讀取（1111 起 run.py 遇到這兩個鍵直接報錯退出）；
+   使用 `configs/m1_uni_pool_1shot.yaml`（新式 `matching: unidirectional`）才能正確設定距離函數。repo 的 stage1_hausdorff.yaml 已移到 `configs/_deprecated/`。
 5. **nn.Sequential 向後相容修復**（最後一晚_0907 階段 1）：
    depth=1 時保留 `self.intra = IntraRelation(...)` 直接指派，保持舊 checkpoint 鍵名相容。
 
