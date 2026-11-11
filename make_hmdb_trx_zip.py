@@ -15,7 +15,8 @@ def run(cmd):
         raise RuntimeError(f"Command failed:\n{' '.join(cmd)}\n\nSTDERR:\n{p.stderr[:2000]}")
     return p
 
-def extract_frames_ffmpeg(video_path: Path, out_dir: Path, size: int, fps: int = None, max_frames: int = None):
+def extract_frames_ffmpeg(video_path: Path, out_dir: Path, size: int, fps: int = None, max_frames: int = None,
+                          keep_aspect: bool = False):
     """
     Extract frames as JPEG, resized to size x size, 8-digit naming: 00000001.jpg, ...
     Optional fps to downsample; optional max_frames to truncate.
@@ -24,8 +25,12 @@ def extract_frames_ffmpeg(video_path: Path, out_dir: Path, size: int, fps: int =
     out_pattern = str(out_dir / "%08d.jpg")
 
     vf_parts = []
-    # resize to square size x size
-    vf_parts.append(f"scale={size}:{size}")
+    if keep_aspect:
+        # short side = size, keep aspect ratio (-2 keeps the other side even)
+        vf_parts.append(f"scale='if(gt(iw,ih),-2,{size})':'if(gt(iw,ih),{size},-2)'")
+    else:
+        # resize to square size x size
+        vf_parts.append(f"scale={size}:{size}")
     if fps is not None:
         vf_parts.append(f"fps={fps}")
     vf = ",".join(vf_parts)
@@ -48,6 +53,8 @@ def main():
     ap.add_argument("--size", type=int, default=256, help="Resize frames to size x size (default 256)")
     ap.add_argument("--fps", type=int, default=None, help="Optional FPS sampling (e.g., 10). Default: keep native fps.")
     ap.add_argument("--max_frames", type=int, default=None, help="Optional cap frames per video.")
+    ap.add_argument("--keep_aspect", action="store_true",
+                    help="Resize so the short side = --size and keep aspect ratio (default off: size x size)")
     args = ap.parse_args()
 
     hmdb_root = Path(args.hmdb_root).expanduser().resolve()
@@ -80,7 +87,8 @@ def main():
                 if out_dir.exists():
                     for f in out_dir.glob("*.jpg"):
                         f.unlink()
-                extract_frames_ffmpeg(vpath, out_dir, size=args.size, fps=args.fps, max_frames=args.max_frames)
+                extract_frames_ffmpeg(vpath, out_dir, size=args.size, fps=args.fps, max_frames=args.max_frames,
+                                      keep_aspect=args.keep_aspect)
 
                 frames = sorted(out_dir.glob("*.jpg"))
                 if len(frames) == 0:
