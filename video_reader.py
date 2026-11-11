@@ -60,7 +60,14 @@ class VideoDataset(torch.utils.data.Dataset):
         self.data_dir = args.path
         self.seq_len = args.seq_len
         self.train = True
-        self.tensor_transform = transforms.ToTensor()
+        # 1112：--img_norm imagenet 時在 ToTensor 之後加 ImageNet Normalize；預設 none 與以前相同。
+        if getattr(args, "img_norm", "none") == "imagenet":
+            self.tensor_transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+        else:
+            self.tensor_transform = transforms.ToTensor()
         self.img_size = args.img_size
 
         self.annotation_path = args.traintestlist

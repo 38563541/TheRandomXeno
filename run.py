@@ -528,6 +528,15 @@ class Learner:
         parser.add_argument('--train_aug', choices=['standard', 'none'], default='standard',
                             help='1005：訓練資料增強。standard（預設）＝現行（時間抖動＋水平翻轉＋隨機裁切）；'
                                  'none＝訓練也用測試的確定性時間取樣與 CenterCrop（模擬只存一份特徵快取）。')
+        parser.add_argument('--img_norm', choices=['none', 'imagenet'], default='none',
+                            help='1112：影格的通道正規化。none（預設）＝現行，只做 ToTensor（0–1）；'
+                                 'imagenet＝ToTensor 之後再做 ImageNet mean/std Normalize。訓練、val、test 都套用。')
+        parser.add_argument('--data_path', type=str, default=None,
+                            help='1112：資料 zip 的路徑。預設 None＝照 --dataset 與 --scratch 決定的路徑（現行行為）；'
+                                 '給了就改讀這個檔案，splits 仍照 --dataset。')
+        parser.add_argument('--eval_save_preds', action='store_true', default=False,
+                            help='1112：評估時把每個 query 的預測（pred_labels）與 episode 內標籤（target_labels）'
+                                 '也存進 eval_<split>_<iteration>.npz，用來算各類準確率。預設關＝npz 內容與以前相同。')
         parser.add_argument('--infer_ablate', choices=['none', 'inter', 'intra', 'both'], default='none',
                             help='1005 新增：只在純評估（--test_model_path）時生效。載入 checkpoint 後把匹配頭的 '
                                  'inter（inter）、intra（intra）或兩者（both）換成不作用，量推論時各模組的貢獻。'
@@ -677,6 +686,8 @@ class Learner:
         elif args.dataset == "hmdb":
             args.traintestlist = os.path.join(args.scratch, "video_datasets/splits/hmdb_ARN")
             args.path = os.path.join(args.scratch, "video_datasets/data/hmdb51_256q5.zip")
+        if args.data_path is not None:
+            args.path = os.path.expanduser(args.data_path)
 
         return args
 
@@ -1069,6 +1080,7 @@ class Learner:
         self._seed_all(seed)
         self.model.eval()
         accuracies, class_lists, real_targets, sup_names, qry_names = [], [], [], [], []
+        preds, tgts = [], []   # 1112：只在 --eval_save_preds 時使用
         try:
             with torch.no_grad():
                 self.vd.train = False
@@ -1091,6 +1103,11 @@ class Learner:
                     real_targets.append(real_target_labels.cpu().numpy().astype(np.int64))
                     sup_names.append(list(names.get("support", [])))
                     qry_names.append(list(names.get("query", [])))
+                    if getattr(self.args, "eval_save_preds", False):
+                        # 與 aggregate_accuracy 相同的預測式
+                        preds.append(torch.argmax(torch.logsumexp(target_logits, dim=0), dim=-1)
+                                     .reshape(-1).cpu().numpy().astype(np.int64))
+                        tgts.append(target_labels.reshape(-1).cpu().numpy().astype(np.int64))
                     del target_logits
 
                 accuracy = np.array(accuracies).mean() * 100.0
@@ -1105,10 +1122,13 @@ class Learner:
 
         try:
             out = os.path.join(self.checkpoint_dir, f"eval_{split}_{iteration}.npz")
+            extra = {}
+            if getattr(self.args, "eval_save_preds", False):
+                extra = dict(pred_labels=np.array(preds), target_labels=np.array(tgts))
             np.savez(out, accuracy=np.array(accuracies, dtype=np.float64),
                      batch_class_list=np.array(class_lists), real_target_labels=np.array(real_targets),
                      support_names=np.array(sup_names, dtype=str), query_names=np.array(qry_names, dtype=str),
-                     split=split, seed=seed, iteration=iteration)
+                     split=split, seed=seed, iteration=iteration, **extra)
             print_and_log(self.logfile, f"[eval] {split} iter {iteration}: {len(accuracies)} episodes (seed {seed}) → {out}")
         except Exception as ex:   # 存檔失敗不影響訓練
             print_and_log(self.logfile, f"[WARN] eval npz 存檔失敗: {ex}")
