@@ -1,3 +1,4 @@
+# 1111 淘汰：inter_style: hyrsm 已移除。每一類先用自己的 support 改寫 query 再量距離，距離會失去鑑別力（test≈20%）。
 # Stage 2 — HyRSM B3: HyRSM Inter only (tuple level, 1-shot)
 # Class-specific cross-attention, no IntraRelation.
 # Compares directly against stage2_b3_inter_only (global inter only).

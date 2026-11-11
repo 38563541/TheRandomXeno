@@ -55,6 +55,9 @@ print("\nV1 — 回歸等價：預設路徑是否與舊的寫死實作完全相�
 print("     （若這一項 FAIL，代表既有結果會被改動，必須停下來）")
 # ───────────────────────────────────────────────────────────────────────────
 for shot, style in itertools.product((1, 5), ("global", "true_hyrsm", "hyrsm")):
+    if style == "hyrsm":   # 1111：inter_style=hyrsm 已移除
+        print(f"  [SKIP] shot={shot} inter_style=hyrsm（1111 已移除）")
+        continue
     torch.manual_seed(42)
     args = make_args(shot=shot)
     m = TRXSetMatchingWithRelation(args, relation_level="tuple",
@@ -114,6 +117,9 @@ check("set_aggregation=instance 有生效（5-shot）", d > 1e-4, f"與 pool 的
 print("\nV3 — 形狀與梯度：三種 inter_style × 兩種 set_aggregation")
 # ───────────────────────────────────────────────────────────────────────────
 for style, agg in itertools.product(("global", "true_hyrsm", "hyrsm"), ("pool", "instance")):
+    if style == "hyrsm":   # 1111：inter_style=hyrsm 已移除
+        print(f"  [SKIP] hyrsm + {agg}（1111 已移除）")
+        continue
     args = make_args(set_aggregation=agg, shot=5)
     m = TRXSetMatchingWithRelation(args, relation_level="tuple", use_intra=True,
                                    use_inter=True, inter_style=style).to(DEVICE)

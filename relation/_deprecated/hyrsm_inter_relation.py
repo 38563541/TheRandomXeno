@@ -1,3 +1,5 @@
+# 1111 已移除：inter_style="hyrsm" 每一類先用自己的 support 改寫 query 再量距離，距離會失去鑑別力（test≈20%）。
+# 此檔只保留作紀錄，models/stage2_model.py 不再 import 它。
 """
 HyRSM-style inter-video relation module.
 

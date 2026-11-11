@@ -33,14 +33,16 @@ from matching.mean_hausdorff import pool_hausdorff, instance_class_distance
 from models.stage1_model import TRXSetMatching, NUM_SAMPLES
 from relation.intra_relation import IntraRelation
 from relation.inter_relation import InterRelation
-from relation.hyrsm_inter_relation import HyRSMInterRelation
 from relation.true_hyrsm_inter_relation import TrueHyRSMInterRelation
 from relation.support_decouple_relation import SupportDecoupleRelation
 from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, setup_adapters,
                                    apply_backbone_train_mode, backbone_features)
 
 
-INTER_STYLES = ("global", "hyrsm", "true_hyrsm", "decouple")
+INTER_STYLES = ("global", "true_hyrsm", "decouple")
+# 1111：inter_style="hyrsm"（舊的逐類 HyRSM）已移除，模組移到 relation/_deprecated/。
+_HYRSM_REMOVED_MSG = ("inter_style='hyrsm' 已於 1111 移除：每一類先用自己的 support 改寫 query 再量距離，"
+                      "距離會失去鑑別力（test≈20%）")
 
 
 class TRXSetMatchingWithRelation(nn.Module):
@@ -61,6 +63,8 @@ class TRXSetMatchingWithRelation(nn.Module):
             f"relation_level must be 'frame' or 'tuple', got {relation_level!r}"
         # 1111：inter_style 不再有預設值。global（transductive）與 true_hyrsm（inductive）
         # 是不同的模組，預設成 global 會讓沒寫的 config 默默變成 transductive。
+        if inter_style == "hyrsm":
+            raise ValueError(_HYRSM_REMOVED_MSG)
         if use_inter and inter_style is None:
             raise ValueError(
                 "use_inter_relation=True 時必須明確指定 inter_style，可用的值："
@@ -106,8 +110,6 @@ class TRXSetMatchingWithRelation(nn.Module):
                 )
             elif inter_style == "true_hyrsm":
                 self.inter = TrueHyRSMInterRelation(rel_dim, num_heads)
-            elif inter_style == "hyrsm":
-                self.inter = HyRSMInterRelation(rel_dim, num_heads)
             else:
                 self.inter = InterRelation(rel_dim, num_heads)
         else:
@@ -227,14 +229,7 @@ class TRXSetMatchingWithRelation(nn.Module):
                     all_distances[qi, c.long()] = -d
             else:
                 class_s = torch.index_select(s_set, 0, idx)  # [k_shot, T, d_out]
-
-                # HyRSM (old class-specific): enrich query inside loop
-                if self.inter is not None and self.inter_style == "hyrsm":
-                    q_for_dist = self.inter(q_set, class_s)
-                else:
-                    q_for_dist = q_set
-
-                dist = self._class_distance(q_for_dist, class_s)   # [nq,]
+                dist = self._class_distance(q_set, class_s)   # [nq,]
                 all_distances[:, c.long()] = -dist
 
         return {"logits": all_distances}

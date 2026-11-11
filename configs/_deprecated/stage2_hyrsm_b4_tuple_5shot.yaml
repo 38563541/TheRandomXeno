@@ -1,6 +1,7 @@
-# Stage 2 — HyRSM B4: Intra + HyRSM Inter (tuple level, 1-shot)
+# 1111 淘汰：inter_style: hyrsm 已移除。每一類先用自己的 support 改寫 query 再量距離，距離會失去鑑別力（test≈20%）。
+# Stage 2 — HyRSM B4: Intra + HyRSM Inter (tuple level, 5-shot)
 # Class-specific cross-attention: query attends to one class's support inside
-# the per-class Hausdorff loop. Compares directly against stage2_option_b (global inter).
+# the per-class Hausdorff loop. Compares directly against stage2_option_b 5-shot.
 
 matching: bidirectional      # 距離函數：雙向 mean-Hausdorff
 set_aggregation: pool        # K 支 support 攤平成一個 tuple pool
@@ -16,7 +17,7 @@ num_samples: 1
 
 # Episode config
 way: 5
-shot: 1
+shot: 5
 query_per_class: 5
 
 # Training

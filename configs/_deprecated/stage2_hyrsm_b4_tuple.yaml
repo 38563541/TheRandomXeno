@@ -1,0 +1,31 @@
+# 1111 淘汰：inter_style: hyrsm 已移除。每一類先用自己的 support 改寫 query 再量距離，距離會失去鑑別力（test≈20%）。
+# Stage 2 — HyRSM B4: Intra + HyRSM Inter (tuple level, 1-shot)
+# Class-specific cross-attention: query attends to one class's support inside
+# the per-class Hausdorff loop. Compares directly against stage2_option_b (global inter).
+
+matching: bidirectional      # 距離函數：雙向 mean-Hausdorff
+set_aggregation: pool        # K 支 support 攤平成一個 tuple pool
+tau: 0.1
+
+# Backbone
+backbone: resnet18
+trans_linear_out_dim: 1152
+
+# Tuple configuration
+temp_set: [2]
+num_samples: 1
+
+# Episode config
+way: 5
+shot: 1
+query_per_class: 5
+
+# Training
+training_iterations: 100020
+tasks_per_batch: 16
+
+# Relation modules (B4: intra + HyRSM inter)
+use_intra_relation: true
+use_inter_relation: true
+relation_level: tuple
+inter_style: hyrsm
