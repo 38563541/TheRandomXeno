@@ -5,8 +5,8 @@ verify_lst.py — 1005 階段 3：backbone_mode（full/frozen/partial_l4/lst/top
 做法比照 V4／V4b：CPU、train 模式、BN momentum 0、所有 dropout（含 MultiheadAttention 內部）設 0、
 backward 後比 .grad、每項都有控制組、報告梯度量級。
 
-  V1 預設路徑回歸：backbone_mode=full（以及 frozen、E1 的 ckpt_prefix 路徑）的 logits 與 .grad，
-     與 stage2-decouple HEAD 的模型程式（另外載入成獨立 package）位元級相同；控制組：擾動一個權重必須抓到差異
+  （V1「與 stage2-decouple HEAD 位元級相同」已於 1125 刪除：參考版本 import 的 relation.hyrsm_inter_relation
+     在 1111 已移除，整理前就已失敗；它是歷史性的一次性對照，不是回歸測試。）
   V2 梯度流向：frozen/lst/top_adapter 下 backbone 每個參數 .grad is None；side/adapter 參數有梯度
      （α=0 時只有 α 有梯度，另在 α=0.1 的複本上驗全部 side 參數）；partial_l4 只有 layer4 有梯度；BN 模式
   V3 初始等價：α=0 時 lst／top_adapter 的特徵與 logits 與 frozen 位元級相同；α=0.1 必須改變
@@ -35,7 +35,6 @@ import torch                      # noqa: E402
 import torch.nn as nn             # noqa: E402
 
 torch.set_num_threads(8)
-REF_COMMIT = "stage2-decouple"   # 1005 改動前的 HEAD（06ddba9）
 IMG = 112                        # CPU 可負擔；layer4 為 4×4，side 7×7 時 rung4 會上採樣（形狀無關驗證邏輯）
 WAY, SHOT, QPC, SEQ = 5, 1, 2, 8
 
@@ -45,26 +44,6 @@ _pass, _fail = [], []
 def check(name, cond, detail=""):
     print(f"  [{'PASS' if cond else 'FAIL'}] {name}  {detail}", flush=True)
     (_pass if cond else _fail).append(name)
-
-
-# ----------------------------------------------------------------------------
-# 獨立參考：stage2-decouple HEAD 的 models/stage{1,2}_model.py
-# ----------------------------------------------------------------------------
-def load_reference():
-    d = tempfile.mkdtemp(prefix="verify_lst_ref_")
-    pkg = os.path.join(d, "ref_models")
-    os.makedirs(pkg)
-    open(os.path.join(pkg, "__init__.py"), "w").close()
-    commit = subprocess.check_output(["git", "rev-parse", "--short", REF_COMMIT], cwd=REPO).decode().strip()
-    for name in ("stage1_model", "stage2_model"):
-        src = subprocess.check_output(["git", "show", f"{REF_COMMIT}:models/{name}.py"], cwd=REPO).decode()
-        assert "backbone_adapt" not in src, "參考版本不應含 1005 改動"
-        src = src.replace("from models.stage1_model", "from ref_models.stage1_model")
-        open(os.path.join(pkg, f"{name}.py"), "w").write(src)
-    sys.path.insert(0, d)
-    r1 = importlib.import_module("ref_models.stage1_model")
-    r2 = importlib.import_module("ref_models.stage2_model")
-    return r1, r2, commit
 
 
 # ----------------------------------------------------------------------------
@@ -141,42 +120,6 @@ def grad_mag(g, prefix=""):
 
 
 # ----------------------------------------------------------------------------
-def v1(ref1, ref2, new1, new2):
-    print("\nV1 預設路徑回歸（新程式 vs stage2-decouple HEAD，位元級）")
-    cases = [("B1", "resnet18", {}), ("B4", "resnet18", {}), ("B4", "resnet50", {}),
-             ("B1", "resnet18", {"freeze_backbone": True}), ("B4", "resnet18", {"freeze_backbone": True}),
-             ("B4", "resnet50", {"grad_ckpt": True, "ckpt_prefix": 14, "ckpt_segments": 7})]
-    for head, method, kw in cases:
-        a_ref = make_args(head, method, **kw)
-        a_new = make_args(head, method, **kw)
-        mr = build(ref1, ref2, a_ref)
-        mn = build(new1, new2, a_new)
-        same_sd = all(torch.equal(v, mn.state_dict()[k]) for k, v in mr.state_dict().items()) \
-            and set(mr.state_dict()) == set(mn.state_dict())
-        ep = episode(method=method)
-        lr, gr = fwd_bwd(mr, ep)
-        ln, gn = fwd_bwd(mn, ep)
-        dl = (lr - ln).abs().max().item()
-        dg = max_grad_diff(gr, gn)
-        tag = f"{head}/{method}/{kw or 'default'} (new mode={a_new.backbone_mode})"
-        check(f"V1 {tag} state_dict 相同", same_sd)
-        check(f"V1 {tag} logits max|Δ|=0", dl == 0.0, f"{dl:.3e}")
-        check(f"V1 {tag} .grad max|Δ|=0", dg == 0.0, f"{dg:.3e}；梯度量級 head={grad_mag(gn, 'transformers'):.3e} "
-                                                      f"backbone={grad_mag(gn, 'resnet'):.3e}")
-    # 控制組：同一個比較在權重被擾動 1e-4 時必須抓到差異
-    a = make_args("B4", "resnet18")
-    mr = build(ref1, ref2, a)
-    mn = build(new1, new2, make_args("B4", "resnet18"))
-    with torch.no_grad():
-        mn.resnet[7][1].conv2.weight[0, 0, 0, 0] += 1e-4
-    ep = episode()
-    lr, gr = fwd_bwd(mr, ep)
-    ln, gn = fwd_bwd(mn, ep)
-    check("V1 控制組：擾動 layer4 一個權重 1e-4 → logits 與 .grad 必須不同",
-          (lr - ln).abs().max().item() > 0 and max_grad_diff(gr, gn) > 0,
-          f"logits Δ={(lr - ln).abs().max().item():.3e} grad Δ={max_grad_diff(gr, gn):.3e}")
-
-
 def v2(new1, new2):
     print("\nV2 梯度流向")
     for head in ("B1", "B4"):
@@ -436,15 +379,14 @@ def v7(new1, new2):
 
 
 def main():
-    ref1, ref2, commit = load_reference()
     import models.stage1_model as new1
     import models.stage2_model as new2
-    print(f"參考版本：{REF_COMMIT} @ {commit}；新版本：working tree @ "
+    print(f"版本：working tree @ "
           f"{subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=REPO).decode().strip()}")
     print(f"CPU, img={IMG}, way={WAY} shot={SHOT} qpc={QPC} seq={SEQ}；dropout=0、BN momentum=0")
-    for fn in (v1, v2, v3, v4, v5, v6, v7):
+    for fn in (v2, v3, v4, v5, v6, v7):
         try:
-            fn(ref1, ref2, new1, new2) if fn is v1 else fn(new1, new2)
+            fn(new1, new2)
         except Exception as e:      # 單項例外記為失敗，不中斷其他項
             import traceback
             traceback.print_exc()
