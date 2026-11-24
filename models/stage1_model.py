@@ -243,9 +243,20 @@ class CNN_TRX(nn.Module):
             print("[INFO] backbone FROZEN: requires_grad=False, BN in eval mode", flush=True)
         setup_partial_l4(self)
 
-        self.transformers = nn.ModuleList(
-            [TRXSetMatching(args, temporal_set_size=2)]
-        )
+        # 1126：head=prototype 時改用原版 TRX 的 query-specific prototype（只用幀對）；head=set（預設）走原本那一行。
+        _head = getattr(args, "head", "set") or "set"
+        assert _head in ("set", "prototype"), f"Unknown head={_head!r}"
+        if _head == "prototype":
+            from models.trx_original import TemporalCrossTransformer
+            if (getattr(args, "distance", "sqeuclid") or "sqeuclid") != "sqeuclid":
+                print(f"[WARN] head=prototype 用原版 TRX 自己的距離（平方距離 ÷ tuple 數），"
+                      f"distance={args.distance} 不作用", flush=True)
+            print("[INFO] head=prototype：TemporalCrossTransformer(temporal_set_size=2)", flush=True)
+            self.transformers = nn.ModuleList([TemporalCrossTransformer(args, temporal_set_size=2)])
+        else:
+            self.transformers = nn.ModuleList(
+                [TRXSetMatching(args, temporal_set_size=2)]
+            )
         # 1005: side／adapter 在匹配頭之後建立 → 同 seed 下匹配頭初始化與 frozen 相同
         setup_adapters(self)
         # 1126：logit 溫度（只在設定 logit_scale 時建立；放在所有既有模組之後）

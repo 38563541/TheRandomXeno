@@ -63,7 +63,7 @@ class TemporalCrossTransformer(nn.Module):
         # generate all tuples
         frame_idxs = [i for i in range(self.args.seq_len)]
         frame_combinations = combinations(frame_idxs, temporal_set_size)
-        self.tuples = [torch.tensor(comb).cuda() for comb in frame_combinations]
+        self.tuples = [torch.tensor(comb) for comb in frame_combinations]   # 1126：不寫死 .cuda()，forward 時跟著輸入的 device
         self.tuples_len = len(self.tuples)
 
     def forward(self, support_set, support_labels, queries):
@@ -75,8 +75,9 @@ class TemporalCrossTransformer(nn.Module):
         queries = self.pe(queries)
 
         # construct new queries and support set made of tuples of images after pe
-        s = [torch.index_select(support_set, -2, p).reshape(n_support, -1) for p in self.tuples]
-        q = [torch.index_select(queries, -2, p).reshape(n_queries, -1) for p in self.tuples]
+        tuples = [p.to(support_set.device) for p in self.tuples]   # 1126
+        s = [torch.index_select(support_set, -2, p).reshape(n_support, -1) for p in tuples]
+        q = [torch.index_select(queries, -2, p).reshape(n_queries, -1) for p in tuples]
         support_set = torch.stack(s, dim=-2)
         queries = torch.stack(q, dim=-2)
 
@@ -95,7 +96,7 @@ class TemporalCrossTransformer(nn.Module):
         unique_labels = torch.unique(support_labels)
 
         # init tensor to hold distances between every support tuple and every target tuple
-        all_distances_tensor = torch.zeros(n_queries, self.args.way).cuda()
+        all_distances_tensor = torch.zeros(n_queries, self.args.way, device=queries.device)   # 1126：原本寫死 .cuda()
 
         for label_idx, c in enumerate(unique_labels):
 

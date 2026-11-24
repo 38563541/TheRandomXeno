@@ -648,6 +648,10 @@ class Learner:
                             help="1126：train 類別（HMDB 31 類）輔助分類 loss 的權重。預設 0＝不建立分類頭（現行）。"
                                  ">0 時：每支影片 8 幀 backbone 特徵取平均 → Linear(D, K)，support 與 query 都用；"
                                  "task_loss＝(原 loss＋aux_cls_weight×CE)/tasks_per_batch；只在訓練時計算，評估不用。")
+        parser.add_argument("--head", choices=["set", "prototype"], default="set",
+                            help="1126：匹配頭。set（預設）＝現行的集合匹配（延遲聚合）；prototype＝原版 TRX 的 query-specific "
+                                 "prototype（models/trx_original.py，temporal_set_size=2），用它自己的距離（平方距離÷tuple 數），"
+                                 "distance 選項不作用；logit_scale 照常作用。不能和 use_intra_relation／use_inter_relation 同時開。")
         parser.add_argument("--warmup_iters", type=int, default=0,
                             help="1126：cosine 的線性 warmup 長度（iteration）。預設 0。lr_schedule=step 時不作用。")
 

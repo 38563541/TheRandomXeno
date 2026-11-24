@@ -244,6 +244,9 @@ class CNN_TRXWithRelation(nn.Module):
         self.train()
         self.args = args
 
+        # 1126：prototype 頭只做 Stage 1 對照，不能接 relation 模組
+        if (getattr(args, "head", "set") or "set") == "prototype":
+            raise ValueError("head=prototype 不能同時開 use_intra_relation／use_inter_relation（prototype 只做 Stage 1 對照組）")
         relation_level = getattr(args, "relation_level",     "tuple")
         use_intra      = getattr(args, "use_intra_relation", True)
         use_inter      = getattr(args, "use_inter_relation", True)
