@@ -213,7 +213,7 @@ test_ldr = SplitEpisodeLoader(os.path.join(SPLIT_DIR, "testlist03.txt"),
 # ─────────────────────────────────────────────────────────────────────────────
 CFG_B4 = os.path.join(REPO, "configs/stage2_true_hyrsm_b4_tuple.yaml")
 CFG_B2 = os.path.join(REPO, "configs/stage2_b2_intra_only.yaml")
-CFG_B1 = os.path.join(REPO, "configs/b1_backbone_1shot.yaml")
+CFG_B1 = os.path.join(REPO, "configs/stage1_bidirectional.yaml")
 
 B4_S42_DIR = f"{CKPT_ROOT}/true_hyrsm_b4_1shot/hmdb_split3_20260526_202630"
 B4_S43_DIR = f"{CKPT_ROOT}/b4_seed43_1shot_hmdb3/hmdb_split3_20260905_154706"
