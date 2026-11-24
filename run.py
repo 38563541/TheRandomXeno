@@ -69,6 +69,9 @@ _CSV_COLUMNS = [
     "iteration", "mean_accuracy", "confidence_interval",
     # 1111：val（固定 val_seed 的 num_val_tasks 個 episode）；舊列留空
     "val_accuracy", "val_confidence_interval",
+    # 1126：訓練配方選項；舊列留空
+    "distance", "logit_scale", "logit_scale_learnable", "momentum", "weight_decay",
+    "lr_schedule", "warmup_iters", "aux_cls_weight", "head",
 ]
 
 # 1005：results.csv 過去出現過的欄位組合（header 只在建檔時寫一次，之後 _CSV_COLUMNS
@@ -103,6 +106,15 @@ _CSV_LEGACY_SCHEMAS = [
      "way", "shot", "query_per_class",
      "seed", "backbone_mode", "side_width", "side_res", "side_norm", "adapter_hidden", "train_aug",
      "iteration", "mean_accuracy", "confidence_interval"],
+    # 31 欄：1111～1126 之前的 _CSV_COLUMNS，多 val_accuracy／val_confidence_interval。
+    ["timestamp", "config_file", "dataset", "split",
+     "backbone", "temp_set", "matching", "set_aggregation", "tau",
+     "relation_level", "use_intra_relation", "use_inter_relation", "inter_style",
+     "decouple_gate", "decouple_mode", "intra_depth",
+     "way", "shot", "query_per_class",
+     "seed", "backbone_mode", "side_width", "side_res", "side_norm", "adapter_hidden", "train_aug",
+     "iteration", "mean_accuracy", "confidence_interval",
+     "val_accuracy", "val_confidence_interval"],
 ]
 
 
@@ -204,6 +216,16 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval,
         "confidence_interval": round(float(confidence_interval), 4),
         "val_accuracy":        "" if val_accuracy is None else round(float(val_accuracy), 4),
         "val_confidence_interval": "" if val_confidence_interval is None else round(float(val_confidence_interval), 4),
+        # 1126
+        "distance":              getattr(args, "distance", "sqeuclid"),
+        "logit_scale":           "" if getattr(args, "logit_scale", None) is None else args.logit_scale,
+        "logit_scale_learnable": getattr(args, "logit_scale_learnable", False),
+        "momentum":              getattr(args, "momentum", 0.0),
+        "weight_decay":          getattr(args, "weight_decay", 0.0),
+        "lr_schedule":           getattr(args, "lr_schedule", "step"),
+        "warmup_iters":          getattr(args, "warmup_iters", 0),
+        "aux_cls_weight":        getattr(args, "aux_cls_weight", 0.0),
+        "head":                  getattr(args, "head", "set"),
     }
 
     with open(_CSV_PATH, "a", newline="") as f:
@@ -691,8 +713,10 @@ class Learner:
 
             unknown = set(yaml_cfg) - known - passthrough - deprecated
             if unknown:
-                print(f"[WARN] config 有 {len(unknown)} 個未知的鍵，不會生效: "
-                      f"{sorted(unknown)}", flush=True)
+                # 1126：從印警告改成直接報錯（沒宣告的鍵不會生效，寫錯字會默默變成預設值）。
+                raise SystemExit(
+                    f"[ERROR] config {pre_args.config} 有 {len(unknown)} 個不認得的鍵：{sorted(unknown)}。"
+                    f"新鍵請先在 run.py 用 add_argument 宣告。")
             hit = deprecated & set(yaml_cfg)
             if hit:
                 print(f"[WARN] config 有廢棄鍵 {sorted(hit)}"
@@ -827,6 +851,11 @@ class Learner:
                     self.logfile.close()
                     return
                 # ------------------------------------------------------------------
+
+                # 1126：把解析完的所有參數存成 <checkpoint_dir>/resolved_config.yaml
+                with open(os.path.join(self.checkpoint_dir, "resolved_config.yaml"), "w") as _rf:
+                    yaml.safe_dump({k: v for k, v in sorted(vars(self.args).items())}, _rf,
+                                   allow_unicode=True, default_flow_style=None, sort_keys=False)
 
                 train_accuracies = []
                 losses = []
