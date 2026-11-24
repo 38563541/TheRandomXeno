@@ -10,7 +10,7 @@ import sys
 from utils import print_and_log, get_log_files, TestAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir, task_confusion
 from model import CNN_TRX
 from models.backbone_adapt import adapter_alpha
-from models.recipe import logit_scale_value
+from models.recipe import logit_scale_value, setup_aux_head, aux_enabled, aux_cls_loss
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Quiet TensorFlow warnings
 import tensorflow as tf
 
@@ -278,6 +278,11 @@ class Learner:
         self.train_set, self.validation_set, self.test_set = self.init_data()
 
         self.vd = video_reader.VideoDataset(self.args)
+
+        # 1126：aux_cls_weight>0 才建輔助分類頭（類別 = train split 的類別）。一定要在下面收 trainable、建 optimizer 之前。
+        if float(getattr(self.args, "aux_cls_weight", 0.0) or 0.0) > 0.0:
+            setup_aux_head(self.model, self.vd.train_split.get_unique_classes(),
+                           self.args.trans_linear_in_dim, self.device)
 
         # worker_init_fn: give each worker a deterministic but distinct seed.
         # Only active when --seed is set; otherwise same behaviour as before.
@@ -639,6 +644,10 @@ class Learner:
                             help="1126：step（預設）＝現行 MultiStepLR(milestones=--sch, gamma=0.1)；"
                                  "cosine＝LambdaLR：warmup_iters 內從 0 線性升到 lr，之後 cosine 降到 0，終點＝training_iterations。"
                                  "步數單位是 iteration（episode），和 run.py 每個 iteration 呼叫一次 scheduler.step() 一致。")
+        parser.add_argument("--aux_cls_weight", type=float, default=0.0,
+                            help="1126：train 類別（HMDB 31 類）輔助分類 loss 的權重。預設 0＝不建立分類頭（現行）。"
+                                 ">0 時：每支影片 8 幀 backbone 特徵取平均 → Linear(D, K)，support 與 query 都用；"
+                                 "task_loss＝(原 loss＋aux_cls_weight×CE)/tasks_per_batch；只在訓練時計算，評估不用。")
         parser.add_argument("--warmup_iters", type=int, default=0,
                             help="1126：cosine 的線性 warmup 長度（iteration）。預設 0。lr_schedule=step 時不作用。")
 
@@ -1074,6 +1083,10 @@ class Learner:
                 model_dict = self.model(context_images, context_labels, target_images)
                 target_logits = model_dict['logits']
                 task_loss = self.loss(target_logits, target_labels, self.device) / self.args.tasks_per_batch
+        if aux_enabled(self.model):
+            # 1126：task_loss = (原本的 loss + aux_cls_weight × 輔助 loss) / tasks_per_batch；上面原本那一行不變。
+            _aux = aux_cls_loss(self.model, model_dict, context_labels, real_target_labels, batch_class_list, self.device)
+            task_loss = task_loss + self.args.aux_cls_weight * _aux / self.args.tasks_per_batch
         task_accuracy = self.accuracy_fn(target_logits, target_labels)
 
         if _profmem:

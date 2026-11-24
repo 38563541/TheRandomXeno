@@ -51,3 +51,44 @@ def logit_scale_value(model):
         return float(torch.exp(model.log_logit_scale.detach()))
     return getattr(model, "_logit_scale_const", None)
 
+
+# ---------------------------------------------------------------------------
+# aux_cls_weight（預設 0 = 不建立）：train 類別的輔助分類頭
+# ---------------------------------------------------------------------------
+def setup_aux_head(model, train_class_ids, feat_dim, device):
+    """由 Learner 在 VideoDataset 建好之後、收 trainable 參數／建 optimizer 之前呼叫。
+    對照表只含 train split 的類別（全域類別編號 → 0..K−1），存成模型上的 buffer aux_class_ids
+    （checkpoint 會一起存）與 dict aux_class_map。分類頭 = nn.Linear(feat_dim, K)。"""
+    ids = sorted(int(c) for c in train_class_ids)
+    model.register_buffer("aux_class_ids", torch.tensor(ids, dtype=torch.long, device=device))
+    model.aux_class_map = {c: i for i, c in enumerate(ids)}
+    model.aux_head = nn.Linear(feat_dim, len(ids)).to(device)
+    print(f"[INFO] aux_cls_weight>0：輔助分類頭 Linear({feat_dim}, {len(ids)})，train 類別 {len(ids)} 類", flush=True)
+    return len(ids)
+
+
+def aux_enabled(model):
+    return getattr(model, "aux_head", None) is not None
+
+
+def aux_targets(model, global_ids, device):
+    """全域類別編號 → 0..K−1。遇到對照表外的類別直接報錯（代表 val／test 的影片混進訓練）。"""
+    out = []
+    for g in global_ids:
+        g = int(g)
+        if g not in model.aux_class_map:
+            raise RuntimeError(f"aux_cls：類別 {g} 不在 train 類別對照表（{len(model.aux_class_map)} 類）裡，"
+                               f"val／test 的影片混進訓練了？")
+        out.append(model.aux_class_map[g])
+    return torch.tensor(out, dtype=torch.long, device=device)
+
+
+def aux_cls_loss(model, model_dict, support_labels, real_target_labels, batch_class_list, device):
+    """support 的全域類別 = batch_class_list[support_labels]；query 的全域類別 = real_target_labels。"""
+    feats = torch.cat([model_dict["support_video_feats"], model_dict["query_video_feats"]], dim=0)
+    bcl = batch_class_list.detach().cpu()
+    sup_global = [bcl[int(l)] for l in support_labels.detach().cpu()]
+    qry_global = list(real_target_labels.detach().cpu())
+    tgt = aux_targets(model, sup_global + qry_global, device)
+    logits = model.aux_head(feats.to(model.aux_head.weight.dtype))
+    return torch.nn.functional.cross_entropy(logits, tgt)

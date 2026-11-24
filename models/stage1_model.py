@@ -22,7 +22,7 @@ import torchvision.models as models
 
 from utils import split_first_dim_linear
 from matching.mean_hausdorff import mean_hausdorff_bidir, pool_hausdorff, instance_class_distance, DISTANCES
-from models.recipe import setup_logit_scale, logit_scale_enabled, apply_logit_scale   # 1126
+from models.recipe import setup_logit_scale, logit_scale_enabled, apply_logit_scale, aux_enabled   # 1126
 from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, setup_adapters,
                                    apply_backbone_train_mode, backbone_features)
 
@@ -369,6 +369,9 @@ class CNN_TRX(nn.Module):
                 sample_logits, [NUM_SAMPLES, target_features.shape[0]]
             )
         }
+        if aux_enabled(self):      # 1126：aux_cls_weight>0 時多回傳每支影片 8 幀平均的 backbone 特徵
+            return_dict['support_video_feats'] = context_features.mean(dim=1)
+            return_dict['query_video_feats'] = target_features.mean(dim=1)
         return return_dict
 
     def distribute_model(self):

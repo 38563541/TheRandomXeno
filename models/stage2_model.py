@@ -34,7 +34,7 @@ from models.stage1_model import TRXSetMatching, NUM_SAMPLES
 from relation.intra_relation import IntraRelation
 from relation.inter_relation import InterRelation
 from relation.true_hyrsm_inter_relation import TrueHyRSMInterRelation
-from models.recipe import setup_logit_scale, logit_scale_enabled, apply_logit_scale   # 1126
+from models.recipe import setup_logit_scale, logit_scale_enabled, apply_logit_scale, aux_enabled   # 1126
 from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, setup_adapters,
                                    apply_backbone_train_mode, backbone_features)
 
@@ -438,6 +438,14 @@ class CNN_TRXWithRelation(nn.Module):
             self._prof_backbone_ms = _e0.elapsed_time(_e1)
             self._prof_head_ms     = _e1.elapsed_time(_e2)
 
+        if aux_enabled(self):      # 1126：aux_cls_weight>0 時多回傳每支影片 8 幀平均的 backbone 特徵
+            return {
+                'logits': split_first_dim_linear(
+                    sample_logits, [NUM_SAMPLES, target_features.shape[0]]
+                ),
+                'support_video_feats': context_features.mean(dim=1),
+                'query_video_feats': target_features.mean(dim=1),
+            }
         return {
             'logits': split_first_dim_linear(
                 sample_logits, [NUM_SAMPLES, target_features.shape[0]]
