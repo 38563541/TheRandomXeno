@@ -554,19 +554,6 @@ class Learner:
                                  'autocast 外。fp16 用 GradScaler，bf16 不用。評估路徑不受影響，'
                                  '維持 fp32。')
 
-        # decouple_gate / decouple_mode — SupportDecoupleRelation args.
-        # Use mutually exclusive group for gate so YAML "decouple_gate: false"
-        # works correctly.  str2bool does not exist in this repo → do NOT use it.
-        _dg = parser.add_mutually_exclusive_group()
-        _dg.add_argument("--decouple_gate",    dest="decouple_gate",
-                         action="store_true",  help="Enable cosine gate in SupportDecoupleRelation.")
-        _dg.add_argument("--no_decouple_gate", dest="decouple_gate",
-                         action="store_false", help="Disable cosine gate.")
-        parser.set_defaults(decouple_gate=True)
-        parser.add_argument("--decouple_mode", type=str, default="remove",
-                            choices=["remove", "inject"],
-                            help="Decouple mode: 'remove' subtracts other-class signal, "
-                                 "'inject' adds it (ablation only).")
         parser.add_argument("--test_seed", type=int, default=20001,
                             help="1111：評估 test 時用的固定 seed（與 scripts/reselect_val.py 的 TEST_SEED 相同）。"
                                  "評估前存下四個亂數狀態、用這個 seed 重設、評估完還原，所以每次評估抽到同一批 episode，"
@@ -586,8 +573,8 @@ class Learner:
             known = {a.dest for a in parser._actions}
 
             # Stage 2 keys intentionally passed through without add_argument.
-            # ⚠️  Every new stage2 flag must be listed here (e.g. decouple_gate,
-            #     decouple_mode) so it is not mis-classified as unknown.
+            # ⚠️  Every new stage2 flag must be listed here so it is not
+            #     mis-classified as unknown.
             # Note: 'backbone' is NOT listed here — _load_yaml_config already
             #       consumes it (aliasing backbone→method and popping the key)
             #       before this guard runs, so it will never appear in yaml_cfg.

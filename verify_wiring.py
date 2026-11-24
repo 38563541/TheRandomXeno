@@ -207,8 +207,6 @@ check("use_inter_relation true→false 改變 logits", diff_inter > 1e-4,
 print("\n--- inter_style 型別驗證（架構不同，改測模組型別）---")
 from relation.inter_relation import InterRelation
 from relation.true_hyrsm_inter_relation import TrueHyRSMInterRelation
-# 1111：inter_style=hyrsm 已移除（模組移到 relation/_deprecated/），這一項略過。
-print("  [SKIP] inter_style=hyrsm → HyRSMInterRelation（1111 已移除）")
 
 for style, expected_cls in [
     ("global",      InterRelation),

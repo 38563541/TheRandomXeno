@@ -34,15 +34,17 @@ from models.stage1_model import TRXSetMatching, NUM_SAMPLES
 from relation.intra_relation import IntraRelation
 from relation.inter_relation import InterRelation
 from relation.true_hyrsm_inter_relation import TrueHyRSMInterRelation
-from relation.support_decouple_relation import SupportDecoupleRelation
 from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, setup_adapters,
                                    apply_backbone_train_mode, backbone_features)
 
 
-INTER_STYLES = ("global", "true_hyrsm", "decouple")
+INTER_STYLES = ("global", "true_hyrsm")
 # 1111：inter_style="hyrsm"（舊的逐類 HyRSM）已移除，模組移到 relation/_deprecated/。
 _HYRSM_REMOVED_MSG = ("inter_style='hyrsm' 已於 1111 移除：每一類先用自己的 support 改寫 query 再量距離，"
                       "距離會失去鑑別力（test≈20%）")
+# 1125：inter_style="decouple"（SupportDecoupleRelation）已移除。
+_DECOUPLE_REMOVED_MSG = ("inter_style='decouple' 已於 1125 移除（D1b 從未訓練；程式保留在 tag "
+                         "archive/pre-cleanup-1125）")
 
 
 class TRXSetMatchingWithRelation(nn.Module):
@@ -65,14 +67,16 @@ class TRXSetMatchingWithRelation(nn.Module):
         # 是不同的模組，預設成 global 會讓沒寫的 config 默默變成 transductive。
         if inter_style == "hyrsm":
             raise ValueError(_HYRSM_REMOVED_MSG)
+        if inter_style == "decouple":
+            raise ValueError(_DECOUPLE_REMOVED_MSG)
         if use_inter and inter_style is None:
             raise ValueError(
                 "use_inter_relation=True 時必須明確指定 inter_style，可用的值："
                 f"{INTER_STYLES}")
         assert inter_style is None or inter_style in INTER_STYLES, \
             f"inter_style must be one of {INTER_STYLES}, got {inter_style!r}"
-        # Phase 0.2: frame 分支只支援 global/hyrsm；decouple/true_hyrsm 的 API 與 frame 不相容
-        assert not (relation_level == "frame" and inter_style in ("decouple", "true_hyrsm")), \
+        # Phase 0.2: frame 分支只支援 global；true_hyrsm 的 API 與 frame 不相容
+        assert not (relation_level == "frame" and inter_style == "true_hyrsm"), \
             f"inter_style={inter_style!r} 只支援 relation_level='tuple'"
 
         self.args           = args
@@ -102,18 +106,7 @@ class TRXSetMatchingWithRelation(nn.Module):
         else:
             self.intra = nn.Identity()
         if use_inter:
-            if inter_style == "decouple":
-                print("[WARN] inter_style=decouple 已淘汰（1111）：relation/support_decouple_relation.py 是 D1b"
-                      "（中心化 gate + alpha 零初始化），從未訓練過；logs/decouple_d1_1shot.log 與 "
-                      "stage2_decouple_1shot_hmdb3 是 D1a（原始 cosine gate、沒有 alpha），兩者不能互相對照。"
-                      "已收掉：中心化後各類均值的兩兩 cosine 平均約 −1/(N−1)，clamp 後 gate 幾乎全為 0。",
-                      flush=True)
-                self.inter = SupportDecoupleRelation(
-                    rel_dim, num_heads,
-                    gate=getattr(args, "decouple_gate", True),
-                    mode=getattr(args, "decouple_mode", "remove"),
-                )
-            elif inter_style == "true_hyrsm":
+            if inter_style == "true_hyrsm":
                 self.inter = TrueHyRSMInterRelation(rel_dim, num_heads)
             else:
                 self.inter = InterRelation(rel_dim, num_heads)
@@ -196,13 +189,6 @@ class TRXSetMatchingWithRelation(nn.Module):
             # IntraRelation: enrich each video's tuple sequence
             q_set = self.intra(q_set)  # [nq, T, d_out]
             s_set = self.intra(s_set)  # [ns, T, d_out]
-
-            # Support decouple: class-conditioned support rewriting.
-            # Runs ONCE per episode, BEFORE the class loop.
-            # query is deliberately NOT modified so all 5 class distances
-            # remain in a common scale (design principle).
-            if self.inter is not None and self.inter_style == "decouple":
-                s_set = self.inter(s_set, support_labels)
 
             # Global InterRelation: cross-attend across all queries and all support
             if self.inter is not None and self.inter_style == "global":
