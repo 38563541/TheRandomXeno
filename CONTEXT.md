@@ -120,8 +120,8 @@ Requires Stage 1 winner as the matching backbone. Four conditions:
 | B1 | false | false | — | (Stage 1 winner, baseline) |
 | B2 | true | false | tuple | intra only |
 | B3 | false | true | tuple | inter only |
-| B4 | true | true | tuple | Option B full |
-| B5 | true | true | frame | Option A full |
+| B4 | true | true | tuple | Option B full（現行 config：`stage2_true_hyrsm_b4_tuple.yaml`；global 版的 `stage2_option_b.yaml` 已於 1125 移除） |
+| B5 | true | true | frame | Option A full（`stage2_option_a.yaml` 已於 1125 移除；frame 分支的程式仍在，舊 config 保留在 tag `archive/pre-cleanup-1125`） |
 
 Compare B4 vs B5 to test the frame vs tuple hypothesis.
 Compare B2/B3 vs B4 to measure contribution of each relation module independently.

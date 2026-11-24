@@ -1,268 +1,76 @@
-# Temporal-Relational Cross-Transformers — Tuple-Level Set Matching
+# TRX 延遲聚合：tuple 層級的集合匹配
 
-This repo extends [TRX (CVPR 2021)](https://arxiv.org/abs/2101.06184) toward **tuple-level set matching without prototype aggregation**.
-Query tuple embeddings search directly against the full support tuple pool, bypassing the prototype bottleneck of the original method.
+## 1. 這個 repo 是什麼
 
----
+以 [TRX (CVPR 2021)](https://arxiv.org/abs/2101.06184) 為基礎的小樣本影片動作辨識。差別在於**延遲聚合（set-level matching）**：不先把 support 聚合成 prototype，而是把每支影片的「幀對 tuple」嵌入當成一個集合，query 集合與某類全部 support tuple 之間算 mean-Hausdorff 距離，logit = −距離。
 
-## Quick experiment guide
+## 2. 目錄結構
 
-### 1. Prerequisites
+| 位置 | 內容 |
+|---|---|
+| `run.py` | 訓練／評估入口（YAML config + argparse，CLI 覆蓋 YAML） |
+| `model.py` | `CNN_TRX(args)` 工廠：有 relation 模組 → Stage 2 模型，否則 Stage 1 |
+| `video_reader.py`、`videotransforms/` | 從 zip 讀影格、組 episode、資料增強 |
+| `utils.py` | loss、accuracy、log 工具 |
+| `visualize.py` | 視覺化與 embedding 抽取（`tools/reselect_val.py` 也用它的 `load_model`） |
+| `make_hmdb_trx_zip.py` | 用 ffmpeg 把 HMDB51 影片抽成 JPEG zip |
+| `models/` | `stage1_model.py`（tuple 嵌入 + 集合匹配）、`stage2_model.py`（加 intra／inter relation）、`backbone_adapt.py`（frozen／partial_l4／lst／top_adapter）、`trx_original.py`（原版 TRX，參考用） |
+| `matching/` | mean-Hausdorff（pool／instance、單向／雙向）、attention-weighted Hausdorff |
+| `relation/` | `intra_relation.py`、`inter_relation.py`（global，transductive）、`true_hyrsm_inter_relation.py`（逐 query，inductive） |
+| `configs/` | 現行實驗 config（見下表） |
+| `tests/` | 回歸測試（`git archive` 打包時排除，見 `.gitattributes`） |
+| `tools/` | 常用工具：`reselect_val.py`、`probe_preproc_1111.py`、`compare_ckpt_runs_1102.py`、`build_from_config_1111.py`、`measure_vram.py` |
+| `splits/` | 各資料集的 train／val／test 清單（HMDB 用 `hmdb_ARN`，split 3） |
 
-```bash
-pip install torch torchvision pyyaml tensorflow tensorboard
-```
+## 3. 主要 config 對照
 
-Data must be prepared as described in the [Data setup](#data-setup) section below.
-Set your data root once via `--scratch` (or edit the default in `run.py`):
+| 名稱 | config | 內容 |
+|---|---|---|
+| B1 | `configs/stage1_bidirectional.yaml` | 雙向 mean-Hausdorff、pool，沒有 relation |
+| B2 | `configs/stage2_b2_intra_only.yaml`（`stage2_b2_intra_x2.yaml`：intra 疊 2 層） | tuple 層 intra |
+| B3（true_hyrsm） | `configs/stage2_true_hyrsm_b3_inter_only.yaml` | tuple 層 inter，逐 query（inductive） |
+| B3（global，transductive 對照） | `configs/stage2_b3_inter_only.yaml` | tuple 層 inter，所有 query 與 support 互相注意 |
+| B4 | `configs/stage2_true_hyrsm_b4_tuple.yaml`（5-shot：`..._5shot.yaml`） | intra + true_hyrsm inter |
+| m1–m4 | `configs/m1_uni_pool_1shot.yaml`、`m2_attn_pool_1shot.yaml`、`m3_bidir_pool_5shot.yaml`、`m4_bidir_instance_5shot.yaml` | 距離函數／集合聚合的對照（單向、attention-weighted、5-shot pool vs instance） |
+| 凍結版 | `configs/frozen_rn18_b1.yaml`、`frozen_rn18_b2.yaml`、`frozen_rn18_b4.yaml` | 同 B1／B2／B4，`freeze_backbone: true` |
 
-```
-~/trx_data/
-  video_datasets/
-    data/      ← dataset zips (hmdb51_256q5.zip etc.)
-    splits/    ← split text files (hmdb_ARN/, etc.)
-  checkpoints/ ← output goes here
-```
+## 4. 怎麼跑
 
----
-
-### 2. Running an experiment with a config file
-
-All experiments are driven by YAML configs in `configs/`.
-Pass `--config` to select a config; any CLI flag overrides the YAML value.
-
-```bash
-python run.py \
-  --config configs/m1_uni_pool_1shot.yaml \
-  --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/m1_uni_pool_hmdb3
-```
-
-That is the canonical launch command for Stage 1 experiments.
-
----
-
-### 3. Available configs
-
-| Config file | Matching method | Direction | Notes |
-|---|---|---|---|
-| `configs/m1_uni_pool_1shot.yaml` | Mean-Hausdorff (`matching: unidirectional`) | Q→S only | Stage 1 baseline |
-| `configs/stage1_bidirectional.yaml` | Mean-Hausdorff | Q↔S (avg) | Symmetric variant |
-| `configs/m2_attn_pool_1shot.yaml` | Attention-weighted Hausdorff (`matching: attention_weighted`) | Q→S | Softmax-attends query tuples |
-| `configs/stage2_option_a.yaml` | Bidirectional Hausdorff | Q↔S | + Relation at **frame** level |
-| `configs/stage2_option_b.yaml` | Bidirectional Hausdorff | Q↔S | + Relation at **tuple** level |
-
-Stage 2 configs require the relation modules in `relation/` to be implemented first.
-
-已淘汰（`inter_style: hyrsm`、`inter_style: decouple`、舊鍵 `matching_method`／`bidirectional` 的 Stage 1 config）：已淘汰，見 `configs/_deprecated/`。
-
----
-
-### 4. Overriding config values at the command line
-
-Every YAML key maps directly to a CLI flag. CLI always wins over YAML:
+資料根目錄用 `--scratch` 指定，底下要有 `video_datasets/data/<zip>` 與 `video_datasets/splits/hmdb_ARN/`（新 clone 時從 `splits/hmdb_ARN/` 複製過去）。所有指令都在 repo 根目錄執行。
 
 ```bash
-# Use the bidirectional config but switch to HMDB split 1
-python run.py \
-  --config configs/stage1_bidirectional.yaml \
-  --dataset hmdb --split 1 \
-  -c ~/trx_data/checkpoints/bidir_hmdb1
+# 訓練（B4、HMDB split 3）
+python run.py --config configs/stage2_true_hyrsm_b4_tuple.yaml --dataset hmdb --split 3 \
+  --scratch ~/Documents/work/trx/trx_data --seed 42 \
+  --test_iters 25000 50000 75000 100000 -c ~/trx_data/checkpoints/b4_s42
 
-# Quick smoke-test: 1-shot, fewer iterations, small batch
-python run.py \
-  --config configs/m1_uni_pool_1shot.yaml \
-  --shot 1 --training_iterations 5000 --tasks_per_batch 4 \
-  --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/smoke_test
+# 純評估一個 checkpoint（預設不寫 results.csv；要寫加 --eval_write_csv）
+python run.py --config configs/stage1_bidirectional.yaml --dataset hmdb --split 3 \
+  --scratch ~/Documents/work/trx/trx_data -c /tmp/eval_b1 \
+  -m ~/trx_data/checkpoints/abl_bidir_hmdb3/hmdb_split3_20260407_220041/checkpoint25000.pt
 
-# Change attention tau without editing the yaml
-python run.py \
-  --config configs/m2_attn_pool_1shot.yaml \
-  --tau 0.05 \
-  --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/attn_tau005
+# val 選點重算（checkpoint 路徑寫在腳本裡）
+python tools/reselect_val.py
+
+# 回歸測試（每個腳本各自執行，CPU 即可；verify_fixed_test_1111 需要 GPU 與資料）
+python tests/verify_matching.py
 ```
 
----
+## 5. 評估流程
 
-### 5. Ablation matrix (Stage 1)
+- 每個 `--test_iters` 檢查點先評 val、再評 test。最後一步只有加 `--eval_at_end` 才會評估。
+- val 用 `--val_seed`（預設 10001）抽 `--num_val_tasks`（預設 1000）題；test 用 `--test_seed`（預設 20001）抽 `--num_test_tasks`（預設 10000）題。評估前存下亂數狀態、評估後還原，所以每次評估、每個模型抽到同一批題目，訓練的亂數序列也不受影響。
+- val 只記錄，不自動挑 best、不提前停止。
+- 每題結果存成 `<checkpoint_dir>/eval_<split>_<iteration>.npz`（加 `--eval_save_preds` 會多存每個 query 的預測）。
+- 彙總結果附加到 `experiments/results/results.csv`。這個檔案**不進版控**，只在本機。
 
-Run these three commands to produce the core Stage 1 ablation table.
-Results are appended automatically to `experiments/results/results.csv`.
+## 6. 已移除的東西去哪找
 
-```bash
-# Unidirectional
-python run.py --config configs/m1_uni_pool_1shot.yaml \
-  --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/abl_uni
+以下都保留在 tag **`archive/pre-cleanup-1125`**（`git show archive/pre-cleanup-1125:<路徑>` 或 `git worktree add <目錄> archive/pre-cleanup-1125`）：
 
-# Bidirectional
-python run.py --config configs/stage1_bidirectional.yaml \
-  --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/abl_bidir
+- `inter_style: hyrsm`（舊逐類 HyRSM，`relation/_deprecated/`）、`inter_style: decouple`（`relation/support_decouple_relation.py`）——現在設定這兩個值會直接報錯；
+- `configs/stage2_option_a.yaml`、`configs/stage2_option_b.yaml`、`configs/_deprecated/`、`configs/exp_1112/`、`configs/b1_backbone_1shot.yaml`（與 `stage1_bidirectional.yaml` 相同）；
+- 一次性腳本（`scripts/` 底下帶日期的 driver／分析、`compute_*.py`、`smoke_b2_b3.py`、`debug_test_crash.py`、`verify_d1.py`、`verify_amp_grad*.py`、`verify_results_csv_1005.py` 等）；
+- 實驗紀錄（`logs/`、`reports/`、`figs/`、`checkpoints*/` 的 log、`transfer/`、根目錄帶日期的筆記）。這些目錄現在只留在本機、已加進 `.gitignore`。
 
-# Attention-weighted
-python run.py --config configs/m2_attn_pool_1shot.yaml \
-  --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/abl_attn
-```
-
-To sweep all three HMDB splits:
-
-```bash
-for split in 1 2 3; do
-  for cfg in m1_uni_pool_1shot stage1_bidirectional m2_attn_pool_1shot; do
-    python run.py --config configs/${cfg}.yaml \
-      --dataset hmdb --split ${split} \
-      -c ~/trx_data/checkpoints/${cfg}_hmdb${split}
-  done
-done
-```
-
----
-
-### 6. Resuming from a checkpoint
-
-```bash
-python run.py \
-  --config configs/m1_uni_pool_1shot.yaml \
-  --dataset hmdb --split 3 \
-  -c ~/trx_data/checkpoints/m1_uni_pool_hmdb3 \
-  -r
-```
-
-The `-r` flag (`--resume_from_checkpoint`) picks up from the latest `checkpoint.pt` in the checkpoint directory.
-
----
-
-### 7. Checking results
-
-Test accuracy is printed to the log file inside the checkpoint directory and to stdout at every `test_iters` milestone (default: `[75000]`).
-
-After any run, the summary CSV is at:
-
-```
-experiments/results/results.csv
-```
-
-Columns: `timestamp, config_file, dataset, split, way, shot, iteration, mean_accuracy, confidence_interval`
-
-To view it:
-
-```bash
-python -c "import csv, sys; [print(r) for r in csv.DictReader(open('experiments/results/results.csv'))]"
-```
-
----
-
-### 8. Repo structure
-
-```
-TheRandomXeno/
-├── configs/                   ← YAML experiment configs
-│   ├── m1_uni_pool_1shot.yaml
-│   ├── stage1_bidirectional.yaml
-│   ├── m2_attn_pool_1shot.yaml
-│   ├── _deprecated/           ← 已淘汰的 config（舊鍵 Stage 1、hyrsm、decouple），見 configs/_deprecated/
-│   ├── stage2_option_a.yaml   (frame-level relation — Stage 2)
-│   └── stage2_option_b.yaml   (tuple-level relation — Stage 2)
-│
-├── models/
-│   ├── stage1_model.py        ← CNN_TRX + TRXSetMatching (active)
-│   ├── stage2_model.py        ← TRXSetMatchingWithRelation (skeleton)
-│   └── trx_original.py        ← original TRX with prototype aggregation (reference)
-│
-├── matching/
-│   ├── mean_hausdorff.py      ← mean_hausdorff_bidir (pool) + mean_hausdorff (instance)
-│   ├── attention_weighted_hausdorff.py
-│   └── bidirectional_hausdorff.py
-│
-├── relation/
-│   ├── intra_relation.py      ← IntraRelation (skeleton for Stage 2)
-│   └── inter_relation.py      ← InterRelation (skeleton for Stage 2)
-│
-├── experiments/
-│   └── results/               ← results.csv written here during training
-│
-├── model.py                   ← thin wrapper (backward compat with run.py)
-├── run.py                     ← training entrypoint
-└── utils.py
-```
-
----
-
-### 9. Key hyperparameters reference
-
-| YAML key | CLI flag | Default | Description |
-|---|---|---|---|
-| `matching` | — | `bidirectional` | `unidirectional` / `bidirectional` / `attention_weighted` |
-| `set_aggregation` | — | `pool` | `pool` / `instance` |
-| `tau` | `--tau` | `0.1` | Softmax temperature (attention-weighted only) |
-
-舊鍵 `matching_method`、`bidirectional` 已停用：config 裡出現這兩個鍵，run.py 會直接報錯退出。
-
-| `backbone` | `--method` | `resnet18` | `resnet18` / `resnet34` / `resnet50` |
-| `trans_linear_out_dim` | `--trans_linear_out_dim` | `1152` | Tuple embedding output dim |
-| `temp_set` | `--temp_set` | `[2]` | Tuple cardinalities (pairs = `[2]`) |
-| `way` | `--way` | `5` | N-way classification |
-| `shot` | `--shot` | `1` | K-shot support per class |
-| `query_per_class` | `--query_per_class` | `5` | Query videos per class (train) |
-| `training_iterations` | `-i` | `100020` | Total meta-training steps |
-| `tasks_per_batch` | `--tasks_per_batch` | `16` | Gradient accumulation steps |
-| `dataset` | `--dataset` | `ssv2` | `ssv2` / `kinetics` / `hmdb` / `ucf` |
-| `split` | `--split` | `7` | Dataset split index |
-
----
-
-## Data setup
-
-Download your chosen dataset and extract frames in the format:
-
-```
-dataset/class/video/00000001.jpg   ← 8-digit zero-padded frame numbers
-```
-
-Zip the dataset folder with no compression:
-
-```bash
-zip -r -0 hmdb51_256q5.zip hmdb51_256q5/
-```
-
-Place the zip and split text files under `~/trx_data/` as shown in section 1.
-
----
-
-## Method overview
-
-**Original TRX** samples temporal tuples from query and support videos, builds cross-attended tuple embeddings, then **aggregates support tuples into per-class prototypes** before computing distances.
-
-**This work** removes prototype aggregation entirely. Query tuple embeddings are matched against the **full pool of K × T support tuples** using mean-Hausdorff distance:
-
-```
-d(Q, S) = 0.5 * [ mean_q min_s ||q - s|| + mean_s min_q ||s - q|| ]
-```
-
-This preserves within-class tuple diversity that prototype averaging destroys.
-
----
-
-## Citation
-
-If you build on the original TRX method, please cite:
-
-```bibtex
-@inproceedings{perrett2021trx,
-  title     = {Temporal Relational CrossTransformers for Few-Shot Action Recognition},
-  booktitle = {Computer Vision and Pattern Recognition},
-  year      = {2021}
-}
-```
-
----
-
-## Acknowledgements
-
-Based on [TRX](https://github.com/tobyperrett/trx) (Perrett et al., CVPR 2021).
-Logging and training loop adapted from [CNAPs](https://github.com/cambridge-mlg/cnaps).
-Video transforms from [torch_videovision](https://github.com/hassony2/torch_videovision).
+實驗筆記與報告在 `~/Documents/work/trx_lab_notes`（`notes/`、`patches/`、`scripts/`），不在 repo 裡。
