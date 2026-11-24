@@ -8,6 +8,7 @@ V4  數值等價（同一輸入，logits 最大絕對差 < 1e-4）
 
 全部通過才算 Phase 0.1 修正正確。
 """
+import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # 1125：搬家後指回 repo 根目錄
 
 import sys
 import os

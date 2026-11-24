@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-scripts/compare_ckpt_runs_1102.py — 1102 Phase 2／3 離線比對（不需要 GPU）。
+tools/compare_ckpt_runs_1102.py — 1102 Phase 2／3 離線比對（不需要 GPU）。
 
-  python scripts/compare_ckpt_runs_1102.py --out logs/1102_p2_resnet18 --backbone resnet18 --prefix 8 \
+  python tools/compare_ckpt_runs_1102.py --out logs/1102_p2_resnet18 --backbone resnet18 --prefix 8 \
       --run A=<ckpt_root>:<loss_csv>:<stdout_log> --run Ap=... --run B=... --run C=...
 
 <ckpt_root> 是 run.py 的 -c（底下的時間戳子目錄自動找最新的）。第一個 --run 是參考組（A）。

@@ -555,13 +555,13 @@ class Learner:
                                  '維持 fp32。')
 
         parser.add_argument("--test_seed", type=int, default=20001,
-                            help="1111：評估 test 時用的固定 seed（與 scripts/reselect_val.py 的 TEST_SEED 相同）。"
+                            help="1111：評估 test 時用的固定 seed（與 tools/reselect_val.py 的 TEST_SEED 相同）。"
                                  "評估前存下四個亂數狀態、用這個 seed 重設、評估完還原，所以每次評估抽到同一批 episode，"
                                  "訓練的亂數序列也不受評估影響。")
         parser.add_argument("--num_val_tasks", type=int, default=1000,
                             help="1111：每個 test_iters 檢查點先評 val 的 episode 數（0 = 不評 val）。只記錄，不自動挑 best、不提前停止。")
         parser.add_argument("--val_seed", type=int, default=10001,
-                            help="1111：評估 val 時用的固定 seed（與 scripts/reselect_val.py 的 VAL_SEED 相同）。")
+                            help="1111：評估 val 時用的固定 seed（與 tools/reselect_val.py 的 VAL_SEED 相同）。")
         parser.add_argument("--intra_depth", type=int, default=1,
                             help="number of stacked IntraRelation blocks")
 

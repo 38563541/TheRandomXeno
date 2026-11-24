@@ -12,6 +12,7 @@ F2  匹配頭確實在學：
 
 F1 或 F2 失敗 → sys.exit(1)，不進階段 3。
 """
+import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # 1125：搬家後指回 repo 根目錄
 
 import sys, os, types, copy
 import torch

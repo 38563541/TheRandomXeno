@@ -13,6 +13,7 @@ verify_stage2_dispatch.py — 驗證 Stage 2 接上距離函數分派後行為�
   V3  三種 inter_style × 兩種 set_aggregation 的 forward 形狀與梯度都正常
   V4  1-shot 時 pool 與 instance 等價（數學上必然，同時是實作正確性的檢查）
 """
+import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # 1125：搬家後指回 repo 根目錄
 
 import sys, os, types, itertools
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

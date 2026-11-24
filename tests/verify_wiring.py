@@ -5,6 +5,7 @@ verify_wiring.py — 旗標接線稽核
 
 不訓練、不載資料集、不改既有程式碼。
 """
+import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # 1125：搬家後指回 repo 根目錄
 
 import sys, os, types, copy, glob
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

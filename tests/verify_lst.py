@@ -28,7 +28,7 @@ import sys
 import tempfile
 import types
 
-REPO = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 1125：搬到 tests/，根目錄改成上一層
 sys.path.insert(0, REPO)
 
 import torch                      # noqa: E402

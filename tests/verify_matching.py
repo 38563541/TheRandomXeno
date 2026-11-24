@@ -10,7 +10,7 @@ V4 — 形狀與梯度：12 種組合
 """
 
 import sys, os, subprocess, types
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 1125：搬到 tests/，根目錄改成上一層
 
 import torch
 from matching.mean_hausdorff import (
@@ -156,7 +156,7 @@ PYTHON = "/home/ccwu/miniconda3/envs/trx/bin/python"
 ckpt_dir = tempfile.mkdtemp(prefix="verify_ckpt_")
 
 # Load base config and inject new keys into a temporary YAML file
-base_cfg_path = os.path.join(os.path.dirname(__file__), "configs/stage1_bidirectional.yaml")
+base_cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "configs/stage1_bidirectional.yaml")  # 1125：根目錄改成上一層
 with open(base_cfg_path) as f:
     base_cfg = _yaml.safe_load(f) or {}
 base_cfg["matching"]        = "bidirectional"
@@ -181,7 +181,7 @@ cmd = [
 ]
 
 print(f"  Running: {' '.join(cmd[-10:])}")
-result = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(__file__))
+result = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 1125：根目錄改成上一層
 output = result.stdout + result.stderr
 
 # Check [INFO] matching line

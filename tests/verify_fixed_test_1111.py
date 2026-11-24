@@ -7,7 +7,7 @@ verify_fixed_test_1111.py — 乙5（以及乙6 加上 val 之後）的驗收：
   F4  （有 val 時）val 也一樣：同一顆評兩次相同、B1/B4 題目相同、亂數狀態不變
 
 用法（要 GPU 與資料）：
-  python scripts/verify_fixed_test_1111.py [--num_test_tasks 200] [--num_val_tasks 200]
+  python tests/verify_fixed_test_1111.py [--num_test_tasks 200] [--num_val_tasks 200]
 輸出：stdout（由呼叫端導到 logs/1111_verify_fixed_test.log）
 """
 import os, sys, random, argparse
