@@ -14,7 +14,7 @@
 | `utils.py` | loss、accuracy、log 工具 |
 | `visualize.py` | 視覺化與 embedding 抽取（`tools/reselect_val.py` 也用它的 `load_model`） |
 | `make_hmdb_trx_zip.py` | 用 ffmpeg 把 HMDB51 影片抽成 JPEG zip |
-| `models/` | `stage1_model.py`（tuple 嵌入 + 集合匹配）、`stage2_model.py`（加 intra／inter relation）、`backbone_adapt.py`（frozen／partial_l4／lst／top_adapter）、`trx_original.py`（原版 TRX，參考用） |
+| `models/` | `stage1_model.py`（tuple 嵌入 + 集合匹配）、`stage2_model.py`（加 intra／inter relation）、`backbone_adapt.py`（frozen／partial_l4／lst／top_adapter）、`recipe.py`（1126：logit_scale、輔助分類頭）、`trx_original.py`（原版 TRX，`head: prototype` 對照組用） |
 | `matching/` | mean-Hausdorff（pool／instance、單向／雙向）、attention-weighted Hausdorff |
 | `relation/` | `intra_relation.py`、`inter_relation.py`（global，transductive）、`true_hyrsm_inter_relation.py`（逐 query，inductive） |
 | `configs/` | 現行實驗 config（見下表） |
@@ -33,6 +33,7 @@
 | B4 | `configs/stage2_true_hyrsm_b4_tuple.yaml`（5-shot：`..._5shot.yaml`） | intra + true_hyrsm inter |
 | m1–m4 | `configs/m1_uni_pool_1shot.yaml`、`m2_attn_pool_1shot.yaml`、`m3_bidir_pool_5shot.yaml`、`m4_bidir_instance_5shot.yaml` | 距離函數／集合聚合的對照（單向、attention-weighted、5-shot pool vs instance） |
 | 凍結版 | `configs/frozen_rn18_b1.yaml`、`frozen_rn18_b2.yaml`、`frozen_rn18_b4.yaml` | 同 B1／B2／B4，`freeze_backbone: true` |
+| prototype 對照組 | `configs/proto_1shot.yaml` | 同 B1，`head: prototype`（原版 TRX query-specific prototype，只用幀對） |
 
 ## 4. 怎麼跑
 
@@ -74,3 +75,24 @@ python tests/verify_matching.py
 - 實驗紀錄（`logs/`、`reports/`、`figs/`、`checkpoints*/` 的 log、`transfer/`、根目錄帶日期的筆記）。這些目錄現在只留在本機、已加進 `.gitignore`。
 
 實驗筆記與報告在 `~/Documents/work/trx_lab_notes`（`notes/`、`patches/`、`scripts/`），不在 repo 裡。
+
+## 7. 訓練配方選項（1126）
+
+所有選項都可以寫在 YAML config 或用 CLI 覆蓋。**預設值等於 1111 之前的行為**：不寫這些鍵，建出的模型、logits、訓練過程都和以前逐位元相同。
+
+| 鍵 | 可選值 | 預設 | 意義 |
+|---|---|---|---|
+| `distance` | `sqeuclid`、`sqeuclid_over_d`、`cosine` | `sqeuclid` | tuple 之間的距離：平方 L2；平方 L2 ÷ 特徵維度 d；1 − cos（先 L2 正規化）。pool／instance、單向／雙向／attention_weighted 都適用。attention_weighted 的 `tau` 作用在距離上，換距離後 τ 的意義會變（預設 τ 沒改）。`head: prototype` 時不作用 |
+| `logit_scale` | 正浮點數 | 不設定 | logit 溫度：logits = logit_scale × (−距離)，在 CNN 層級套用（set、prototype 都作用）。不設定＝不縮放 |
+| `logit_scale_learnable` | `true`／`false` | `false` | 可學的 logit_scale（存 log(scale)，前向取 exp，初始值 = `logit_scale`；必須同時設 `logit_scale`） |
+| `momentum` | 浮點數 | `0.0` | SGD momentum。`opt: adam` 時印警告並忽略 |
+| `weight_decay` | 浮點數 | `0.0` | weight decay（SGD、Adam 都傳）。沒有做 norm／bias 不加 decay 的參數分組 |
+| `lr_schedule` | `step`、`cosine` | `step` | `step`＝MultiStepLR（`--sch`，gamma 0.1）；`cosine`＝`warmup_iters` 內從 0 線性升到 lr，之後 cosine 降到 0，終點是 `training_iterations`。步數單位是 iteration（episode） |
+| `warmup_iters` | 整數 | `0` | cosine 的 warmup 長度；`lr_schedule: step` 時不作用 |
+| `aux_cls_weight` | 浮點數 | `0.0` | train 類別（HMDB 31 類）輔助分類 loss 的權重。> 0 時才建分類頭：每支影片 8 幀 backbone 特徵取平均 → Linear(D, K)，support 和 query 都用；task_loss = (原 loss + aux_cls_weight × CE) / tasks_per_batch。只在訓練時算；遇到不在 train 類別裡的影片直接報錯 |
+| `head` | `set`、`prototype` | `set` | `set`＝本 repo 的集合匹配；`prototype`＝原版 TRX 的 query-specific prototype（`models/trx_original.py`，只用幀對），用它自己的距離（平方距離 ÷ tuple 數）。不能和 relation 模組一起開。對照組 config：`configs/proto_1shot.yaml` |
+
+其他行為：
+- config 裡有 run.py 不認得的鍵會**直接報錯**（以前只印警告）。
+- 每次訓練開始時，解析完的所有參數會存成 `<checkpoint_dir>/resolved_config.yaml`。
+- `results.csv` 最後面多了上表 9 欄，舊的列留空。
