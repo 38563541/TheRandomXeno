@@ -139,3 +139,15 @@ runs/
 logs/
 reports/
 .~lock.*#
+
+# 1125：實驗紀錄移出版控（檔案留在本機；舊版保留在 tag archive/pre-cleanup-1125）
+/logs/
+/reports/
+/figs/
+/checkpoints/
+/checkpoints_hmdb_hausdorff/
+/transfer/
+/trx_data/
+/experiments/results/
+/[0-9][0-9][0-9][0-9]*_*.md
+/*.patch
