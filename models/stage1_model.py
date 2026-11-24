@@ -21,7 +21,7 @@ from torch.autograd import Variable
 import torchvision.models as models
 
 from utils import split_first_dim_linear
-from matching.mean_hausdorff import mean_hausdorff_bidir, pool_hausdorff, instance_class_distance
+from matching.mean_hausdorff import mean_hausdorff_bidir, pool_hausdorff, instance_class_distance, DISTANCES
 from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, setup_adapters,
                                    apply_backbone_train_mode, backbone_features)
 
@@ -109,6 +109,9 @@ class TRXSetMatching(nn.Module):
             f"Unknown matching={self.matching!r}"
         assert self.set_aggregation in ("pool", "instance"), \
             f"Unknown set_aggregation={self.set_aggregation!r}"
+        # 1126：距離函數（預設 sqeuclid = 原本的平方 L2）
+        self.distance        = getattr(args, "distance",        "sqeuclid") or "sqeuclid"
+        assert self.distance in DISTANCES, f"Unknown distance={self.distance!r}"
 
         # Warn on legacy keys that were silently ignored before
         for _legacy in ("matching_method", "bidirectional"):
@@ -119,6 +122,8 @@ class TRXSetMatching(nn.Module):
         print(f"[INFO] TRXSetMatching (pairs-only) — 距離設定見下一行 [INFO]")
         print(f"[INFO] matching={self.matching}, set_aggregation={self.set_aggregation}, "
               f"tau={self.tau}, tuples_len={self.tuples_len}, support_chunk={self.support_chunk}")
+        if self.distance != "sqeuclid":
+            print(f"[INFO] distance={self.distance}（1126 選項；非預設）")
 
     @staticmethod
     def _extract_class_indices(labels, which_class):
@@ -182,10 +187,11 @@ class TRXSetMatching(nn.Module):
 
             if self.set_aggregation == "pool":
                 dist = pool_hausdorff(q_set, class_s, mode=self.matching,
-                                      tau=self.tau, chunk_s=self.support_chunk)
+                                      tau=self.tau, chunk_s=self.support_chunk,
+                                      distance=self.distance)
             else:
                 dist = instance_class_distance(q_set, class_s, mode=self.matching,
-                                               tau=self.tau)
+                                               tau=self.tau, distance=self.distance)
 
             all_distances_tensor[:, c.long()] = -dist   # logit = -distance
 

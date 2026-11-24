@@ -566,6 +566,15 @@ class Learner:
                             help="number of stacked IntraRelation blocks")
 
         # ------------------------------------------------------------------
+        # 1126 訓練配方選項：預設值全部等於 1111 之前的行為。
+        # ------------------------------------------------------------------
+        parser.add_argument("--distance", choices=["sqeuclid", "sqeuclid_over_d", "cosine"], default="sqeuclid",
+                            help="1126：tuple 之間的距離。sqeuclid（預設）＝平方 L2（現行）；sqeuclid_over_d＝平方 L2 ÷ 特徵維度 d；"
+                                 "cosine＝1−cos（先 L2 正規化）。pool／instance、單向／雙向／attention_weighted 都適用；"
+                                 "attention_weighted 的 tau 作用在距離上，換距離後 tau 的意義會變（預設值不變）。"
+                                 "head=prototype 時不作用。")
+
+        # ------------------------------------------------------------------
         # YAML config key validation — runs after all add_argument() calls
         # so that `known` reflects every declared argument.
         # ------------------------------------------------------------------

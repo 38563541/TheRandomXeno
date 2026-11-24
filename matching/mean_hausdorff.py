@@ -21,6 +21,32 @@ import torch
 
 
 # ---------------------------------------------------------------------------
+# 1126：距離函數選項。sqeuclid（預設）走各函數原本的平方 L2 那一行，不經過這裡；
+# 其他距離在原本那一行之後用這個函數重算「兩兩距離」，之後的 min／mean／雙向平均／
+# attention 加權照用原本的程式。
+# ---------------------------------------------------------------------------
+DISTANCES = ("sqeuclid", "sqeuclid_over_d", "cosine")
+
+
+def pairwise_distance(a, b, distance):
+    """
+    a: (..., n, d)、b: (m, d) → (..., n, m)
+      sqeuclid_over_d : ||a - b||^2 / d
+      cosine          : 1 - cos(a, b)（兩邊先 L2 正規化），值域 [0, 2]
+    """
+    if distance == "sqeuclid_over_d":
+        d = a.shape[-1]
+        a_norm = (a ** 2).sum(dim=-1, keepdim=True)
+        b_norm = (b ** 2).sum(dim=-1)
+        return (a_norm + b_norm - 2.0 * torch.matmul(a, b.t())).clamp(min=0) / d
+    if distance == "cosine":
+        a_n = torch.nn.functional.normalize(a, dim=-1)
+        b_n = torch.nn.functional.normalize(b, dim=-1)
+        return (1.0 - torch.matmul(a_n, b_n.t())).clamp(min=0.0, max=2.0)
+    raise ValueError(f"pairwise_distance: unknown distance {distance!r}（可用 {DISTANCES}）")
+
+
+# ---------------------------------------------------------------------------
 # Low-level pool-based (used by TRXSetMatching)
 # ---------------------------------------------------------------------------
 
@@ -84,7 +110,7 @@ def mean_hausdorff_bidir(q_set, s_set, chunk_s=64):
 # Standardized instance-based interface (STEP 2)
 # ---------------------------------------------------------------------------
 
-def mean_hausdorff(query_embeddings, support_embeddings, bidirectional=False):
+def mean_hausdorff(query_embeddings, support_embeddings, bidirectional=False, distance="sqeuclid"):
     """
     Pairwise mean-Hausdorff distance matrix (instance-based).
 
@@ -124,6 +150,8 @@ def mean_hausdorff(query_embeddings, support_embeddings, bidirectional=False):
     s_norm = (s_flat ** 2).sum(dim=-1).unsqueeze(0)    # [1, ns*T]
     dot    = torch.matmul(q_flat, s_flat.t())           # [nq*T, ns*T]
     dist2  = (q_norm + s_norm - 2.0 * dot).clamp(min=0)
+    if distance != "sqeuclid":                         # 1126：其他距離（上一行不變）
+        dist2 = pairwise_distance(q_flat, s_flat, distance)
     dist2  = dist2.reshape(nq, T, ns, T)               # [nq, T_q, ns, T_s]
 
     # Q -> S: for each (i, j), mean over q-tuples of min over s-tuples
@@ -144,7 +172,7 @@ def mean_hausdorff(query_embeddings, support_embeddings, bidirectional=False):
 # pool_hausdorff — pool-based, three distance modes
 # ---------------------------------------------------------------------------
 
-def pool_hausdorff(q_set, s_set, mode="bidirectional", tau=0.1, chunk_s=64):
+def pool_hausdorff(q_set, s_set, mode="bidirectional", tau=0.1, chunk_s=64, distance="sqeuclid"):
     """
     Pool-based set distance: K support videos are flattened into one tuple pool.
 
@@ -178,6 +206,8 @@ def pool_hausdorff(q_set, s_set, mode="bidirectional", tau=0.1, chunk_s=64):
         s_norm = (s_chunk ** 2).sum(dim=-1).view(1, 1, -1)
         qs = torch.matmul(q_set, s_chunk.t())
         dist2 = (q_norm + s_norm - 2.0 * qs).clamp(min=0)
+        if distance != "sqeuclid":                     # 1126：其他距離（上一行不變）
+            dist2 = pairwise_distance(q_set, s_chunk, distance)
         min_dist_q = torch.minimum(min_dist_q, dist2.min(dim=-1).values)
 
     if mode == "attention_weighted":
@@ -204,6 +234,8 @@ def pool_hausdorff(q_set, s_set, mode="bidirectional", tau=0.1, chunk_s=64):
         s_norm = (s_chunk ** 2).sum(dim=-1).view(-1, 1)
         sq = torch.matmul(s_chunk, q_flat_t)
         dist2 = (s_norm + q_flat_norm - 2.0 * sq).clamp(min=0)
+        if distance != "sqeuclid":                     # 1126：其他距離（上一行不變）
+            dist2 = pairwise_distance(s_chunk, q_flat, distance)
         dist2 = dist2.view(end - start, nq, Tq)
         min_dist_s[:, start:end] = dist2.min(dim=-1).values.t()
 
@@ -215,7 +247,8 @@ def pool_hausdorff(q_set, s_set, mode="bidirectional", tau=0.1, chunk_s=64):
 # instance_class_distance — instance-based, aggregate over K shots
 # ---------------------------------------------------------------------------
 
-def instance_class_distance(q_set, class_s, mode="bidirectional", tau=0.1, reduce="mean"):
+def instance_class_distance(q_set, class_s, mode="bidirectional", tau=0.1, reduce="mean",
+                            distance="sqeuclid"):
     """
     Instance-based class distance (HyRSM style).
 
@@ -236,10 +269,10 @@ def instance_class_distance(q_set, class_s, mode="bidirectional", tau=0.1, reduc
     from matching.attention_weighted_hausdorff import attention_weighted_hausdorff
 
     if mode == "attention_weighted":
-        dmat = attention_weighted_hausdorff(q_set, class_s, tau=tau)   # (nq, k)
+        dmat = attention_weighted_hausdorff(q_set, class_s, tau=tau, distance=distance)   # (nq, k)
     elif mode in ("bidirectional", "unidirectional"):
         dmat = mean_hausdorff(q_set, class_s,
-                              bidirectional=(mode == "bidirectional"))  # (nq, k)
+                              bidirectional=(mode == "bidirectional"), distance=distance)  # (nq, k)
     else:
         raise ValueError(f"instance_class_distance: unknown mode {mode!r}")
 

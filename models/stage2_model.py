@@ -147,9 +147,11 @@ class TRXSetMatchingWithRelation(nn.Module):
             return pool_hausdorff(
                 q_set, class_s,
                 mode=cfg.matching, tau=cfg.tau, chunk_s=cfg.support_chunk,
+                distance=cfg.distance,
             )
         return instance_class_distance(
             q_set, class_s, mode=cfg.matching, tau=cfg.tau,
+            distance=cfg.distance,
         )
 
     def forward(self, support_set, support_labels, queries):

@@ -25,8 +25,10 @@ Interface matches STEP 2 spec:
 
 import torch
 
+from matching.mean_hausdorff import pairwise_distance   # 1126
 
-def attention_weighted_hausdorff(query_embeddings, support_embeddings, tau=0.1):
+
+def attention_weighted_hausdorff(query_embeddings, support_embeddings, tau=0.1, distance="sqeuclid"):
     """
     Attention-weighted Hausdorff distance (instance-based pairwise matrix).
 
@@ -57,6 +59,8 @@ def attention_weighted_hausdorff(query_embeddings, support_embeddings, tau=0.1):
     s_norm = (s_flat ** 2).sum(dim=-1).unsqueeze(0)   # [1, ns*T]
     dot    = torch.matmul(q_flat, s_flat.t())          # [nq*T, ns*T]
     dist2  = (q_norm + s_norm - 2.0 * dot).clamp(min=0)
+    if distance != "sqeuclid":                        # 1126：其他距離（上一行不變）
+        dist2 = pairwise_distance(q_flat, s_flat, distance)
     dist2  = dist2.reshape(nq, T, ns, T)              # [nq, T_q, ns, T_s]
 
     # --- nearest-support distance per query tuple ---
