@@ -10,6 +10,7 @@ import sys
 from utils import print_and_log, get_log_files, TestAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir, task_confusion
 from model import CNN_TRX
 from models.backbone_adapt import adapter_alpha
+from models.recipe import logit_scale_value
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Quiet TensorFlow warnings
 import tensorflow as tf
 
@@ -211,6 +212,18 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval,
 
 
 
+
+
+def _str2bool(v):
+    """1126：布林選項（CLI 與 YAML 都能用）。"""
+    if isinstance(v, bool):
+        return v
+    s = str(v).strip().lower()
+    if s in ("1", "true", "yes", "y", "on"):
+        return True
+    if s in ("0", "false", "no", "n", "off"):
+        return False
+    raise argparse.ArgumentTypeError(f"不是布林值：{v!r}")
 
 
 def main():
@@ -573,6 +586,12 @@ class Learner:
                                  "cosine＝1−cos（先 L2 正規化）。pool／instance、單向／雙向／attention_weighted 都適用；"
                                  "attention_weighted 的 tau 作用在距離上，換距離後 tau 的意義會變（預設值不變）。"
                                  "head=prototype 時不作用。")
+        parser.add_argument("--logit_scale", type=float, default=None,
+                            help="1126：logit 溫度。預設不設定＝不縮放（logits＝−距離，現行）；設定後 logits＝logit_scale×(−距離)，"
+                                 "在 CNN 層級套用，head=set／prototype 都作用。")
+        parser.add_argument("--logit_scale_learnable", type=_str2bool, default=False,
+                            help="1126：true＝logit_scale 可學（存 log(scale)、前向取 exp，初始值＝logit_scale；需要同時設定 logit_scale）。"
+                                 "預設 false。")
 
         # ------------------------------------------------------------------
         # YAML config key validation — runs after all add_argument() calls
@@ -895,6 +914,9 @@ class Learner:
                         _alpha = adapter_alpha(self.model)
                         if _alpha is not None:
                             print_and_log(self.logfile, "[adapter] iter {} alpha {:.6g}".format(iteration + 1, _alpha))
+                        _ls = logit_scale_value(self.model)       # 1126：只在設定 logit_scale 時印
+                        if _ls is not None:
+                            print_and_log(self.logfile, "[logit_scale] iter {} value {:.6g}".format(iteration + 1, _ls))
                         train_accuracies = []
                         losses = []
 

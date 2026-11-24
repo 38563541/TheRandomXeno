@@ -22,6 +22,7 @@ import torchvision.models as models
 
 from utils import split_first_dim_linear
 from matching.mean_hausdorff import mean_hausdorff_bidir, pool_hausdorff, instance_class_distance, DISTANCES
+from models.recipe import setup_logit_scale, logit_scale_enabled, apply_logit_scale   # 1126
 from models.backbone_adapt import (normalize_backbone_mode, setup_partial_l4, setup_adapters,
                                    apply_backbone_train_mode, backbone_features)
 
@@ -247,6 +248,8 @@ class CNN_TRX(nn.Module):
         )
         # 1005: side／adapter 在匹配頭之後建立 → 同 seed 下匹配頭初始化與 frozen 相同
         setup_adapters(self)
+        # 1126：logit 溫度（只在設定 logit_scale 時建立；放在所有既有模組之後）
+        setup_logit_scale(self, args)
 
     def _ckpt_chain(self):
         """攤平 layer1-4 成個別 residual block 的視圖，不重新註冊 → state_dict 鍵名不變。"""
@@ -352,6 +355,8 @@ class CNN_TRX(nn.Module):
         ]
         all_logits = torch.stack(all_logits, dim=-1)
         sample_logits = torch.mean(all_logits, dim=[-1])
+        if logit_scale_enabled(self):      # 1126：logit_scale（預設不縮放，不進這裡）
+            sample_logits = apply_logit_scale(self, sample_logits)
 
         if _prof:
             _e2.record()
