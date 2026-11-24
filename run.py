@@ -15,6 +15,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Quiet TensorFlow warnings
 import tensorflow as tf
 
 from torch.optim.lr_scheduler import MultiStepLR
+from torch.optim.lr_scheduler import LambdaLR   # 1126：lr_schedule=cosine
+import math
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
 import video_reader
@@ -214,6 +216,20 @@ def _log_result_csv(args, iteration, mean_accuracy, confidence_interval,
 
 
 
+def cosine_lr_lambda(warmup_iters, total_iters):
+    """1126：LambdaLR 的倍率函數，t＝已呼叫 scheduler.step() 的次數（每個 iteration 一次）。
+    t < warmup：t／warmup（從 0 線性升到 1）；warmup ≤ t ≤ total：0.5·(1＋cos(π·(t−warmup)／(total−warmup)))；
+    t > total：0。"""
+    def f(t):
+        if warmup_iters > 0 and t < warmup_iters:
+            return t / warmup_iters
+        if t >= total_iters:
+            return 0.0
+        span = max(1, total_iters - warmup_iters)
+        return 0.5 * (1.0 + math.cos(math.pi * (t - warmup_iters) / span))
+    return f
+
+
 def _str2bool(v):
     """1126：布林選項（CLI 與 YAML 都能用）。"""
     if isinstance(v, bool):
@@ -292,6 +308,19 @@ class Learner:
             self.optimizer = torch.optim.Adam(trainable, lr=self.args.learning_rate)
         elif self.args.opt == "sgd":
             self.optimizer = torch.optim.SGD(trainable, lr=self.args.learning_rate)
+        # 1126：momentum／weight_decay。兩個都是 0（預設）時只執行上面原本那一行；
+        # 有一個不是 0 才改用下面這一行（norm／bias 也一起加 weight decay，沒有做參數分組）。
+        _mom = float(getattr(self.args, "momentum", 0.0) or 0.0)
+        _wd = float(getattr(self.args, "weight_decay", 0.0) or 0.0)
+        if _mom != 0.0 or _wd != 0.0:
+            if self.args.opt == "adam":
+                if _mom != 0.0:
+                    print(f"[WARN] opt=adam 不使用 momentum={_mom}，忽略", flush=True)
+                self.optimizer = torch.optim.Adam(trainable, lr=self.args.learning_rate, weight_decay=_wd)
+            elif self.args.opt == "sgd":
+                self.optimizer = torch.optim.SGD(trainable, lr=self.args.learning_rate, momentum=_mom, weight_decay=_wd)
+            print(f"[INFO] optimizer={self.args.opt} momentum={_mom if self.args.opt == 'sgd' else 0.0} "
+                  f"weight_decay={_wd}", flush=True)
         self.test_accuracies = TestAccuracies(self.test_set)
 
         # 0922 AMP：GradScaler 只在 --amp fp16 時真的生效（enabled=False 時
@@ -300,6 +329,16 @@ class Learner:
         self.scaler = torch.cuda.amp.GradScaler(enabled=(getattr(self.args, "amp", "off") == "fp16"))
 
         self.scheduler = MultiStepLR(self.optimizer, milestones=self.args.sch, gamma=0.1)
+        # 1126：lr_schedule=cosine 時改用 LambdaLR（step＝預設，只執行上面原本那一行）。
+        _sched = getattr(self.args, "lr_schedule", "step") or "step"
+        _warm = int(getattr(self.args, "warmup_iters", 0) or 0)
+        if _sched == "cosine":
+            self.scheduler = LambdaLR(self.optimizer,
+                                      lr_lambda=cosine_lr_lambda(_warm, self.args.training_iterations))
+            print(f"[INFO] lr_schedule=cosine warmup_iters={_warm} total={self.args.training_iterations}"
+                  f"（單位：iteration／episode）", flush=True)
+        elif _warm > 0:
+            print(f"[WARN] warmup_iters={_warm} 只在 lr_schedule=cosine 時作用；lr_schedule=step 下忽略", flush=True)
         
         self.start_iteration = 0
         if self.args.resume_from_checkpoint:
@@ -592,6 +631,16 @@ class Learner:
         parser.add_argument("--logit_scale_learnable", type=_str2bool, default=False,
                             help="1126：true＝logit_scale 可學（存 log(scale)、前向取 exp，初始值＝logit_scale；需要同時設定 logit_scale）。"
                                  "預設 false。")
+        parser.add_argument("--momentum", type=float, default=0.0,
+                            help="1126：SGD momentum。預設 0.0（現行）。opt=adam 時印警告並忽略。")
+        parser.add_argument("--weight_decay", type=float, default=0.0,
+                            help="1126：weight decay（SGD 與 Adam 都傳）。預設 0.0（現行）。沒有做 norm／bias 不加 decay 的參數分組。")
+        parser.add_argument("--lr_schedule", choices=["step", "cosine"], default="step",
+                            help="1126：step（預設）＝現行 MultiStepLR(milestones=--sch, gamma=0.1)；"
+                                 "cosine＝LambdaLR：warmup_iters 內從 0 線性升到 lr，之後 cosine 降到 0，終點＝training_iterations。"
+                                 "步數單位是 iteration（episode），和 run.py 每個 iteration 呼叫一次 scheduler.step() 一致。")
+        parser.add_argument("--warmup_iters", type=int, default=0,
+                            help="1126：cosine 的線性 warmup 長度（iteration）。預設 0。lr_schedule=step 時不作用。")
 
         # ------------------------------------------------------------------
         # YAML config key validation — runs after all add_argument() calls
@@ -914,6 +963,9 @@ class Learner:
                         _alpha = adapter_alpha(self.model)
                         if _alpha is not None:
                             print_and_log(self.logfile, "[adapter] iter {} alpha {:.6g}".format(iteration + 1, _alpha))
+                        if (getattr(self.args, "lr_schedule", "step") or "step") != "step":   # 1126：只在非預設排程時印
+                            print_and_log(self.logfile, "[lr] iter {} lr {:.6g}".format(
+                                iteration + 1, self.optimizer.param_groups[0]["lr"]))
                         _ls = logit_scale_value(self.model)       # 1126：只在設定 logit_scale 時印
                         if _ls is not None:
                             print_and_log(self.logfile, "[logit_scale] iter {} value {:.6g}".format(iteration + 1, _ls))
